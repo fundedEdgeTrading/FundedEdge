@@ -80,6 +80,7 @@ public static class DependencyInjection
         services.AddScoped<ITradeRebuildService, TradeRebuildService>();
         services.AddScoped<IExecutionIngestService, ExecutionIngestService>();
         services.AddScoped<ICsvTradeImportService, CsvTradeImportService>();
+        services.AddScoped<IGenericCsvImportService, Integrations.GenericCsv.GenericCsvImportService>();
         services.AddScoped<ITradeSyncOrchestrator, TradeSyncOrchestrator>();
         services.AddScoped<IIntegrationSettingsStore, DataProtectedIntegrationSettingsStore>();
         services.AddScoped<IIntegrationSettingsService, IntegrationSettingsService>();
@@ -88,6 +89,8 @@ public static class DependencyInjection
         services.AddScoped<ICurrencyPreferenceService, CurrencyPreferenceService>();
         services.AddScoped<IPlanService, PlanService>();
         services.AddScoped<IPublicProfileService, PublicProfileService>();
+        services.AddScoped<IPsychologyService, PsychologyService>();
+        services.AddScoped<IRuleComplianceService, RuleComplianceService>();
         services.AddHostedService<TradeSyncService>();
 
         AddAi(services, configuration);
@@ -158,5 +161,6 @@ public static class DependencyInjection
 
         services.AddScoped<ITradingAnalystService, ClaudeTradingAnalystService>();
         services.AddHostedService<WeeklyAiReportService>();
+        services.AddHostedService<ProactiveInsightService>();
     }
 }

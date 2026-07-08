@@ -1,0 +1,28 @@
+@* % de trades con plan seguido, por semana. *@
+@inject IStringLocalizer<SharedResources> L
+
+@if (Points.Count == 0)
+{
+    <EmptyState Title="@L["Sin datos suficientes"]" Text="@L["Registra la adherencia a tu plan en cada trade para ver esta tendencia."]" />
+}
+else
+{
+    <div class="emotion-perf-list">
+        @foreach (var p in Points)
+        {
+            <div class="emotion-perf-row">
+                <div class="emotion-perf-label">@p.WeekStart.ToString("d MMM")</div>
+                <div class="emotion-perf-track">
+                    <div class="emotion-perf-bar bar-good" style="width:@F(p.FollowedPlanRate * 100)%"></div>
+                </div>
+                <div class="emotion-perf-value">@((p.FollowedPlanRate).ToString("P0"))</div>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<TrackRecord.Application.Dtos.DisciplineTrendPoint> Points { get; set; } = [];
+
+    private static string F(double v) => v.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture);
+}

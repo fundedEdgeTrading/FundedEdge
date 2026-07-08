@@ -1,0 +1,38 @@
+@* Barras divergentes: expectancy media (R) por emoción de entrada — "cuánto te cuesta cada emoción". *@
+@using TrackRecord.Web.Support
+
+@if (Points.Count == 0)
+{
+    <EmptyState Title="Sin datos suficientes" Text="Registra emociones de entrada en tus trades para ver esta gráfica." />
+}
+else
+{
+    <div class="emotion-perf-list">
+        @foreach (var p in Points)
+        {
+            var r = p.AvgRMultiple ?? 0m;
+            var pct = _max == 0 ? 0 : (double)Math.Abs(r) / _max * 100;
+            <div class="emotion-perf-row">
+                <div class="emotion-perf-label">@EmotionDisplay.Emoji(p.Emotion) @EmotionDisplay.Label(p.Emotion) <span class="text-muted small">(n=@p.TradeCount)</span></div>
+                <div class="emotion-perf-track">
+                    <div class="emotion-perf-bar @(r >= 0 ? "bar-good" : "bar-bad")" style="width:@F(pct)%"></div>
+                </div>
+                <div class="emotion-perf-value @(r >= 0 ? "text-success" : "text-danger")">@(p.AvgRMultiple is null ? "—" : $"{r:0.00}R")</div>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<TrackRecord.Application.Dtos.EmotionPerformancePoint> Points { get; set; } = [];
+
+    private double _max;
+
+    protected override void OnParametersSet()
+    {
+        _max = Points.Count == 0 ? 0 : Points.Max(p => (double)Math.Abs(p.AvgRMultiple ?? 0m));
+        if (_max == 0) _max = 1;
+    }
+
+    private static string F(double v) => v.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture);
+}
