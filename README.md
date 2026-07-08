@@ -1,4 +1,4 @@
-# TrackRecord
+# FundedEdge
 
 Aplicación .NET 10 (Blazor Server) para registrar cuentas de fondeo (Lucid Trading, Tradeify, Apex y otras), su ciclo de vida, costes y payouts, y un dashboard de KPIs de trading y de negocio.
 
