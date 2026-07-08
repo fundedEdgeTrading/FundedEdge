@@ -13,79 +13,92 @@ namespace TrackRecord.Infrastructure.Persistence.Migrations
     /// modalidades de cuenta (tamaños) de las 7 firmas ya sembradas, y corrige reglas de
     /// evaluación/fondeo/payout de los programas existentes con datos más precisos (ver
     /// SeedData.Programs). Solo datos: no cambia el esquema. Self-contained (sin .Designer.cs,
-    /// ver comentario en 20260705130000_AddEvaluationPrograms) con columnTypes explícitos.
+    /// ver comentario en 20260705130000_AddEvaluationPrograms) con columnTypes explícitos: sin
+    /// TargetModel de diseño, UpdateData/DeleteData necesitan keyColumnType/columnTypes
+    /// explícitos (la sobrecarga de un solo keyColumn no acepta columnTypes).
     /// </summary>
     [DbContext(typeof(TrackRecordDbContext))]
     [Migration("20260708180000_ExpandEvaluationProgramCatalog")]
     public partial class ExpandEvaluationProgramCatalog : Migration
     {
+        private static readonly string[] _idKeyColumns = { "Id" };
+        private static readonly string[] _idKeyColumnTypes = { "uniqueidentifier" };
+
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             // ── Tradeify 50K/100K: añade daily loss limit (Growth, soft breach) y corrige split a 90/10 ──
             migrationBuilder.UpdateData(
-                table: "EvaluationPrograms", keyColumn: "Id",
-                keyValue: new Guid("b0000000-0000-0000-0000-000000000003"),
+                table: "EvaluationPrograms", keyColumns: _idKeyColumns, keyColumnTypes: _idKeyColumnTypes,
+                keyValues: new object[] { new Guid("b0000000-0000-0000-0000-000000000003") },
                 columns: new[] { "DailyLossLimit", "FundedDailyLossLimit", "PayoutSplitTraderPct" },
+                columnTypes: new[] { "decimal(18,2)", "decimal(18,2)", "decimal(18,2)" },
                 values: new object[] { 1250m, 1250m, 0.90m });
 
             migrationBuilder.UpdateData(
-                table: "EvaluationPrograms", keyColumn: "Id",
-                keyValue: new Guid("b0000000-0000-0000-0000-000000000004"),
+                table: "EvaluationPrograms", keyColumns: _idKeyColumns, keyColumnTypes: _idKeyColumnTypes,
+                keyValues: new object[] { new Guid("b0000000-0000-0000-0000-000000000004") },
                 columns: new[] { "DailyLossLimit", "FundedDailyLossLimit", "PayoutSplitTraderPct" },
+                columnTypes: new[] { "decimal(18,2)", "decimal(18,2)", "decimal(18,2)" },
                 values: new object[] { 2500m, 2500m, 0.90m });
 
             // ── Topstep 50K/100K: payouts quincenales (14 días), no semanales ──────────────────
             migrationBuilder.UpdateData(
-                table: "EvaluationPrograms", keyColumn: "Id",
-                keyValue: new Guid("b0000000-0000-0000-0000-000000000007"),
-                columns: new[] { "PayoutMinDaysBetween" }, values: new object[] { 14 });
+                table: "EvaluationPrograms", keyColumns: _idKeyColumns, keyColumnTypes: _idKeyColumnTypes,
+                keyValues: new object[] { new Guid("b0000000-0000-0000-0000-000000000007") },
+                columns: new[] { "PayoutMinDaysBetween" }, columnTypes: new[] { "int" }, values: new object[] { 14 });
 
             migrationBuilder.UpdateData(
-                table: "EvaluationPrograms", keyColumn: "Id",
-                keyValue: new Guid("b0000000-0000-0000-0000-000000000008"),
-                columns: new[] { "PayoutMinDaysBetween" }, values: new object[] { 14 });
+                table: "EvaluationPrograms", keyColumns: _idKeyColumns, keyColumnTypes: _idKeyColumnTypes,
+                keyValues: new object[] { new Guid("b0000000-0000-0000-0000-000000000008") },
+                columns: new[] { "PayoutMinDaysBetween" }, columnTypes: new[] { "int" }, values: new object[] { 14 });
 
             // ── MyFundedFutures 50K/100K: recaracteriza como plan Rapid (sin activación, sin daily
             //    loss, consistencia 50%, payouts cada 5 días) ────────────────────────────────────
             migrationBuilder.UpdateData(
-                table: "EvaluationPrograms", keyColumn: "Id",
-                keyValue: new Guid("b0000000-0000-0000-0000-000000000009"),
+                table: "EvaluationPrograms", keyColumns: _idKeyColumns, keyColumnTypes: _idKeyColumnTypes,
+                keyValues: new object[] { new Guid("b0000000-0000-0000-0000-000000000009") },
                 columns: new[] { "Name", "ActivationCost", "MaxDrawdown", "DailyLossLimit", "ConsistencyMaxDayFraction", "FundedMaxDrawdown", "FundedDailyLossLimit", "PayoutMinDaysBetween" },
+                columnTypes: new[] { "nvarchar(200)", "decimal(18,2)", "decimal(18,2)", "decimal(18,2)", "decimal(5,4)", "decimal(18,2)", "decimal(18,2)", "int" },
                 values: new object[] { "MFF Rapid 50K", 0m, 2000m, null, 0.50m, 2000m, null, 5 });
 
             migrationBuilder.UpdateData(
-                table: "EvaluationPrograms", keyColumn: "Id",
-                keyValue: new Guid("b0000000-0000-0000-0000-000000000010"),
+                table: "EvaluationPrograms", keyColumns: _idKeyColumns, keyColumnTypes: _idKeyColumnTypes,
+                keyValues: new object[] { new Guid("b0000000-0000-0000-0000-000000000010") },
                 columns: new[] { "Name", "ActivationCost", "DailyLossLimit", "ConsistencyMaxDayFraction", "FundedDailyLossLimit", "PayoutMinDaysBetween" },
+                columnTypes: new[] { "nvarchar(200)", "decimal(18,2)", "decimal(18,2)", "decimal(5,4)", "decimal(18,2)", "int" },
                 values: new object[] { "MFF Rapid 100K", 0m, null, 0.50m, null, 5 });
 
             // ── Take Profit Trader 50K/100K: EOD en evaluación (pasa a intradía al fondear), split
             //    80/20, mínimo 5 días (no 10) ─────────────────────────────────────────────────────
             migrationBuilder.UpdateData(
-                table: "EvaluationPrograms", keyColumn: "Id",
-                keyValue: new Guid("b0000000-0000-0000-0000-000000000011"),
+                table: "EvaluationPrograms", keyColumns: _idKeyColumns, keyColumnTypes: _idKeyColumnTypes,
+                keyValues: new object[] { new Guid("b0000000-0000-0000-0000-000000000011") },
                 columns: new[] { "MaxDrawdown", "DrawdownType", "MinTradingDays", "FundedMaxDrawdown", "PayoutSplitTraderPct" },
+                columnTypes: new[] { "decimal(18,2)", "int", "int", "decimal(18,2)", "decimal(18,2)" },
                 values: new object[] { 2000m, 1, 5, 2000m, 0.80m });
 
             migrationBuilder.UpdateData(
-                table: "EvaluationPrograms", keyColumn: "Id",
-                keyValue: new Guid("b0000000-0000-0000-0000-000000000012"),
+                table: "EvaluationPrograms", keyColumns: _idKeyColumns, keyColumnTypes: _idKeyColumnTypes,
+                keyValues: new object[] { new Guid("b0000000-0000-0000-0000-000000000012") },
                 columns: new[] { "DrawdownType", "MinTradingDays", "PayoutSplitTraderPct" },
+                columnTypes: new[] { "int", "int", "decimal(18,2)" },
                 values: new object[] { 1, 5, 0.80m });
 
             // ── Earn2Trade: renombra/reescala los dos programas existentes a la gama real de
             //    Gauntlet Mini (arranca en 50K, no 25K) y corrige tipo de drawdown a EOD ──────────
             migrationBuilder.UpdateData(
-                table: "EvaluationPrograms", keyColumn: "Id",
-                keyValue: new Guid("b0000000-0000-0000-0000-000000000013"),
+                table: "EvaluationPrograms", keyColumns: _idKeyColumns, keyColumnTypes: _idKeyColumnTypes,
+                keyValues: new object[] { new Guid("b0000000-0000-0000-0000-000000000013") },
                 columns: new[] { "Name", "AccountSize", "EvaluationCost", "ProfitTarget", "MaxDrawdown", "DrawdownType", "DailyLossLimit", "MinTradingDays", "ConsistencyMaxDayFraction", "FundedMaxDrawdown", "FundedDrawdownType" },
+                columnTypes: new[] { "nvarchar(200)", "decimal(18,2)", "decimal(18,2)", "decimal(18,2)", "decimal(18,2)", "int", "decimal(18,2)", "int", "decimal(5,4)", "decimal(18,2)", "int" },
                 values: new object[] { "E2T Gauntlet Mini 100K", 100000m, 430m, 6000m, 4000m, 1, 2200m, 10, 0.30m, 4000m, 1 });
 
             migrationBuilder.UpdateData(
-                table: "EvaluationPrograms", keyColumn: "Id",
-                keyValue: new Guid("b0000000-0000-0000-0000-000000000014"),
+                table: "EvaluationPrograms", keyColumns: _idKeyColumns, keyColumnTypes: _idKeyColumnTypes,
+                keyValues: new object[] { new Guid("b0000000-0000-0000-0000-000000000014") },
                 columns: new[] { "Name", "DrawdownType", "DailyLossLimit", "MinTradingDays", "ConsistencyMaxDayFraction", "FundedDrawdownType" },
+                columnTypes: new[] { "nvarchar(200)", "int", "decimal(18,2)", "int", "decimal(5,4)", "int" },
                 values: new object[] { "E2T Gauntlet Mini 50K", 1, 1100m, 10, 0.30m, 1 });
 
             // ── Nuevas modalidades de cuenta (todos los tamaños que faltaban) ──────────────────
@@ -115,77 +128,85 @@ namespace TrackRecord.Infrastructure.Persistence.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DeleteData(table: "EvaluationPrograms", keyColumn: "Id", keyValue: new Guid("b0000000-0000-0000-0000-000000000015"));
-            migrationBuilder.DeleteData(table: "EvaluationPrograms", keyColumn: "Id", keyValue: new Guid("b0000000-0000-0000-0000-000000000016"));
-            migrationBuilder.DeleteData(table: "EvaluationPrograms", keyColumn: "Id", keyValue: new Guid("b0000000-0000-0000-0000-000000000017"));
-            migrationBuilder.DeleteData(table: "EvaluationPrograms", keyColumn: "Id", keyValue: new Guid("b0000000-0000-0000-0000-000000000018"));
-            migrationBuilder.DeleteData(table: "EvaluationPrograms", keyColumn: "Id", keyValue: new Guid("b0000000-0000-0000-0000-000000000019"));
-            migrationBuilder.DeleteData(table: "EvaluationPrograms", keyColumn: "Id", keyValue: new Guid("b0000000-0000-0000-0000-000000000020"));
-            migrationBuilder.DeleteData(table: "EvaluationPrograms", keyColumn: "Id", keyValue: new Guid("b0000000-0000-0000-0000-000000000021"));
-            migrationBuilder.DeleteData(table: "EvaluationPrograms", keyColumn: "Id", keyValue: new Guid("b0000000-0000-0000-0000-000000000022"));
-            migrationBuilder.DeleteData(table: "EvaluationPrograms", keyColumn: "Id", keyValue: new Guid("b0000000-0000-0000-0000-000000000023"));
-            migrationBuilder.DeleteData(table: "EvaluationPrograms", keyColumn: "Id", keyValue: new Guid("b0000000-0000-0000-0000-000000000024"));
-            migrationBuilder.DeleteData(table: "EvaluationPrograms", keyColumn: "Id", keyValue: new Guid("b0000000-0000-0000-0000-000000000025"));
-            migrationBuilder.DeleteData(table: "EvaluationPrograms", keyColumn: "Id", keyValue: new Guid("b0000000-0000-0000-0000-000000000026"));
-            migrationBuilder.DeleteData(table: "EvaluationPrograms", keyColumn: "Id", keyValue: new Guid("b0000000-0000-0000-0000-000000000027"));
-            migrationBuilder.DeleteData(table: "EvaluationPrograms", keyColumn: "Id", keyValue: new Guid("b0000000-0000-0000-0000-000000000028"));
+            migrationBuilder.DeleteData(table: "EvaluationPrograms", keyColumn: "Id", keyColumnType: "uniqueidentifier", keyValue: new Guid("b0000000-0000-0000-0000-000000000015"));
+            migrationBuilder.DeleteData(table: "EvaluationPrograms", keyColumn: "Id", keyColumnType: "uniqueidentifier", keyValue: new Guid("b0000000-0000-0000-0000-000000000016"));
+            migrationBuilder.DeleteData(table: "EvaluationPrograms", keyColumn: "Id", keyColumnType: "uniqueidentifier", keyValue: new Guid("b0000000-0000-0000-0000-000000000017"));
+            migrationBuilder.DeleteData(table: "EvaluationPrograms", keyColumn: "Id", keyColumnType: "uniqueidentifier", keyValue: new Guid("b0000000-0000-0000-0000-000000000018"));
+            migrationBuilder.DeleteData(table: "EvaluationPrograms", keyColumn: "Id", keyColumnType: "uniqueidentifier", keyValue: new Guid("b0000000-0000-0000-0000-000000000019"));
+            migrationBuilder.DeleteData(table: "EvaluationPrograms", keyColumn: "Id", keyColumnType: "uniqueidentifier", keyValue: new Guid("b0000000-0000-0000-0000-000000000020"));
+            migrationBuilder.DeleteData(table: "EvaluationPrograms", keyColumn: "Id", keyColumnType: "uniqueidentifier", keyValue: new Guid("b0000000-0000-0000-0000-000000000021"));
+            migrationBuilder.DeleteData(table: "EvaluationPrograms", keyColumn: "Id", keyColumnType: "uniqueidentifier", keyValue: new Guid("b0000000-0000-0000-0000-000000000022"));
+            migrationBuilder.DeleteData(table: "EvaluationPrograms", keyColumn: "Id", keyColumnType: "uniqueidentifier", keyValue: new Guid("b0000000-0000-0000-0000-000000000023"));
+            migrationBuilder.DeleteData(table: "EvaluationPrograms", keyColumn: "Id", keyColumnType: "uniqueidentifier", keyValue: new Guid("b0000000-0000-0000-0000-000000000024"));
+            migrationBuilder.DeleteData(table: "EvaluationPrograms", keyColumn: "Id", keyColumnType: "uniqueidentifier", keyValue: new Guid("b0000000-0000-0000-0000-000000000025"));
+            migrationBuilder.DeleteData(table: "EvaluationPrograms", keyColumn: "Id", keyColumnType: "uniqueidentifier", keyValue: new Guid("b0000000-0000-0000-0000-000000000026"));
+            migrationBuilder.DeleteData(table: "EvaluationPrograms", keyColumn: "Id", keyColumnType: "uniqueidentifier", keyValue: new Guid("b0000000-0000-0000-0000-000000000027"));
+            migrationBuilder.DeleteData(table: "EvaluationPrograms", keyColumn: "Id", keyColumnType: "uniqueidentifier", keyValue: new Guid("b0000000-0000-0000-0000-000000000028"));
 
             migrationBuilder.UpdateData(
-                table: "EvaluationPrograms", keyColumn: "Id",
-                keyValue: new Guid("b0000000-0000-0000-0000-000000000003"),
+                table: "EvaluationPrograms", keyColumns: _idKeyColumns, keyColumnTypes: _idKeyColumnTypes,
+                keyValues: new object[] { new Guid("b0000000-0000-0000-0000-000000000003") },
                 columns: new[] { "DailyLossLimit", "FundedDailyLossLimit", "PayoutSplitTraderPct" },
+                columnTypes: new[] { "decimal(18,2)", "decimal(18,2)", "decimal(18,2)" },
                 values: new object[] { null, null, 0.80m });
 
             migrationBuilder.UpdateData(
-                table: "EvaluationPrograms", keyColumn: "Id",
-                keyValue: new Guid("b0000000-0000-0000-0000-000000000004"),
+                table: "EvaluationPrograms", keyColumns: _idKeyColumns, keyColumnTypes: _idKeyColumnTypes,
+                keyValues: new object[] { new Guid("b0000000-0000-0000-0000-000000000004") },
                 columns: new[] { "DailyLossLimit", "FundedDailyLossLimit", "PayoutSplitTraderPct" },
+                columnTypes: new[] { "decimal(18,2)", "decimal(18,2)", "decimal(18,2)" },
                 values: new object[] { null, null, 0.80m });
 
             migrationBuilder.UpdateData(
-                table: "EvaluationPrograms", keyColumn: "Id",
-                keyValue: new Guid("b0000000-0000-0000-0000-000000000007"),
-                columns: new[] { "PayoutMinDaysBetween" }, values: new object[] { 7 });
+                table: "EvaluationPrograms", keyColumns: _idKeyColumns, keyColumnTypes: _idKeyColumnTypes,
+                keyValues: new object[] { new Guid("b0000000-0000-0000-0000-000000000007") },
+                columns: new[] { "PayoutMinDaysBetween" }, columnTypes: new[] { "int" }, values: new object[] { 7 });
 
             migrationBuilder.UpdateData(
-                table: "EvaluationPrograms", keyColumn: "Id",
-                keyValue: new Guid("b0000000-0000-0000-0000-000000000008"),
-                columns: new[] { "PayoutMinDaysBetween" }, values: new object[] { 7 });
+                table: "EvaluationPrograms", keyColumns: _idKeyColumns, keyColumnTypes: _idKeyColumnTypes,
+                keyValues: new object[] { new Guid("b0000000-0000-0000-0000-000000000008") },
+                columns: new[] { "PayoutMinDaysBetween" }, columnTypes: new[] { "int" }, values: new object[] { 7 });
 
             migrationBuilder.UpdateData(
-                table: "EvaluationPrograms", keyColumn: "Id",
-                keyValue: new Guid("b0000000-0000-0000-0000-000000000009"),
+                table: "EvaluationPrograms", keyColumns: _idKeyColumns, keyColumnTypes: _idKeyColumnTypes,
+                keyValues: new object[] { new Guid("b0000000-0000-0000-0000-000000000009") },
                 columns: new[] { "Name", "ActivationCost", "MaxDrawdown", "DailyLossLimit", "ConsistencyMaxDayFraction", "FundedMaxDrawdown", "FundedDailyLossLimit", "PayoutMinDaysBetween" },
+                columnTypes: new[] { "nvarchar(200)", "decimal(18,2)", "decimal(18,2)", "decimal(18,2)", "decimal(5,4)", "decimal(18,2)", "decimal(18,2)", "int" },
                 values: new object[] { "MFF 50K", 135m, 2500m, 1000m, null, 2500m, 1000m, 14 });
 
             migrationBuilder.UpdateData(
-                table: "EvaluationPrograms", keyColumn: "Id",
-                keyValue: new Guid("b0000000-0000-0000-0000-000000000010"),
+                table: "EvaluationPrograms", keyColumns: _idKeyColumns, keyColumnTypes: _idKeyColumnTypes,
+                keyValues: new object[] { new Guid("b0000000-0000-0000-0000-000000000010") },
                 columns: new[] { "Name", "ActivationCost", "DailyLossLimit", "ConsistencyMaxDayFraction", "FundedDailyLossLimit", "PayoutMinDaysBetween" },
+                columnTypes: new[] { "nvarchar(200)", "decimal(18,2)", "decimal(18,2)", "decimal(5,4)", "decimal(18,2)", "int" },
                 values: new object[] { "MFF 100K", 135m, 2000m, null, 2000m, 14 });
 
             migrationBuilder.UpdateData(
-                table: "EvaluationPrograms", keyColumn: "Id",
-                keyValue: new Guid("b0000000-0000-0000-0000-000000000011"),
+                table: "EvaluationPrograms", keyColumns: _idKeyColumns, keyColumnTypes: _idKeyColumnTypes,
+                keyValues: new object[] { new Guid("b0000000-0000-0000-0000-000000000011") },
                 columns: new[] { "MaxDrawdown", "DrawdownType", "MinTradingDays", "FundedMaxDrawdown", "PayoutSplitTraderPct" },
+                columnTypes: new[] { "decimal(18,2)", "int", "int", "decimal(18,2)", "decimal(18,2)" },
                 values: new object[] { 2500m, 0, 10, 2500m, 0.85m });
 
             migrationBuilder.UpdateData(
-                table: "EvaluationPrograms", keyColumn: "Id",
-                keyValue: new Guid("b0000000-0000-0000-0000-000000000012"),
+                table: "EvaluationPrograms", keyColumns: _idKeyColumns, keyColumnTypes: _idKeyColumnTypes,
+                keyValues: new object[] { new Guid("b0000000-0000-0000-0000-000000000012") },
                 columns: new[] { "DrawdownType", "MinTradingDays", "PayoutSplitTraderPct" },
+                columnTypes: new[] { "int", "int", "decimal(18,2)" },
                 values: new object[] { 0, 10, 0.85m });
 
             migrationBuilder.UpdateData(
-                table: "EvaluationPrograms", keyColumn: "Id",
-                keyValue: new Guid("b0000000-0000-0000-0000-000000000013"),
+                table: "EvaluationPrograms", keyColumns: _idKeyColumns, keyColumnTypes: _idKeyColumnTypes,
+                keyValues: new object[] { new Guid("b0000000-0000-0000-0000-000000000013") },
                 columns: new[] { "Name", "AccountSize", "EvaluationCost", "ProfitTarget", "MaxDrawdown", "DrawdownType", "DailyLossLimit", "MinTradingDays", "ConsistencyMaxDayFraction", "FundedMaxDrawdown", "FundedDrawdownType" },
+                columnTypes: new[] { "nvarchar(200)", "decimal(18,2)", "decimal(18,2)", "decimal(18,2)", "decimal(18,2)", "int", "decimal(18,2)", "int", "decimal(5,4)", "decimal(18,2)", "int" },
                 values: new object[] { "E2T Gauntlet Mini 25K", 25000m, 150m, 1500m, 1500m, 0, null, 15, null, 1500m, 0 });
 
             migrationBuilder.UpdateData(
-                table: "EvaluationPrograms", keyColumn: "Id",
-                keyValue: new Guid("b0000000-0000-0000-0000-000000000014"),
+                table: "EvaluationPrograms", keyColumns: _idKeyColumns, keyColumnTypes: _idKeyColumnTypes,
+                keyValues: new object[] { new Guid("b0000000-0000-0000-0000-000000000014") },
                 columns: new[] { "Name", "DrawdownType", "DailyLossLimit", "MinTradingDays", "ConsistencyMaxDayFraction", "FundedDrawdownType" },
+                columnTypes: new[] { "nvarchar(200)", "int", "decimal(18,2)", "int", "decimal(5,4)", "int" },
                 values: new object[] { "E2T Gauntlet 50K", 0, null, 15, null, 0 });
         }
     }
