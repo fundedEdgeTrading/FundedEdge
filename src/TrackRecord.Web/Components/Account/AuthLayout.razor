@@ -1,0 +1,10 @@
+@inherits LayoutComponentBase
+@using TrackRecord.Web.Components.Account.Shared
+
+<div class="auth-viewport">
+    <AuthVisualPanel />
+    <div class="auth-form-pane">
+        <div class="auth-lang"><CultureSelector /></div>
+        @Body
+    </div>
+</div>

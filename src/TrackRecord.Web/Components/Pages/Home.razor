@@ -1,0 +1,204 @@
+@page "/"
+@rendermode InteractiveServer
+@attribute [Microsoft.AspNetCore.Authorization.AllowAnonymous]
+@implements IDisposable
+@inject IKpiService KpiService
+@inject IRiskAnalysisService RiskAnalysisService
+@inject IPlanService PlanService
+@inject CurrencyState Currency
+@inject NavigationManager Nav
+@inject IStringLocalizer<SharedResources> L
+
+<PageTitle>Dashboard — @Brand.Name</PageTitle>
+
+<h1>Dashboard</h1>
+<p class="text-muted">@L["Visión general del negocio de fondeo y de tu operativa."]</p>
+
+@if (_drawdownAlerts is { Count: > 0 })
+{
+    <div class="alert alert-danger">
+        <strong>@L["Aviso de drawdown:"]</strong>
+        @foreach (var alert in _drawdownAlerts)
+        {
+            <div>@L["{0} — {1} del colchón de drawdown consumido (quedan {2}).", alert.AccountDisplayName, alert.ConsumedFraction.ToString("P0"), Currency.Format(alert.RemainingBuffer)]</div>
+        }
+    </div>
+}
+
+@if (_business is null || _trading is null)
+{
+    <h2>@L["Negocio de fondeo"]</h2>
+    <div class="kpi-grid">
+        @for (var i = 0; i < 8; i++)
+        {
+            <div class="stat-tile">
+                <div class="skeleton skeleton-label"></div>
+                <div class="skeleton skeleton-value"></div>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <h2>@L["Negocio de fondeo"]</h2>
+    <div class="kpi-grid">
+        <KpiCard Title="@L["Cuentas compradas"]" Value="@_business.AccountsPurchased.ToString()" />
+        <KpiCard Title="@L["En evaluación"]" Value="@_business.AccountsInEvaluation.ToString()" />
+        <KpiCard Title="@L["Fondeadas (activas)"]" Value="@_business.AccountsFunded.ToString()" />
+        <KpiCard Title="@L["Quemadas / Expiradas"]" Value="@((_business.AccountsFailed + _business.AccountsExpired).ToString())" />
+        <KpiCard Title="Pass rate" Value="@FormatPercent(_business.PassRate)" />
+        <KpiCard Title="@L["Coste por cuenta fondeada"]" Value="@FormatMoney(_business.CostPerFundedAccount)" />
+        <KpiCard Title="@L["Payout medio por fondeada"]" Value="@FormatMoney(_business.AvgPayoutPerFundedAccount)" />
+        <KpiCard Title="@L["ROI del negocio"]" Value="@FormatPercent(_business.BusinessRoi)" Emphasis="@RoiEmphasis" />
+    </div>
+
+    <div class="kpi-grid mt-3">
+        <KpiCard Title="@L["Coste total invertido"]" Value="@Currency.Format(_business.TotalCosts)" />
+        <KpiCard Title="@L["Payouts totales recibidos"]" Value="@Currency.Format(_business.TotalPayoutsReceived)" />
+        <KpiCard Title="@L["Cashflow neto"]" Value="@Currency.Format(_business.NetCashflow)" Emphasis="@(_business.NetCashflow >= 0 ? "text-success" : "text-danger")" />
+    </div>
+
+    <h2>@L["Evolución"]</h2>
+    <div class="chart-grid">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">@L["Cashflow mensual"]</h5>
+                <p class="chart-caption">@L["Lo que entra (payouts) contra lo que se gasta en evaluaciones y cuotas, mes a mes, con el neto acumulado del negocio."]</p>
+                @if (_cashflow is { Count: > 0 })
+                {
+                    <CashflowChart Points="_cashflow" Currency="Currency.Current" />
+                }
+                else
+                {
+                    <EmptyState Title="@L["Sin movimientos todavía"]"
+                                Text="@L["Registra costes y payouts en tus cuentas para ver el cashflow mensual."]" />
+                }
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">@L["Curva de equity (trading)"]</h5>
+                <p class="chart-caption">@L["P&L neto acumulado de todos tus trades cerrados, día a día."]</p>
+                @if (_equity is { Count: > 1 })
+                {
+                    <EquityChart Points="_equity" Currency="Currency.Current" />
+                }
+                else
+                {
+                    <EmptyState Title="@L["Sin trades suficientes"]"
+                                Text="@L["Cuando registres trades cerrados, la curva de equity aparecerá aquí."]" />
+                }
+            </div>
+        </div>
+    </div>
+
+    <h2>@L["Operativa (trading)"]</h2>
+    @if (_trading.TotalTrades == 0)
+    {
+        <EmptyState Title="@L["Todavía no hay trades registrados"]"
+                    Text="@L["Importa un CSV de NinjaTrader, conecta Tradovate o añade trades manualmente desde la ficha de una cuenta."]" />
+    }
+    else
+    {
+        <div class="kpi-grid">
+            <KpiCard Title="@L["Trades cerrados"]" Value="@_trading.TotalTrades.ToString()" />
+            <KpiCard Title="Win rate" Value="@FormatPercent(_trading.WinRate)" />
+            <KpiCard Title="Profit factor" Value="@FormatRatio(_trading.ProfitFactor)" />
+            <KpiCard Title="Payoff ratio" Value="@FormatRatio(_trading.PayoffRatio)" />
+            <KpiCard Title="@L["Expectancy / trade"]" Value="@FormatMoney(_trading.Expectancy)" />
+            <KpiCard Title="@L["R-múltiplo medio"]" Value="@(_trading.AvgRMultiple?.ToString("0.00") ?? "—")" />
+            <KpiCard Title="@L["Máx. drawdown"]" Value="@Currency.Format(_trading.MaxDrawdown)" Emphasis="text-danger" />
+            <KpiCard Title="@L["Racha máx. pérdidas"]" Value="@_trading.MaxConsecutiveLosses.ToString()" />
+        </div>
+        <div class="kpi-grid mt-3">
+            <KpiCard Title="Net P&amp;L" Value="@Currency.Format(_trading.NetPnL)" Emphasis="@(_trading.NetPnL >= 0 ? "text-success" : "text-danger")" />
+            <KpiCard Title="Gross profit" Value="@Currency.Format(_trading.GrossProfit)" Emphasis="text-success" />
+            <KpiCard Title="Gross loss" Value="@Currency.Format(_trading.GrossLoss)" Emphasis="text-danger" />
+        </div>
+
+        @if (_tagPerformance is { Count: > 0 })
+        {
+            <h2 class="mt-4">@L["Rendimiento por tag"]</h2>
+            <div class="table-responsive">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Tag</th>
+                            <th class="text-end">@L["Trades cerrados"]</th>
+                            <th class="text-end">Win rate</th>
+                            <th class="text-end">Profit factor</th>
+                            <th class="text-end">Net P&amp;L</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var tag in _tagPerformance)
+                        {
+                            <tr>
+                                <td><span class="badge text-bg-secondary">@tag.Tag</span></td>
+                                <td class="text-end">@tag.TotalTrades</td>
+                                <td class="text-end">@FormatPercent(tag.WinRate)</td>
+                                <td class="text-end">@FormatRatio(tag.ProfitFactor)</td>
+                                <td class="text-end @(tag.NetPnL >= 0 ? "text-success" : "text-danger")">@Currency.Format(tag.NetPnL)</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    }
+}
+
+@code {
+    private BusinessKpis? _business;
+    private TradingKpis? _trading;
+    private List<MonthlyCashflowPoint>? _cashflow;
+    private List<EquityCurvePoint>? _equity;
+    private IReadOnlyList<DrawdownAlertDto>? _drawdownAlerts;
+    private IReadOnlyList<TagPerformanceDto>? _tagPerformance;
+
+    private string RoiEmphasis => _business?.BusinessRoi switch
+    {
+        > 0 => "text-success",
+        < 0 => "text-danger",
+        _ => "",
+    };
+
+    [CascadingParameter]
+    private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthState { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        // La raíz "/" es AllowAnonymous: un visitante sin sesión ve la landing con toda la info del
+        // producto (no se le fuerza al login). El usuario autenticado sí ve su dashboard aquí. La
+        // redirección ocurre durante el prerender (SSR), antes de cargar KPIs — que requieren usuario.
+        if (AuthState is not null)
+        {
+            var authState = await AuthState;
+            if (authState.User.Identity?.IsAuthenticated != true)
+            {
+                Nav.NavigateTo("bienvenida");
+                return;
+            }
+        }
+
+        Currency.Changed += OnCurrencyChanged;
+        _business = await KpiService.GetBusinessKpisAsync();
+        _trading = await KpiService.GetTradingKpisAsync();
+        _cashflow = (await KpiService.GetMonthlyCashflowAsync(months: 12)).ToList();
+        _equity = (await KpiService.GetEquityCurveAsync()).ToList();
+        _tagPerformance = await KpiService.GetTagPerformanceAsync();
+
+        var limits = await PlanService.GetLimitsAsync();
+        _drawdownAlerts = limits.FullRiskModule ? await RiskAnalysisService.GetDrawdownAlertsAsync() : [];
+    }
+
+    // Los KPI se calculan una vez en OnInitializedAsync; al cambiar de divisa solo hace falta
+    // repintar con los mismos datos, no volver a consultarlos.
+    private void OnCurrencyChanged() => InvokeAsync(StateHasChanged);
+
+    public void Dispose() => Currency.Changed -= OnCurrencyChanged;
+
+    private static string FormatPercent(double? value) => value is null ? "—" : $"{value:P1}";
+    private static string FormatRatio(double? value) => value is null ? "—" : value.Value.ToString("0.00");
+    private string FormatMoney(decimal? value) => Currency.Format(value);
+}

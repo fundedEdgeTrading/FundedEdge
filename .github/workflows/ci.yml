@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build-test:
+    name: Build, test y escaneo de dependencias
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configurar .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restaurar dependencias
+        run: dotnet restore
+
+      - name: Compilar
+        run: dotnet build --no-restore --configuration Release
+
+      - name: Tests
+        run: dotnet test --no-build --configuration Release --verbosity normal
+
+      # [SEC-15] Falla el build si hay paquetes NuGet con vulnerabilidades conocidas.
+      - name: Escaneo de dependencias vulnerables
+        run: |
+          set -euo pipefail
+          echo "Buscando paquetes vulnerables (incluye transitivos)…"
+          output="$(dotnet list package --vulnerable --include-transitive 2>&1)"
+          echo "$output"
+          if echo "$output" | grep -qi 'has the following vulnerable packages'; then
+            echo "::error::Se han detectado paquetes con vulnerabilidades conocidas."
+            exit 1
+          fi
+          echo "Sin vulnerabilidades conocidas."

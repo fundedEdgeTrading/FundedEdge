@@ -1,0 +1,90 @@
+@page "/export"
+@rendermode InteractiveServer
+@inject IKpiService KpiService
+@inject IPlanService PlanService
+@inject CurrencyState Currency
+@inject IJSRuntime JS
+@inject IStringLocalizer<SharedResources> L
+
+<PageTitle>@L["Exportar track record"] — @Brand.Name</PageTitle>
+
+@if (_limits is not null && !_limits.CanExportPdf)
+{
+    <h1>@L["Exportar track record"]</h1>
+    <div class="alert alert-warning">
+        @L["Exportar tu track record en PDF es una función de los planes Pro y Elite."] <a href="plan">@L["Mejora tu plan"]</a>.
+    </div>
+}
+else if (_business is null || _trading is null)
+{
+    <p class="text-muted">@L["Cargando…"]</p>
+}
+else
+{
+    <div class="d-flex justify-content-between align-items-center mb-3 no-print">
+        <h1 class="mb-0">@L["Exportar track record"]</h1>
+        <button class="btn btn-primary" @onclick="PrintAsync">@L["Imprimir / Guardar como PDF"]</button>
+    </div>
+
+    <div class="export-sheet">
+        <h1>@Brand.Name — Track record</h1>
+        <p class="text-muted">@L["Generado el {0}", DateTime.Now.ToString("D")]</p>
+
+        <h2>@L["Negocio de fondeo"]</h2>
+        <table class="table table-sm">
+            <tbody>
+                <tr><td>@L["Cuentas compradas"]</td><td class="text-end">@_business.AccountsPurchased</td></tr>
+                <tr><td>@L["Fondeadas (activas)"]</td><td class="text-end">@_business.AccountsFunded</td></tr>
+                <tr><td>Pass rate</td><td class="text-end">@FormatPercent(_business.PassRate)</td></tr>
+                <tr><td>@L["Coste por cuenta fondeada"]</td><td class="text-end">@Currency.Format(_business.CostPerFundedAccount)</td></tr>
+                <tr><td>@L["Payout medio por fondeada"]</td><td class="text-end">@Currency.Format(_business.AvgPayoutPerFundedAccount)</td></tr>
+                <tr><td>@L["ROI del negocio"]</td><td class="text-end">@FormatPercent(_business.BusinessRoi)</td></tr>
+                <tr><td>@L["Cashflow neto"]</td><td class="text-end">@Currency.Format(_business.NetCashflow)</td></tr>
+            </tbody>
+        </table>
+
+        <h2>@L["Operativa (trading)"]</h2>
+        <table class="table table-sm">
+            <tbody>
+                <tr><td>@L["Trades cerrados"]</td><td class="text-end">@_trading.TotalTrades</td></tr>
+                <tr><td>Win rate</td><td class="text-end">@FormatPercent(_trading.WinRate)</td></tr>
+                <tr><td>Profit factor</td><td class="text-end">@FormatRatio(_trading.ProfitFactor)</td></tr>
+                <tr><td>Expectancy / trade</td><td class="text-end">@Currency.Format(_trading.Expectancy)</td></tr>
+                <tr><td>@L["Máx. drawdown"]</td><td class="text-end">@Currency.Format(_trading.MaxDrawdown)</td></tr>
+                <tr><td>Net P&amp;L</td><td class="text-end">@Currency.Format(_trading.NetPnL)</td></tr>
+            </tbody>
+        </table>
+
+        <h2>@L["Curva de equity"]</h2>
+        @if (_equity is { Count: > 1 })
+        {
+            <EquityChart Points="_equity" Currency="Currency.Current" />
+        }
+        else
+        {
+            <p class="text-muted">@L["Sin trades suficientes todavía."]</p>
+        }
+    </div>
+}
+
+@code {
+    private BusinessKpis? _business;
+    private TradingKpis? _trading;
+    private List<EquityCurvePoint>? _equity;
+    private PlanLimits? _limits;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _limits = await PlanService.GetLimitsAsync();
+        if (!_limits.CanExportPdf) return;
+
+        _business = await KpiService.GetBusinessKpisAsync();
+        _trading = await KpiService.GetTradingKpisAsync();
+        _equity = (await KpiService.GetEquityCurveAsync()).ToList();
+    }
+
+    private Task PrintAsync() => JS.InvokeVoidAsync("print").AsTask();
+
+    private static string FormatPercent(double? value) => value is null ? "—" : $"{value:P1}";
+    private static string FormatRatio(double? value) => value is null ? "—" : value.Value.ToString("0.00");
+}

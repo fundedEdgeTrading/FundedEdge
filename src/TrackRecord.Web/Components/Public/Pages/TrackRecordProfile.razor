@@ -1,0 +1,82 @@
+@page "/t/{Slug}"
+@inject IPublicProfileService PublicProfileService
+@inject IStringLocalizer<SharedResources> L
+
+<SeoHead Title="@SeoTitle" Description="@SeoDescription" OgType="profile" />
+
+@if (_notFound)
+{
+    <h1>@L["Página no encontrada"]</h1>
+    <p class="text-muted">@L["Este track record no existe o ya no está disponible."]</p>
+}
+else if (_view is null)
+{
+    <p class="text-muted">@L["Cargando…"]</p>
+}
+else
+{
+    <h1>@_view.DisplayName</h1>
+    <p class="public-lead">@L["Track record público de negocio de fondeo, generado con {0}.", Brand.Name]</p>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card h-100"><div class="card-body">
+                <h5 class="card-title">@L["Cuentas fondeadas"]</h5>
+                <p class="fs-4 fw-bold">@_view.AccountsFunded</p>
+            </div></div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100"><div class="card-body">
+                <h5 class="card-title">Pass rate</h5>
+                <p class="fs-4 fw-bold">@(_view.PassRate is { } pr ? pr.ToString("P0") : "—")</p>
+            </div></div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100"><div class="card-body">
+                <h5 class="card-title">Win rate</h5>
+                <p class="fs-4 fw-bold">@(_view.WinRate is { } wr ? wr.ToString("P0") : "—")</p>
+            </div></div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100"><div class="card-body">
+                <h5 class="card-title">Profit factor</h5>
+                <p class="fs-4 fw-bold">@(_view.ProfitFactor is { } pf ? pf.ToString("0.00") : "—")</p>
+            </div></div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100"><div class="card-body">
+                <h5 class="card-title">@L["R-múltiplo medio"]</h5>
+                <p class="fs-4 fw-bold">@(_view.AvgRMultiple is { } r ? r.ToString("0.00") + "R" : "—")</p>
+            </div></div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100"><div class="card-body">
+                <h5 class="card-title">@L["Trades cerrados"]</h5>
+                <p class="fs-4 fw-bold">@_view.TotalTrades</p>
+            </div></div>
+        </div>
+    </div>
+
+    <div class="public-section public-anti">
+        <p class="mb-0">
+            Powered by <a href="bienvenida?utm_source=track_record&utm_medium=public_profile">@Brand.Name</a> —
+            @L["el copiloto financiero del trader de fondeo."]
+        </p>
+    </div>
+}
+
+@code {
+    [Parameter] public string Slug { get; set; } = "";
+
+    private string SeoTitle => $"{(_view?.DisplayName ?? L["Track record"].Value)} — {Brand.Name}";
+    private string SeoDescription => L["Track record público de negocio de fondeo, generado con {0}.", Brand.Name];
+
+    private PublicProfileView? _view;
+    private bool _notFound;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _view = await PublicProfileService.GetPublicViewAsync(Slug);
+        _notFound = _view is null;
+    }
+}

@@ -1,0 +1,20 @@
+@using System.Globalization
+@inject NavigationManager Nav
+
+@* La cookie de cultura solo surte efecto en la siguiente petición HTTP real (el circuito Blazor
+   la hereda al arrancar), así que estos enlaces deben provocar una navegación completa del
+   navegador: data-enhance-nav="false" lo garantiza en render estático y target="_top" evita que
+   el router interactivo intercepte el click cuando el componente vive en una isla interactiva
+   (p.ej. dentro de NavMenu) — /culture/set es un endpoint minimal API, no una página Blazor. *@
+<span class="culture-selector" aria-label="Idioma / Language">
+    <a class="@(Current == "es" ? "active" : null)" href="@Href("es")" target="_top" data-enhance-nav="false">ES</a>
+    <span class="culture-sep">·</span>
+    <a class="@(Current == "en" ? "active" : null)" href="@Href("en")" target="_top" data-enhance-nav="false">EN</a>
+</span>
+
+@code {
+    private static string Current => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
+
+    private string Href(string culture) =>
+        $"culture/set?culture={culture}&redirectUri={Uri.EscapeDataString("/" + Nav.ToBaseRelativePath(Nav.Uri))}";
+}

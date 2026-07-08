@@ -1,0 +1,308 @@
+@page "/settings"
+@rendermode InteractiveServer
+@inject IIntegrationSettingsService SettingsService
+@inject ITradingAccountService AccountService
+@inject ITradeSyncOrchestrator SyncOrchestrator
+@inject ILogger<Settings> Logger
+@inject IStringLocalizer<SharedResources> L
+
+<PageTitle>@L["Ajustes"] — @Brand.Name</PageTitle>
+
+<h1>@L["Ajustes de integraciones"]</h1>
+<p class="text-muted">
+    @((MarkupString)L["Credenciales y claves usadas por la sincronización automática de trades (Tradovate) y por la ingesta push del AddOn de NinjaTrader 8. Se guardan cifradas en base de datos con <code>IDataProtector</code>."].Value)
+</p>
+
+@if (_errorMessage is not null)
+{
+    <div class="alert alert-danger">@_errorMessage</div>
+}
+@if (_infoMessage is not null)
+{
+    <div class="alert alert-success">@_infoMessage</div>
+}
+
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start">
+            <h5 class="card-title">Tradovate</h5>
+            @if (_tradovateStatus is { IsConfigured: true })
+            {
+                <span class="badge text-bg-success">@L["Configurado"] — @_tradovateStatus.Source</span>
+            }
+            else
+            {
+                <span class="badge text-bg-secondary">@L["Sin configurar"]</span>
+            }
+        </div>
+        @if (_tradovateStatus is { IsConfigured: true })
+        {
+            <p class="small text-muted mb-3">@L["Usuario actual:"] <strong>@_tradovateStatus.Name</strong> (cid @_tradovateStatus.Cid)</p>
+        }
+        <EditForm Model="_tradovateForm" OnValidSubmit="SaveTradovateAsync">
+            <DataAnnotationsValidator />
+            <div class="row g-2">
+                <div class="col-md-3">
+                    <label class="form-label">@L["Usuario (name)"]</label>
+                    <InputText class="form-control" @bind-Value="_tradovateForm.Name" autocomplete="off" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">@L["Contraseña"]</label>
+                    <InputText type="password" class="form-control" @bind-Value="_tradovateForm.Password" autocomplete="new-password" />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">CID</label>
+                    <InputNumber class="form-control" @bind-Value="_tradovateForm.Cid" />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Secret (sec)</label>
+                    <InputText type="password" class="form-control" @bind-Value="_tradovateForm.Sec" autocomplete="new-password" />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">@L["Device ID (opcional)"]</label>
+                    <InputText class="form-control" @bind-Value="_tradovateForm.DeviceId" />
+                </div>
+            </div>
+            <div class="mt-3 d-flex gap-2">
+                <button type="submit" class="btn btn-primary">@L["Guardar credenciales"]</button>
+                @if (_tradovateStatus is { IsConfigured: true, Source: "Base de datos (/settings)" })
+                {
+                    <button type="button" class="btn btn-outline-danger" @onclick="ClearTradovateAsync">@L["Borrar"]</button>
+                }
+                <button type="button" class="btn btn-outline-secondary" disabled="@_syncingAll" @onclick="SyncAllNowAsync">
+                    @(_syncingAll ? L["Sincronizando…"] : L["Sincronizar todas las cuentas ahora"])
+                </button>
+            </div>
+        </EditForm>
+        <p class="small text-muted mt-2 mb-0">
+            @((MarkupString)L["CID y Secret son las credenciales de API de tu app registrada en Tradovate (no tu app de terceros habitual) — ver <code>GUIA_IMPLEMENTACION.md</code> §5. También puede configurarse vía User Secrets/entorno (<code>Tradovate:Name</code>, etc.); lo guardado aquí tiene prioridad."].Value)
+        </p>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start">
+            <h5 class="card-title">@L["Ingesta NinjaTrader 8 (API key)"]</h5>
+            @if (_ingestStatus is { IsConfigured: true })
+            {
+                <span class="badge text-bg-success">@L["Configurado"] — @_ingestStatus.Source</span>
+            }
+            else
+            {
+                <span class="badge text-bg-secondary">@L["Sin configurar"]</span>
+            }
+        </div>
+        <p class="small text-muted">
+            @((MarkupString)L["El AddOn <code>TrackRecordExporter.cs</code> envía cada fill a <code>POST /api/ingest/ninjatrader/executions</code> con esta clave en la cabecera <code>X-Api-Key</code>. Ver <code>integrations/ninjatrader/README.md</code>."].Value)
+        </p>
+        @if (_generatedApiKey is not null)
+        {
+            <div class="alert alert-warning">
+                <strong>@L["Copia esta API key ahora — no se volverá a mostrar:"]</strong>
+                <code class="d-block mt-1 user-select-all">@_generatedApiKey</code>
+            </div>
+        }
+        <EditForm Model="_ingestForm" OnValidSubmit="SaveIngestKeyAsync" class="row g-2 align-items-end">
+            <div class="col-md-6">
+                <label class="form-label">@L["API key (mínimo 24 caracteres)"]</label>
+                <InputText class="form-control" @bind-Value="_ingestForm.ApiKey" autocomplete="off" placeholder="@L["Genérala automáticamente o pega una cadena aleatoria larga"]" />
+            </div>
+            <div class="col-md-6 d-flex gap-2">
+                <button type="submit" class="btn btn-primary">@L["Guardar"]</button>
+                <button type="button" class="btn btn-outline-secondary" @onclick="GenerateIngestKeyAsync">@L["Generar segura"]</button>
+                @if (_ingestStatus is { IsConfigured: true, Source: "Base de datos (/settings)" })
+                {
+                    <button type="button" class="btn btn-outline-danger" @onclick="ClearIngestKeyAsync">@L["Borrar"]</button>
+                }
+            </div>
+        </EditForm>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start">
+            <h5 class="card-title">@L["Análisis con IA (Claude)"]</h5>
+            @if (_aiStatus is { IsConfigured: true })
+            {
+                <span class="badge text-bg-success">@L["Configurado"]</span>
+            }
+            else
+            {
+                <span class="badge text-bg-secondary">@L["Sin configurar"]</span>
+            }
+        </div>
+        <p class="small text-muted mb-0">
+            @((MarkupString)L["La clave de Anthropic solo se lee de la variable de entorno <code>ANTHROPIC_API_KEY</code> o de <code>Ai:ApiKey</code> en User Secrets — nunca se guarda desde esta pantalla ni en base de datos, para evitar exponerla. Ver <code>README.md</code>."].Value)
+        </p>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <h5 class="card-title">@L["Cuentas y su feed"]</h5>
+        <p class="small text-muted">
+            @L["El feed y el ID externo de cada cuenta se editan desde su propia página de detalle."]
+        </p>
+        @if (_accounts is null)
+        {
+            <p><em>@L["Cargando…"]</em></p>
+        }
+        else
+        {
+            <table class="table table-sm align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>@L["Cuenta"]</th>
+                        <th>Feed</th>
+                        <th>@L["ID externo"]</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var a in _accounts)
+                    {
+                        <tr>
+                            <td>@a.DisplayName</td>
+                            <td>@a.Feed</td>
+                            <td>@(a.ExternalAccountId ?? "—")</td>
+                            <td><a href="@($"/accounts/{a.Id}")">@L["Editar"] →</a></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>
+
+@code {
+    private TradovateSettingsDto? _tradovateStatus;
+    private IngestSettingsDto? _ingestStatus;
+    private AiSettingsStatusDto? _aiStatus;
+    private List<TradingAccountListItemDto>? _accounts;
+
+    private TradovateFormModel _tradovateForm = new();
+    private IngestFormModel _ingestForm = new();
+
+    private bool _syncingAll;
+    private string? _errorMessage;
+    private string? _infoMessage;
+    private string? _generatedApiKey;
+
+    protected override async Task OnInitializedAsync() => await LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        _tradovateStatus = await SettingsService.GetTradovateSettingsAsync();
+        _ingestStatus = await SettingsService.GetIngestSettingsAsync();
+        _aiStatus = await SettingsService.GetAiSettingsStatusAsync();
+        _accounts = (await AccountService.GetAllAsync()).ToList();
+    }
+
+    private async Task SaveTradovateAsync()
+    {
+        _errorMessage = null;
+        try
+        {
+            await SettingsService.SaveTradovateSettingsAsync(new SaveTradovateSettingsRequest(
+                _tradovateForm.Name, _tradovateForm.Password, _tradovateForm.Cid, _tradovateForm.Sec,
+                string.IsNullOrWhiteSpace(_tradovateForm.DeviceId) ? null : _tradovateForm.DeviceId));
+            _infoMessage = L["Credenciales de Tradovate guardadas."];
+            _tradovateForm = new TradovateFormModel();
+        }
+        catch (Exception ex)
+        {
+            // No exponer el detalle interno al usuario; el diagnóstico va solo al log. [SEC-10]
+            Logger.LogError(ex, "Fallo al guardar las credenciales de Tradovate.");
+            _errorMessage = L["No se pudieron guardar las credenciales. Revisa los datos e inténtalo de nuevo."];
+        }
+        await LoadAsync();
+    }
+
+    private async Task ClearTradovateAsync()
+    {
+        await SettingsService.ClearTradovateSettingsAsync();
+        _infoMessage = L["Credenciales de Tradovate borradas."];
+        await LoadAsync();
+    }
+
+    private async Task SaveIngestKeyAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_ingestForm.ApiKey)) return;
+        _errorMessage = null;
+        _generatedApiKey = null;
+        try
+        {
+            await SettingsService.SaveIngestApiKeyAsync(_ingestForm.ApiKey);
+            _infoMessage = L["API key de ingesta guardada."];
+            _ingestForm = new IngestFormModel();
+        }
+        catch (ArgumentException ex)
+        {
+            _errorMessage = ex.Message;
+        }
+        await LoadAsync();
+    }
+
+    private async Task GenerateIngestKeyAsync()
+    {
+        _errorMessage = null;
+        _generatedApiKey = await SettingsService.GenerateIngestApiKeyAsync();
+        _infoMessage = L["API key generada y guardada. Cópiala ahora."];
+        _ingestForm = new IngestFormModel();
+        await LoadAsync();
+    }
+
+    private async Task ClearIngestKeyAsync()
+    {
+        _generatedApiKey = null;
+        await SettingsService.ClearIngestApiKeyAsync();
+        _infoMessage = L["API key de ingesta borrada."];
+        await LoadAsync();
+    }
+
+    private async Task SyncAllNowAsync()
+    {
+        _syncingAll = true;
+        _errorMessage = null;
+        _infoMessage = null;
+        StateHasChanged();
+
+        try
+        {
+            var ingested = await SyncOrchestrator.SyncAllAccountsAsync();
+            _infoMessage = ingested == 0
+                ? L["Sincronizado: sin fills nuevos."]
+                : L["Sincronizado: {0} fill(s) nuevo(s) ingestado(s) en total.", ingested];
+        }
+        catch (Exception ex)
+        {
+            // La excepción puede incluir el cuerpo crudo de la respuesta de Tradovate; no se
+            // muestra al usuario, solo se registra en el servidor. [SEC-10]
+            Logger.LogError(ex, "Fallo al sincronizar las cuentas con Tradovate.");
+            _errorMessage = L["No se pudo completar la sincronización. Inténtalo de nuevo más tarde."];
+        }
+        finally
+        {
+            _syncingAll = false;
+        }
+    }
+
+    private class TradovateFormModel
+    {
+        [System.ComponentModel.DataAnnotations.Required]
+        public string Name { get; set; } = "";
+        [System.ComponentModel.DataAnnotations.Required]
+        public string Password { get; set; } = "";
+        public int Cid { get; set; }
+        [System.ComponentModel.DataAnnotations.Required]
+        public string Sec { get; set; } = "";
+        public string? DeviceId { get; set; }
+    }
+
+    private class IngestFormModel
+    {
+        public string ApiKey { get; set; } = "";
+    }
+}

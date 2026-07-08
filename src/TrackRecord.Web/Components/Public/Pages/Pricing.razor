@@ -1,0 +1,104 @@
+@page "/precios"
+@inject IStringLocalizer<SharedResources> L
+
+<SeoHead Title="@SeoTitle" Description="@SeoDescription" />
+
+<section class="public-hero public-hero-compact">
+    <h1>@L["Precios simples, sin sorpresas"]</h1>
+    <p class="public-lead">@L["14 días de Pro gratis al registrarte, sin tarjeta. Cancela cuando quieras."]</p>
+</section>
+
+<section class="public-section">
+    <div class="row g-3">
+        @foreach (var plan in Catalog)
+        {
+            <div class="col-md-4">
+                <div class="card h-100 @(plan.Highlight ? "border-primary" : "")">
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title">@plan.Name</h5>
+                        <p class="fw-bold fs-4 mb-1">@plan.Price</p>
+                        @if (plan.YearlyPrice is not null)
+                        {
+                            <p class="text-muted small mb-1">@L["o {0} €/año (ahorra ~17 %)", plan.YearlyPrice]</p>
+                        }
+                        <p class="text-muted small">@plan.Subtitle</p>
+                        <ul class="small text-muted flex-grow-1">
+                            @foreach (var feature in plan.Features)
+                            {
+                                <li>@feature</li>
+                            }
+                        </ul>
+                        <a class="btn @(plan.Highlight ? "btn-primary" : "btn-outline-secondary") w-100" href="Account/Register">
+                            @L["Empezar con {0}", plan.Name]
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</section>
+
+<section class="public-section">
+    <h2>@L["Preguntas frecuentes"]</h2>
+    <div class="public-faq">
+        <div>
+            <h5 class="card-title">@L["¿Qué pasa si bajo de plan y tengo más cuentas de las permitidas?"]</h5>
+            <p class="text-muted small">@L["No se borra nada. Las cuentas por encima del límite pasan a solo lectura hasta que archives el exceso o vuelvas a subir de plan."]</p>
+        </div>
+        <div>
+            <h5 class="card-title">@L["¿Qué cuenta como \"cuenta activa\"?"]</h5>
+            <p class="text-muted small">@L["Cualquier cuenta en evaluación o fondeada. Las cuentas fallidas, retiradas o expiradas no cuentan para tu límite."]</p>
+        </div>
+        <div>
+            <h5 class="card-title">@L["¿Cómo funciona el trial?"]</h5>
+            <p class="text-muted small">@L["Al registrarte tienes 14 días con las funcionalidades de Pro, sin necesidad de tarjeta. Al terminar, tu cuenta pasa a Starter automáticamente si no has mejorado de plan."]</p>
+        </div>
+        <div>
+            <h5 class="card-title">@L["¿Qué modelo de IA usa cada plan?"]</h5>
+            <p class="text-muted small">@L["Starter y Pro usan un modelo rápido y económico (Haiku); Elite usa el modelo más avanzado disponible (Opus) para análisis más profundos."]</p>
+        </div>
+        <div>
+            <h5 class="card-title">@L["¿Cómo cancelo?"]</h5>
+            <p class="text-muted small">@L["Desde /plan, en cualquier momento. Mantienes el acceso hasta el final del periodo ya pagado."]</p>
+        </div>
+    </div>
+</section>
+
+@code {
+    private string SeoTitle => $"{L["Precios"]} — {Brand.Name}";
+    private string SeoDescription => L["14 días de Pro gratis al registrarte, sin tarjeta. Cancela cuando quieras."];
+
+    private sealed record PublicPlan(string Name, string Price, decimal? YearlyPrice, string Subtitle, string[] Features, bool Highlight);
+
+    // Precios anuales = 149 €/299 € (GUIA_MONETIZACION_Y_MARKETING.md §3), coherentes con los
+    // Price Id de Stripe (Stripe:Prices:*Yearly) y el toggle real de /plan.
+    // Instancia (no static) porque las features salen del localizador de la petición actual.
+    private PublicPlan[] Catalog =>
+    [
+        new("Starter", L["Gratis"], null, L["Para probar la app"],
+        [
+            L["{0} cuentas activas", PlanLimits.For(PlanTier.Starter).MaxActiveAccounts!],
+            L["Firm Fit: tu mejor programa"],
+            L["Semáforo EV básico"],
+            L["{0} informe IA cada {1} días", PlanLimits.For(PlanTier.Starter).AiReportsPerWindow, PlanLimits.For(PlanTier.Starter).AiReportWindowDays],
+            L["{0} preguntas IA al mes", PlanLimits.For(PlanTier.Starter).AiQuestionsPerMonth!],
+        ], false),
+        new("Pro", "14,99 €/mes", 149m, L["Para el trader con varias cuentas"],
+        [
+            L["{0} cuentas activas", PlanLimits.For(PlanTier.Pro).MaxActiveAccounts!],
+            L["Sincronización automática (Tradovate / NinjaTrader)"],
+            L["Firm Fit completo: ranking, reglas y plan de compra"],
+            L["Módulo de riesgo completo (Monte Carlo, EV, Kelly)"],
+            L["{0} informe IA cada {1} días", PlanLimits.For(PlanTier.Pro).AiReportsPerWindow, PlanLimits.For(PlanTier.Pro).AiReportWindowDays],
+            L["{0} preguntas IA al mes", PlanLimits.For(PlanTier.Pro).AiQuestionsPerMonth!],
+        ], true),
+        new("Elite", "29,99 €/mes", 299m, L["Para el operador serio"],
+        [
+            L["Cuentas activas ilimitadas"],
+            L["Firm Fit completo: ranking, reglas y plan de compra"],
+            L["{0} informe IA cada {1} día (modelo avanzado)", PlanLimits.For(PlanTier.Elite).AiReportsPerWindow, PlanLimits.For(PlanTier.Elite).AiReportWindowDays],
+            L["Preguntas IA ilimitadas"],
+            L["Track record público"],
+        ], false),
+    ];
+}

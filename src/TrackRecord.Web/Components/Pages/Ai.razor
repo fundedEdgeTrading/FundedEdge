@@ -1,0 +1,149 @@
+@page "/ai"
+@rendermode InteractiveServer
+@using Markdig
+@inject ITradingAnalystService AnalystService
+@inject IPlanService PlanService
+@inject IStringLocalizer<SharedResources> L
+
+<PageTitle>@L["Análisis IA"] — @Brand.Name</PageTitle>
+
+<h1>@L["Análisis con IA"]</h1>
+<p class="text-muted">
+    @L["Claude analiza los KPIs agregados de tu operativa y tu negocio de fondeo (nunca trades individuales) para diagnosticar fortalezas, fugas de dinero y viabilidad estadística."]
+</p>
+
+@if (!AnalystService.IsConfigured)
+{
+    <div class="alert alert-warning">
+        @((MarkupString)L["No hay una API key de Anthropic configurada. Define la variable de entorno <code>ANTHROPIC_API_KEY</code> (o <code>Ai:ApiKey</code> en <code>appsettings.Development.json</code> / user-secrets) y reinicia la aplicación. Ver <code>README.md</code>."].Value)
+    </div>
+}
+
+@if (_allowance is not null)
+{
+    <p class="text-muted small">
+        @L["Informes completos: {0} de {1} (se renueva el {2})", _allowance.ReportsUsed, _allowance.ReportsLimit, _allowance.WindowResetsAt.ToString("d MMM")] ·
+        @L["Preguntas este mes: {0} de {1}", _allowance.QuestionsUsed, _allowance.QuestionsLimit?.ToString() ?? "∞"]
+        @if (!_allowance.CanGenerateReport || !_allowance.CanAskQuestion)
+        {
+            <text> · <a href="plan">@L["Mejora tu plan"]</a> @L["para más cupo"]</text>
+        }
+    </p>
+}
+
+<div class="mb-3">
+    <button class="btn btn-primary" @onclick="GenerateReportAsync" disabled="@(!AnalystService.IsConfigured || _busy || _allowance is { CanGenerateReport: false })">
+        @(_busy && _busyKind == AiReportKind.Analysis ? L["Generando informe…"] : L["Generar informe completo"])
+    </button>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <h5 class="card-title">@L["Pregunta algo sobre tu operativa"]</h5>
+        <EditForm Model="_questionForm" OnValidSubmit="AskQuestionAsync">
+            <div class="input-group">
+                <InputTextArea class="form-control" rows="2" @bind-Value="_questionForm.Question" placeholder="@L["¿Por qué pierdo los lunes? ¿Es viable el negocio con mi pass rate actual?"]" />
+                <button class="btn btn-outline-primary" type="submit" disabled="@(!AnalystService.IsConfigured || _busy || _allowance is { CanAskQuestion: false })">
+                    @(_busy && _busyKind == AiReportKind.AdHocQuestion ? L["Preguntando…"] : L["Preguntar"])
+                </button>
+            </div>
+        </EditForm>
+    </div>
+</div>
+
+@if (_errorMessage is not null)
+{
+    <div class="alert alert-danger">@_errorMessage</div>
+}
+
+<h2>@L["Historial"]</h2>
+@if (_history is null)
+{
+    <p><em>@L["Cargando…"]</em></p>
+}
+else if (_history.Count == 0)
+{
+    <EmptyState Title="@L["Todavía no hay informes generados"]"
+                Text="@L["Genera un informe completo o haz una pregunta puntual sobre tu operativa."]" />
+}
+else
+{
+    @foreach (var report in _history)
+    {
+        <div class="card mb-3">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <strong>@(report.Kind == AiReportKind.Analysis ? L["Informe completo"].Value : L["Pregunta: {0}", report.Question ?? ""].Value)</strong>
+                <span class="text-muted small">@report.CreatedAt.LocalDateTime.ToString("g") · @report.Model · @(report.InputTokens + report.OutputTokens) tokens</span>
+            </div>
+            <div class="card-body">
+                @((MarkupString)RenderMarkdown(report.Content))
+            </div>
+        </div>
+    }
+}
+
+@code {
+    private static readonly MarkdownPipeline MarkdownPipeline = new MarkdownPipelineBuilder()
+        .UseAdvancedExtensions()
+        .DisableHtml() // El contenido viene de un LLM; no se renderiza HTML/script embebido.
+        .Build();
+
+    private List<AiReportDto>? _history;
+    private AiAllowance? _allowance;
+    private bool _busy;
+    private AiReportKind? _busyKind;
+    private string? _errorMessage;
+    private QuestionFormModel _questionForm = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadHistoryAsync();
+        _allowance = await PlanService.GetAiAllowanceAsync();
+    }
+
+    private async Task LoadHistoryAsync()
+    {
+        _history = (await AnalystService.GetHistoryAsync()).ToList();
+    }
+
+    private Task GenerateReportAsync() => RunAsync(AiReportKind.Analysis, () => AnalystService.GenerateAnalysisReportAsync());
+
+    private async Task AskQuestionAsync()
+    {
+        var question = _questionForm.Question;
+        if (string.IsNullOrWhiteSpace(question)) return;
+
+        await RunAsync(AiReportKind.AdHocQuestion, () => AnalystService.AskQuestionAsync(question));
+        _questionForm = new QuestionFormModel();
+    }
+
+    private async Task RunAsync(AiReportKind kind, Func<Task<AiReportDto>> action)
+    {
+        _busy = true;
+        _busyKind = kind;
+        _errorMessage = null;
+
+        try
+        {
+            await action();
+            await LoadHistoryAsync();
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = ex.Message;
+        }
+        finally
+        {
+            _allowance = await PlanService.GetAiAllowanceAsync();
+            _busy = false;
+            _busyKind = null;
+        }
+    }
+
+    private static string RenderMarkdown(string markdown) => Markdown.ToHtml(markdown, MarkdownPipeline);
+
+    private class QuestionFormModel
+    {
+        public string Question { get; set; } = "";
+    }
+}

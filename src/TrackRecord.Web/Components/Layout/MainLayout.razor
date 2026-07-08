@@ -1,0 +1,22 @@
+@inherits LayoutComponentBase
+@inject IStringLocalizer<SharedResources> L
+
+<div class="page">
+    @* Isla interactiva: <Routes> se renderiza estático (ver App.razor), así que sin esto los
+       @onclick del selector de divisa no responden — no hay circuito escuchando en el layout. *@
+    <div class="sidebar">
+        <NavMenu @rendermode="InteractiveServer" />
+    </div>
+
+    <main>
+        <article class="content px-4">
+            @Body
+        </article>
+    </main>
+</div>
+
+<div id="blazor-error-ui" data-nosnippet>
+    @L["Se ha producido un error inesperado."]
+    <a href="." class="reload">@L["Recargar"]</a>
+    <span class="dismiss">🗙</span>
+</div>

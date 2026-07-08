@@ -1,0 +1,281 @@
+@page "/risk"
+@rendermode InteractiveServer
+@implements IDisposable
+@inject IRiskAnalysisService RiskService
+@inject ITradingAccountService AccountService
+@inject CurrencyState Currency
+@inject IStringLocalizer<SharedResources> L
+
+<PageTitle>@L["Riesgo"] — @Brand.Name</PageTitle>
+
+<h1>@L["Riesgo y bankroll"]</h1>
+<p class="text-muted">
+    @L["¿Es estadísticamente viable el negocio de fondeo y cuánto capital necesita? Todo se calcula con tus datos reales: pass rate, costes y payouts observados, y tu distribución de PnL por trade (Monte Carlo, 10.000 iteraciones)."]
+</p>
+
+@if (_defaults is null)
+{
+    <p><em>@L["Cargando…"]</em></p>
+}
+else
+{
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start">
+                <h5 class="card-title">@L["EV por evaluación (observado)"]</h5>
+                @if (_defaults.Ev is not null)
+                {
+                    <span class="badge @EvBadgeClass()">@EvBadgeText()</span>
+                }
+            </div>
+            @if (_defaults.Ev is null)
+            {
+                <p class="text-muted mb-0">
+                    @L["Sin evaluaciones terminadas todavía: no hay muestra de la que estimar el EV. Registra el resultado de tus cuentas (fondeada/fallida) para activar este módulo."]
+                </p>
+            }
+            else
+            {
+                <div class="kpi-grid">
+                    <KpiCard Title="@L["EV por evaluación"]" Value="@Currency.Format(_defaults.Ev.EvPerEvaluation)"
+                             Emphasis="@(_defaults.Ev.EvPerEvaluation >= 0 ? "text-success" : "text-danger")" />
+                    <KpiCard Title="@L["IC 95 % (bootstrap)"]"
+                             Value="@(_defaults.Ev.CiLower is null ? "—" : $"{Currency.Format(_defaults.Ev.CiLower, 0)} … {Currency.Format(_defaults.Ev.CiUpper, 0)}")" />
+                    <KpiCard Title="@L["Muestra"]" Value="@L["{0} evaluaciones", _defaults.Ev.SampleSize]" />
+                    <KpiCard Title="Pass rate" Value="@(_defaults.PassRate?.ToString("P1") ?? "—")" />
+                    <KpiCard Title="@L["Kelly (½ recomendado)"]"
+                             Value="@(_defaults.KellyFraction is null ? "—" : $"{_defaults.KellyFraction:P0} → {_defaults.KellyFraction / 2:P0}")" />
+                </div>
+                <p class="small text-muted mt-2 mb-0">
+                    @L["EV = P(pasar) × payout medio − coste de evaluación − P(pasar) × activación. Kelly indica qué fracción del bankroll dedicar a evaluaciones por ciclo; opera a la mitad de lo que diga (½ Kelly) — es un marco orientativo, no una promesa."]
+                </p>
+            }
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">@L["Planner de bankroll — riesgo de ruina del negocio"]</h5>
+            <p class="small text-muted">
+                @L["Cada mes se compran hasta N evaluaciones; cada una pasa con tu pass rate y, si pasa, cobra un payout muestreado de tu distribución histórica. Ruina = quedarse sin capital para comprar más evaluaciones antes de que el edge se materialice."]
+            </p>
+            <EditForm Model="_plannerForm" OnValidSubmit="RunPlannerAsync" class="row g-2 align-items-end">
+                <div class="col-md-2">
+                    <label class="form-label">Bankroll (@Currency.Symbol)</label>
+                    <InputNumber class="form-control" @bind-Value="_plannerForm.Bankroll" />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">@L["Evaluaciones/mes"]</label>
+                    <InputNumber class="form-control" @bind-Value="_plannerForm.MonthlyBudget" />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">@L["Horizonte (meses)"]</label>
+                    <InputNumber class="form-control" @bind-Value="_plannerForm.Months" />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">@L["Pass rate (opcional)"]</label>
+                    <InputNumber class="form-control" @bind-Value="_plannerForm.PassRateOverride"
+                                 placeholder="@(_defaults.PassRate?.ToString("0.00") ?? L["p.ej. 0.35"].Value)" />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">@L["Coste eval. (opcional)"]</label>
+                    <InputNumber class="form-control" @bind-Value="_plannerForm.EvaluationCostOverride"
+                                 placeholder="@(_defaults.AvgEvaluationCost?.ToString("0") ?? L["p.ej. 150"].Value)" />
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100" disabled="@_running">
+                        @(_running ? L["Simulando…"] : L["Simular"])
+                    </button>
+                </div>
+            </EditForm>
+
+            @if (_plannerError is not null)
+            {
+                <div class="alert alert-warning mt-3 mb-0">@_plannerError</div>
+            }
+
+            @if (_plan is not null)
+            {
+                <div class="kpi-grid mt-3">
+                    <KpiCard Title="@L["P(ruina)"]" Value="@_plan.Simulation.ProbabilityOfRuin.ToString("P1")"
+                             Emphasis="@(_plan.Simulation.ProbabilityOfRuin <= 0.05 ? "text-success" : _plan.Simulation.ProbabilityOfRuin <= 0.20 ? "text-warning" : "text-danger")" />
+                    <KpiCard Title="@L["Bankroll final (mediana)"]" Value="@Currency.Format(_plan.Simulation.MedianFinalBankroll, 0)" />
+                    <KpiCard Title="@L["Escenario malo (P5)"]" Value="@Currency.Format(_plan.Simulation.P5FinalBankroll, 0)" />
+                    <KpiCard Title="@L["Escenario bueno (P95)"]" Value="@Currency.Format(_plan.Simulation.P95FinalBankroll, 0)" />
+                    <KpiCard Title="@L["Breakeven (mediana)"]"
+                             Value="@(_plan.Simulation.MedianMonthsToBreakeven is null ? L["No alcanzado"].Value : L["{0} meses", _plan.Simulation.MedianMonthsToBreakeven].Value)" />
+                    <KpiCard Title="@L["Bankroll mín. (P(ruina) < 5 %)"]"
+                             Value="@Currency.Format(_plan.MinimumBankrollFor5PctRuin, 0)" />
+                </div>
+                <p class="small text-muted mt-2 mb-0">
+                    @(L["Simulado con: pass rate {0}, coste evaluación {1}, activación {2}, {3} payout(s) históricos, {4} iteraciones.",
+                        _plan.InputsUsed.PassRate.ToString("P1"),
+                        Currency.Format(_plan.InputsUsed.EvaluationCost, 0),
+                        Currency.Format(_plan.InputsUsed.ActivationCost, 0),
+                        _plan.InputsUsed.HistoricalPayoutsPerFundedAccount.Count,
+                        _plan.InputsUsed.Iterations.ToString("N0")])
+                    @if (_defaults.Ev is { EvPerEvaluation: <= 0 })
+                    {
+                        <strong class="text-danger">
+                            @L["Con EV ≤ 0, el «bankroll mínimo» solo financia la sangría del horizonte: no hace viable el negocio."]
+                        </strong>
+                    }
+                </p>
+            }
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">@L["Riesgo intra-cuenta — ¿aguanta tu operativa las reglas de la firma?"]</h5>
+            <p class="small text-muted">
+                @L["Muestrea tu distribución real de PnL por trade contra el profit target y el drawdown de la cuenta elegida. En evaluación ≈ P(pasar); en fondeada ≈ P(llegar al primer payout sin quemarla). Con menos de 20 trades propios se usa tu distribución global ({0} trades disponibles).", _defaults.TradesAvailable]
+            </p>
+            <div class="row g-2 align-items-end">
+                <div class="col-md-5">
+                    <label class="form-label">@L["Cuenta"]</label>
+                    <select class="form-select" @bind="_selectedAccountId">
+                        <option value="">@L["Selecciona…"]</option>
+                        @if (_accounts is not null)
+                        {
+                            @foreach (var a in _accounts)
+                            {
+                                <option value="@a.Id">@a.DisplayName (@a.Stage)</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button class="btn btn-primary w-100" disabled="@(_running || string.IsNullOrEmpty(_selectedAccountId))"
+                            @onclick="RunAccountSimAsync">
+                        @(_running ? L["Simulando…"] : L["Simular cuenta"])
+                    </button>
+                </div>
+            </div>
+
+            @if (_accountSimMessage is not null)
+            {
+                <div class="alert alert-warning mt-3 mb-0">@_accountSimMessage</div>
+            }
+
+            @if (_accountRisk is not null)
+            {
+                <div class="kpi-grid mt-3">
+                    <KpiCard Title="@L["P(alcanzar target)"]" Value="@_accountRisk.Simulation.ProbabilityOfReachingTarget.ToString("P1")"
+                             Emphasis="@(_accountRisk.Simulation.ProbabilityOfReachingTarget >= 0.5 ? "text-success" : "text-danger")" />
+                    <KpiCard Title="@L["P(quemar la cuenta)"]" Value="@_accountRisk.Simulation.ProbabilityOfBusting.ToString("P1")"
+                             Emphasis="@(_accountRisk.Simulation.ProbabilityOfBusting <= 0.3 ? "text-success" : "text-danger")" />
+                    <KpiCard Title="@L["Trades hasta target (media)"]"
+                             Value="@(_accountRisk.Simulation.AvgTradesToTarget?.ToString("0") ?? "—")" />
+                    <KpiCard Title="@L["Trades hasta ruina (media)"]"
+                             Value="@(_accountRisk.Simulation.AvgTradesToBust?.ToString("0") ?? "—")" />
+                </div>
+                <p class="small text-muted mt-2 mb-0">
+                    @_accountRisk.AccountDisplayName — @L["muestreados {0} trades", _accountRisk.TradesSampled]
+                    @(_accountRisk.UsedGlobalTrades ? L["(distribución global: la cuenta tiene menos de 20 propios)"] : L["(propios de la cuenta)"]).
+                    @if (_accountRisk.Simulation.ProbabilityOfTimeout > 0.01)
+                    {
+                        <text>@L["El {0} de los caminos no se resolvió en 1.000 trades.", _accountRisk.Simulation.ProbabilityOfTimeout.ToString("P1")]</text>
+                    }
+                </p>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    private RiskDefaultsDto? _defaults;
+    private List<TradingAccountListItemDto>? _accounts;
+
+    private PlannerFormModel _plannerForm = new();
+    private BankrollPlanResult? _plan;
+    private string? _plannerError;
+
+    private string _selectedAccountId = "";
+    private AccountRiskResultDto? _accountRisk;
+    private string? _accountSimMessage;
+
+    private bool _running;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Currency.Changed += OnCurrencyChanged;
+        _defaults = await RiskService.GetDefaultsAsync();
+        _accounts = (await AccountService.GetAllAsync()).ToList();
+    }
+
+    private void OnCurrencyChanged() => InvokeAsync(StateHasChanged);
+
+    public void Dispose() => Currency.Changed -= OnCurrencyChanged;
+
+    private async Task RunPlannerAsync()
+    {
+        _running = true;
+        _plannerError = null;
+        StateHasChanged();
+
+        try
+        {
+            _plan = await RiskService.RunBankrollPlanAsync(new BankrollPlanRequest(
+                Bankroll: _plannerForm.Bankroll,
+                MonthlyEvaluationBudget: _plannerForm.MonthlyBudget,
+                Months: _plannerForm.Months,
+                EvaluationCostOverride: _plannerForm.EvaluationCostOverride,
+                PassRateOverride: _plannerForm.PassRateOverride));
+        }
+        catch (InvalidOperationException ex)
+        {
+            _plan = null;
+            _plannerError = ex.Message;
+        }
+        finally
+        {
+            _running = false;
+        }
+    }
+
+    private async Task RunAccountSimAsync()
+    {
+        if (!Guid.TryParse(_selectedAccountId, out var accountId)) return;
+
+        _running = true;
+        _accountSimMessage = null;
+        StateHasChanged();
+
+        try
+        {
+            _accountRisk = await RiskService.RunAccountSimulationAsync(accountId);
+            if (_accountRisk is null)
+            {
+                _accountSimMessage = L["No se puede simular: la cuenta no tiene profit target/drawdown válidos o no hay ningún trade registrado del que muestrear."];
+            }
+        }
+        finally
+        {
+            _running = false;
+        }
+    }
+
+    private string EvBadgeClass() => _defaults!.Ev switch
+    {
+        { EvPerEvaluation: > 0, SampleSize: >= 20 } => "text-bg-success",
+        { EvPerEvaluation: > 0 } => "text-bg-warning",
+        _ => "text-bg-danger",
+    };
+
+    private string EvBadgeText() => _defaults!.Ev switch
+    {
+        { EvPerEvaluation: > 0, SampleSize: >= 20 } => L["EV positivo, muestra suficiente"],
+        { EvPerEvaluation: > 0 } => L["Prometedor, muestra insuficiente"],
+        _ => L["EV negativo"],
+    };
+
+    private class PlannerFormModel
+    {
+        public decimal Bankroll { get; set; } = 3_000m;
+        public int MonthlyBudget { get; set; } = 2;
+        public int Months { get; set; } = 12;
+        public double? PassRateOverride { get; set; }
+        public decimal? EvaluationCostOverride { get; set; }
+    }
+}

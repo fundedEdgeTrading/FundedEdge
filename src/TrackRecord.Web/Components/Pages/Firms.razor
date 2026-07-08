@@ -1,0 +1,520 @@
+@page "/firms"
+@rendermode InteractiveServer
+@inject IPropFirmService PropFirmService
+@inject IEvaluationProgramService ProgramService
+@inject IExternalFirmDataProvider ExternalProvider
+@inject CurrencyState Currency
+@inject IStringLocalizer<SharedResources> L
+
+<PageTitle>@L["Firmas"] — @Brand.Name</PageTitle>
+
+<h1>@L["Firmas de fondeo"]</h1>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <h5 class="card-title">@(_editingId is null ? L["Añadir firma"] : L["Editar firma"])</h5>
+        <EditForm Model="_form" OnValidSubmit="SaveAsync">
+            <DataAnnotationsValidator />
+            <div class="row g-2 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label">@L["Nombre"]</label>
+                    <InputText class="form-control" @bind-Value="_form.Name" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Web</label>
+                    <InputText class="form-control" @bind-Value="_form.Website" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">@L["Notas"]</label>
+                    <InputText class="form-control" @bind-Value="_form.Notes" />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">@L["Días mín. entre payouts"]</label>
+                    <InputNumber class="form-control" @bind-Value="_form.MinDaysBetweenPayouts" placeholder="@L["p.ej. 14"]" />
+                </div>
+                <div class="col-md-1 d-flex gap-1">
+                    <button type="submit" class="btn btn-primary">@(_editingId is null ? L["Añadir"] : L["Guardar"])</button>
+                </div>
+            </div>
+            @if (_editingId is not null)
+            {
+                <button type="button" class="btn btn-link btn-sm mt-1" @onclick="CancelEdit">@L["Cancelar edición"]</button>
+            }
+        </EditForm>
+    </div>
+</div>
+
+@if (_firms is null)
+{
+    <p><em>@L["Cargando…"]</em></p>
+}
+else if (_firms.Count == 0)
+{
+    <p class="text-muted">@L["Todavía no hay firmas registradas."]</p>
+}
+else
+{
+    <table class="table table-hover align-middle">
+        <thead>
+            <tr>
+                <th>@L["Nombre"]</th>
+                <th>Web</th>
+                <th>@L["Días mín. entre payouts"]</th>
+                <th>@L["Cuentas"]</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var firm in _firms)
+            {
+                <tr>
+                    <td>@firm.Name</td>
+                    <td>@firm.Website</td>
+                    <td>@(firm.MinDaysBetweenPayouts?.ToString() ?? "—")</td>
+                    <td>@firm.AccountCount</td>
+                    <td class="text-end">
+                        <button class="btn btn-sm btn-outline-secondary" @onclick="() => Edit(firm)">@L["Editar"]</button>
+                        <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteAsync(firm.Id)" disabled="@(firm.AccountCount > 0)">@L["Eliminar"]</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@* ── Sección de programas de evaluación ─────────────────────────────────────────────────── *@
+
+<hr class="my-4" />
+<h2 class="h4">@L["Programas de evaluación"]</h2>
+
+<div class="mb-3">
+    <label class="form-label fw-semibold">@L["Firma"]</label>
+    <select class="form-select w-auto d-inline-block ms-2" @bind="_selectedFirmId" @bind:after="LoadProgramsAsync">
+        <option value="">@L["Selecciona una firma"]</option>
+        @if (_firms is not null)
+        {
+            @foreach (var f in _firms)
+            {
+                <option value="@f.Id">@f.Name</option>
+            }
+        }
+    </select>
+</div>
+
+@if (_selectedFirmId is not null)
+{
+    @if (_programError is not null)
+    {
+        <div class="alert alert-danger">@_programError</div>
+    }
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <h6 class="card-title">@(_editingProgramId is null ? L["Añadir programa"] : L["Editar programa"])</h6>
+            <EditForm Model="_programForm" OnValidSubmit="SaveProgramAsync">
+                <DataAnnotationsValidator />
+                <div class="row g-2">
+                    <div class="col-md-3">
+                        <label class="form-label">@L["Nombre"]</label>
+                        <InputText class="form-control" @bind-Value="_programForm.Name" />
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">@L["Tamaño cuenta"]</label>
+                        <InputNumber class="form-control" @bind-Value="_programForm.AccountSize" />
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Profit target</label>
+                        <InputNumber class="form-control" @bind-Value="_programForm.ProfitTarget" />
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Max drawdown</label>
+                        <InputNumber class="form-control" @bind-Value="_programForm.MaxDrawdown" />
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Drawdown</label>
+                        <InputSelect class="form-select" @bind-Value="_programForm.DrawdownType">
+                            @foreach (var v in Enum.GetValues<DrawdownType>())
+                            {
+                                <option value="@v">@v</option>
+                            }
+                        </InputSelect>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Daily loss limit</label>
+                        <InputNumber class="form-control" @bind-Value="_programForm.DailyLossLimit" />
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">@L["Días mín. trading"]</label>
+                        <InputNumber class="form-control" @bind-Value="_programForm.MinTradingDays" />
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">@L["Consistencia máx."]</label>
+                        <InputNumber class="form-control" @bind-Value="_programForm.ConsistencyMaxDayFraction" />
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">@L["Coste eval."]</label>
+                        <InputNumber class="form-control" @bind-Value="_programForm.EvaluationCost" />
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">@L["Coste activación"]</label>
+                        <InputNumber class="form-control" @bind-Value="_programForm.ActivationCost" />
+                    </div>
+
+                    <div class="col-12"><small class="text-muted fw-semibold">@L["Fase fondeada (vacío = igual que evaluación)"]</small></div>
+                    <div class="col-md-2">
+                        <label class="form-label">Drawdown fondeada</label>
+                        <InputSelect class="form-select" @bind-Value="_programForm.FundedDrawdownType">
+                            <option value="">@L["Igual que eval."]</option>
+                            @foreach (var v in Enum.GetValues<DrawdownType>())
+                            {
+                                <option value="@v">@v</option>
+                            }
+                        </InputSelect>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Max drawdown fondeada</label>
+                        <InputNumber class="form-control" @bind-Value="_programForm.FundedMaxDrawdown" />
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Daily loss fondeada</label>
+                        <InputNumber class="form-control" @bind-Value="_programForm.FundedDailyLossLimit" />
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Profit target fondeada</label>
+                        <InputNumber class="form-control" @bind-Value="_programForm.FundedProfitTarget" />
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">@L["Días mín. fondeada"]</label>
+                        <InputNumber class="form-control" @bind-Value="_programForm.FundedMinTradingDays" />
+                    </div>
+
+                    <div class="col-12"><small class="text-muted fw-semibold">Payout</small></div>
+                    <div class="col-md-2">
+                        <label class="form-label">Split trader (0-1)</label>
+                        <InputNumber class="form-control" @bind-Value="_programForm.PayoutSplitTraderPct" />
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Cap retiro (% profit)</label>
+                        <InputNumber class="form-control" @bind-Value="_programForm.PayoutMaxProfitPct" />
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">@L["Días entre payouts"]</label>
+                        <InputNumber class="form-control" @bind-Value="_programForm.PayoutMinDaysBetween" />
+                    </div>
+                </div>
+                <div class="mt-2 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">@(_editingProgramId is null ? L["Añadir"] : L["Guardar versión"])</button>
+                    @if (_editingProgramId is not null)
+                    {
+                        <button type="button" class="btn btn-link" @onclick="CancelProgramEdit">@L["Cancelar"]</button>
+                    }
+                </div>
+            </EditForm>
+        </div>
+    </div>
+
+    @* Botón importar desde JSON *@
+    <div class="mb-3">
+        <button class="btn btn-outline-secondary btn-sm" @onclick="() => _showImportPanel = !_showImportPanel">
+            📥 @L["Importar programas desde JSON"]
+        </button>
+    </div>
+    @if (_showImportPanel)
+    {
+        <div class="card mb-3">
+            <div class="card-body">
+                <h6 class="card-title">@L["Importar desde JSON"]</h6>
+                <p class="text-muted small">@L["Sube un fichero JSON con el array de programas. Los programas se previsualizan antes de guardar."]</p>
+                <InputFile OnChange="OnImportFileChangedAsync" accept=".json" class="form-control mb-2" />
+                @if (_importError is not null)
+                {
+                    <div class="alert alert-danger">@_importError</div>
+                }
+                @if (_importPreview is not null && _importPreview.Count > 0)
+                {
+                    <p class="fw-semibold">@L["Vista previa — "] @_importPreview.Count @L[" programa(s)"]</p>
+                    <table class="table table-sm">
+                        <thead><tr><th>@L["Nombre"]</th><th>@L["Tamaño"]</th><th>Profit target</th><th>Split</th></tr></thead>
+                        <tbody>
+                            @foreach (var p in _importPreview)
+                            {
+                                <tr>
+                                    <td>@p.Name</td>
+                                    <td>@Currency.Format(p.AccountSize, 0)</td>
+                                    <td>@Currency.Format(p.ProfitTarget)</td>
+                                    <td>@p.PayoutSplitTraderPct.ToString("P0")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                    <button class="btn btn-success btn-sm" @onclick="SaveImportAsync">@L["Guardar todos"]</button>
+                }
+            </div>
+        </div>
+    }
+
+    @if (_programs is null)
+    {
+        <p><em>@L["Cargando…"]</em></p>
+    }
+    else if (_programs.Count == 0)
+    {
+        <p class="text-muted">@L["Esta firma no tiene programas activos."]</p>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-sm table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>@L["Nombre"]</th>
+                        <th class="text-end">@L["Tamaño"]</th>
+                        <th class="text-end">Profit target</th>
+                        <th class="text-end">Max DD</th>
+                        <th>DD</th>
+                        <th class="text-end">Split</th>
+                        <th class="text-end">@L["Días payouts"]</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var p in _programs)
+                    {
+                        <tr>
+                            <td>@p.Name</td>
+                            <td class="text-end">@Currency.Format(p.AccountSize, 0)</td>
+                            <td class="text-end">@Currency.Format(p.ProfitTarget)</td>
+                            <td class="text-end">@Currency.Format(p.MaxDrawdown)</td>
+                            <td>@p.DrawdownType</td>
+                            <td class="text-end">@p.PayoutSplitTraderPct.ToString("P0")</td>
+                            <td class="text-end">@(p.PayoutMinDaysBetween?.ToString() ?? "—")</td>
+                            <td class="text-end">
+                                <button class="btn btn-sm btn-outline-secondary" @onclick="() => EditProgram(p)">@L["Editar"]</button>
+                                <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteProgramAsync(p.Id)">@L["Desactivar"]</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+}
+
+@code {
+    // ── Firms ────────────────────────────────────────────────────────────────────────────────
+    private List<PropFirmDto>? _firms;
+    private Guid? _editingId;
+    private FirmFormModel _form = new();
+
+    // ── Programs ─────────────────────────────────────────────────────────────────────────────
+    private Guid? _selectedFirmId;
+    private List<EvaluationProgramDto>? _programs;
+    private Guid? _editingProgramId;
+    private ProgramFormModel _programForm = new();
+    private string? _programError;
+
+    // ── Import JSON ──────────────────────────────────────────────────────────────────────────
+    private bool _showImportPanel;
+    private List<EvaluationProgramDto>? _importPreview;
+    private string? _importError;
+
+    protected override async Task OnInitializedAsync() => await LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        _firms = (await PropFirmService.GetAllAsync()).ToList();
+    }
+
+    private async Task LoadProgramsAsync()
+    {
+        _programs = null;
+        _importPreview = null;
+        _importError = null;
+        if (_selectedFirmId is null) return;
+        _programs = (await ProgramService.GetByFirmAsync(_selectedFirmId.Value)).ToList();
+    }
+
+    // ── Firm CRUD ────────────────────────────────────────────────────────────────────────────
+
+    private void Edit(PropFirmDto firm)
+    {
+        _editingId = firm.Id;
+        _form = new FirmFormModel { Name = firm.Name, Website = firm.Website, Notes = firm.Notes, MinDaysBetweenPayouts = firm.MinDaysBetweenPayouts };
+    }
+
+    private void CancelEdit()
+    {
+        _editingId = null;
+        _form = new FirmFormModel();
+    }
+
+    private async Task SaveAsync()
+    {
+        var request = new UpsertPropFirmRequest(_form.Name, _form.Website, _form.Notes, _form.MinDaysBetweenPayouts);
+        if (_editingId is null)
+            await PropFirmService.CreateAsync(request);
+        else
+            await PropFirmService.UpdateAsync(_editingId.Value, request);
+        CancelEdit();
+        await LoadAsync();
+    }
+
+    private async Task DeleteAsync(Guid id)
+    {
+        await PropFirmService.DeleteAsync(id);
+        await LoadAsync();
+    }
+
+    // ── Program CRUD ─────────────────────────────────────────────────────────────────────────
+
+    private void EditProgram(EvaluationProgramDto p)
+    {
+        _editingProgramId = p.Id;
+        _programForm = new ProgramFormModel
+        {
+            Name = p.Name, AccountSize = p.AccountSize, EvaluationCost = p.EvaluationCost,
+            ActivationCost = p.ActivationCost, ProfitTarget = p.ProfitTarget,
+            MaxDrawdown = p.MaxDrawdown, DrawdownType = p.DrawdownType,
+            DailyLossLimit = p.DailyLossLimit, MinTradingDays = p.MinTradingDays,
+            ConsistencyMaxDayFraction = p.ConsistencyMaxDayFraction,
+            FundedMaxDrawdown = p.FundedMaxDrawdown, FundedDrawdownType = p.FundedDrawdownType,
+            FundedDailyLossLimit = p.FundedDailyLossLimit, FundedProfitTarget = p.FundedProfitTarget,
+            FundedMinTradingDays = p.FundedMinTradingDays,
+            PayoutSplitTraderPct = p.PayoutSplitTraderPct, PayoutMaxProfitPct = p.PayoutMaxProfitPct,
+            PayoutMinDaysBetween = p.PayoutMinDaysBetween,
+        };
+    }
+
+    private void CancelProgramEdit()
+    {
+        _editingProgramId = null;
+        _programForm = new ProgramFormModel();
+        _programError = null;
+    }
+
+    private async Task SaveProgramAsync()
+    {
+        if (_selectedFirmId is null) return;
+        _programError = null;
+
+        var request = new UpsertEvaluationProgramRequest(
+            _selectedFirmId.Value,
+            _programForm.Name,
+            _programForm.AccountSize,
+            _programForm.EvaluationCost,
+            _programForm.ActivationCost,
+            _programForm.ProfitTarget,
+            _programForm.MaxDrawdown,
+            _programForm.DrawdownType,
+            _programForm.DailyLossLimit,
+            _programForm.MinTradingDays,
+            _programForm.ConsistencyMaxDayFraction,
+            _programForm.FundedMaxDrawdown,
+            _programForm.FundedDrawdownType,
+            _programForm.FundedDailyLossLimit,
+            _programForm.FundedProfitTarget,
+            _programForm.FundedMinTradingDays,
+            _programForm.PayoutSplitTraderPct,
+            _programForm.PayoutMaxProfitPct,
+            _programForm.PayoutMinDaysBetween);
+
+        try
+        {
+            if (_editingProgramId is null)
+                await ProgramService.CreateAsync(request);
+            else
+                await ProgramService.UpdateAsync(_editingProgramId.Value, request);
+        }
+        catch (Exception ex)
+        {
+            _programError = ex.Message;
+            return;
+        }
+
+        CancelProgramEdit();
+        await LoadProgramsAsync();
+    }
+
+    private async Task DeleteProgramAsync(Guid id)
+    {
+        await ProgramService.DeleteAsync(id);
+        await LoadProgramsAsync();
+    }
+
+    // ── Import JSON ──────────────────────────────────────────────────────────────────────────
+
+    private async Task OnImportFileChangedAsync(InputFileChangeEventArgs e)
+    {
+        _importError = null;
+        _importPreview = null;
+        var file = e.File;
+        if (file is null) return;
+
+        try
+        {
+            using var stream = file.OpenReadStream(maxAllowedSize: 512 * 1024);
+            using var reader = new System.IO.StreamReader(stream);
+            var json = await reader.ReadToEndAsync();
+            _importPreview = (await ExternalProvider.FetchProgramsAsync(json)).ToList();
+        }
+        catch (Exception ex)
+        {
+            _importError = ex.Message;
+        }
+    }
+
+    private async Task SaveImportAsync()
+    {
+        if (_importPreview is null || _selectedFirmId is null) return;
+        _importError = null;
+
+        foreach (var p in _importPreview)
+        {
+            var request = new UpsertEvaluationProgramRequest(
+                _selectedFirmId.Value, p.Name, p.AccountSize, p.EvaluationCost, p.ActivationCost,
+                p.ProfitTarget, p.MaxDrawdown, p.DrawdownType, p.DailyLossLimit, p.MinTradingDays,
+                p.ConsistencyMaxDayFraction, p.FundedMaxDrawdown, p.FundedDrawdownType,
+                p.FundedDailyLossLimit, p.FundedProfitTarget, p.FundedMinTradingDays,
+                p.PayoutSplitTraderPct, p.PayoutMaxProfitPct, p.PayoutMinDaysBetween);
+            await ProgramService.CreateAsync(request);
+        }
+
+        _importPreview = null;
+        _showImportPanel = false;
+        await LoadProgramsAsync();
+    }
+
+    // ── Form models ──────────────────────────────────────────────────────────────────────────
+
+    private class FirmFormModel
+    {
+        [System.ComponentModel.DataAnnotations.Required]
+        public string Name { get; set; } = "";
+        public string? Website { get; set; }
+        public string? Notes { get; set; }
+        public int? MinDaysBetweenPayouts { get; set; }
+    }
+
+    private class ProgramFormModel
+    {
+        [System.ComponentModel.DataAnnotations.Required]
+        public string Name { get; set; } = "";
+        public decimal AccountSize { get; set; } = 50_000m;
+        public decimal EvaluationCost { get; set; }
+        public decimal ActivationCost { get; set; }
+        public decimal ProfitTarget { get; set; } = 3_000m;
+        public decimal MaxDrawdown { get; set; } = 2_500m;
+        public DrawdownType DrawdownType { get; set; } = DrawdownType.Trailing;
+        public decimal? DailyLossLimit { get; set; }
+        public int? MinTradingDays { get; set; }
+        public decimal? ConsistencyMaxDayFraction { get; set; }
+        public decimal? FundedMaxDrawdown { get; set; }
+        public DrawdownType? FundedDrawdownType { get; set; }
+        public decimal? FundedDailyLossLimit { get; set; }
+        public decimal? FundedProfitTarget { get; set; }
+        public int? FundedMinTradingDays { get; set; }
+        public decimal PayoutSplitTraderPct { get; set; } = 1.0m;
+        public decimal? PayoutMaxProfitPct { get; set; }
+        public int? PayoutMinDaysBetween { get; set; }
+    }
+}

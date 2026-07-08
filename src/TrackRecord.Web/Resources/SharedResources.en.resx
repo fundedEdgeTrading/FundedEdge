@@ -1,0 +1,1251 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="14 días de Pro gratis al registrarte, sin tarjeta. Cancela cuando quieras." xml:space="preserve">
+    <value>14 days of Pro free when you sign up, no card required. Cancel anytime.</value>
+  </data>
+  <data name="o {0} €/año (ahorra ~17 %)" xml:space="preserve">
+    <value>or {0} €/year (save ~17%)</value>
+  </data>
+  <data name="A 12 meses, con tu presupuesto mensual." xml:space="preserve">
+    <value>Over 12 months, with your monthly budget.</value>
+  </data>
+  <data name="Accede a tu track record de trading y cuentas de fondeo." xml:space="preserve">
+    <value>Access your trading track record and funded accounts.</value>
+  </data>
+  <data name="Acceso denegado" xml:space="preserve">
+    <value>Access denied</value>
+  </data>
+  <data name="Ajustes" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="Al registrarte tienes 14 días con las funcionalidades de Pro, sin necesidad de tarjeta. Al terminar, tu cuenta pasa a Starter automáticamente si no has mejorado de plan." xml:space="preserve">
+    <value>When you sign up you get 14 days of Pro features, no card needed. Afterwards, your account automatically moves to Starter unless you've upgraded.</value>
+  </data>
+  <data name="Analista de IA" xml:space="preserve">
+    <value>AI analyst</value>
+  </data>
+  <data name="Análisis" xml:space="preserve">
+    <value>Analysis</value>
+  </data>
+  <data name="Análisis IA" xml:space="preserve">
+    <value>AI analysis</value>
+  </data>
+  <data name="Aviso de drawdown:" xml:space="preserve">
+    <value>Drawdown warning:</value>
+  </data>
+  <data name="Bankroll disponible ($)" xml:space="preserve">
+    <value>Available bankroll ($)</value>
+  </data>
+  <data name="Bankroll final: mediana {0}, P5 {1}, P95 {2}." xml:space="preserve">
+    <value>Final bankroll: median {0}, P5 {1}, P95 {2}.</value>
+  </data>
+  <data name="Breakeven mediano en el mes {0}." xml:space="preserve">
+    <value>Median breakeven at month {0}.</value>
+  </data>
+  <data name="Cada evaluación que compras, en promedio, gana." xml:space="preserve">
+    <value>Each evaluation you buy, on average, wins.</value>
+  </data>
+  <data name="Cada evaluación que compras, en promedio, pierde." xml:space="preserve">
+    <value>Each evaluation you buy, on average, loses.</value>
+  </data>
+  <data name="Calcula la esperanza matemática (EV) por evaluación y la probabilidad de ruina de tu bankroll con tus propios supuestos — el mismo motor de Monte Carlo que usa {0} con tus datos reales una vez registrado." xml:space="preserve">
+    <value>Calculate the expected value (EV) per evaluation and the probability of ruin of your bankroll with your own assumptions — the same Monte Carlo engine {0} uses with your real data once you register.</value>
+  </data>
+  <data name="Calcula tu EV gratis" xml:space="preserve">
+    <value>Calculate your EV for free</value>
+  </data>
+  <data name="Calculadora" xml:space="preserve">
+    <value>Calculator</value>
+  </data>
+  <data name="Calculadora de riesgo de fondeo" xml:space="preserve">
+    <value>Funded trading risk calculator</value>
+  </data>
+  <data name="Calcular" xml:space="preserve">
+    <value>Calculate</value>
+  </data>
+  <data name="Cargando…" xml:space="preserve">
+    <value>Loading…</value>
+  </data>
+  <data name="Cashflow mensual" xml:space="preserve">
+    <value>Monthly cashflow</value>
+  </data>
+  <data name="Cashflow neto" xml:space="preserve">
+    <value>Net cashflow</value>
+  </data>
+  <data name="Cerrar sesión" xml:space="preserve">
+    <value>Log out</value>
+  </data>
+  <data name="Completar registro" xml:space="preserve">
+    <value>Complete registration</value>
+  </data>
+  <data name="Confirma tu email" xml:space="preserve">
+    <value>Confirm your email</value>
+  </data>
+  <data name="Confirma tu email para terminar de crear tu cuenta." xml:space="preserve">
+    <value>Confirm your email to finish creating your account.</value>
+  </data>
+  <data name="Confirmación de email" xml:space="preserve">
+    <value>Email confirmation</value>
+  </data>
+  <data name="Confirmar contraseña" xml:space="preserve">
+    <value>Confirm password</value>
+  </data>
+  <data name="Confirmar mi cuenta" xml:space="preserve">
+    <value>Confirm my account</value>
+  </data>
+  <data name="Continuar con {0}" xml:space="preserve">
+    <value>Continue with {0}</value>
+  </data>
+  <data name="Contraseña" xml:space="preserve">
+    <value>Password</value>
+  </data>
+  <data name="Coste de activación ($)" xml:space="preserve">
+    <value>Activation cost ($)</value>
+  </data>
+  <data name="Coste de evaluación ($)" xml:space="preserve">
+    <value>Evaluation cost ($)</value>
+  </data>
+  <data name="Coste por cuenta fondeada" xml:space="preserve">
+    <value>Cost per funded account</value>
+  </data>
+  <data name="Coste total invertido" xml:space="preserve">
+    <value>Total cost invested</value>
+  </data>
+  <data name="Crear cuenta" xml:space="preserve">
+    <value>Create account</value>
+  </data>
+  <data name="Cualquier cuenta en evaluación o fondeada. Las cuentas fallidas, retiradas o expiradas no cuentan para tu límite." xml:space="preserve">
+    <value>Any account in evaluation or funded. Failed, withdrawn or expired accounts don't count towards your limit.</value>
+  </data>
+  <data name="Cuando registres trades cerrados, la curva de equity aparecerá aquí." xml:space="preserve">
+    <value>Once you log closed trades, the equity curve will appear here.</value>
+  </data>
+  <data name="Cuenta bloqueada" xml:space="preserve">
+    <value>Account locked</value>
+  </data>
+  <data name="Cuentas" xml:space="preserve">
+    <value>Accounts</value>
+  </data>
+  <data name="Cuentas activas ilimitadas" xml:space="preserve">
+    <value>Unlimited active accounts</value>
+  </data>
+  <data name="Cuentas compradas" xml:space="preserve">
+    <value>Accounts purchased</value>
+  </data>
+  <data name="Cuentas fondeadas" xml:space="preserve">
+    <value>Funded accounts</value>
+  </data>
+  <data name="Cuentas, evaluaciones, payouts y métricas de riesgo de todas tus firmas de fondeo, en un único dashboard." xml:space="preserve">
+    <value>Accounts, evaluations, payouts and risk metrics from all your funding firms, in a single dashboard.</value>
+  </data>
+  <data name="Cuentas, evaluaciones, payouts y métricas de riesgo de todas tus firmas de fondeo, en un único dashboard. Sabrás si tu negocio de evaluaciones es rentable — no lo intuirás." xml:space="preserve">
+    <value>Accounts, evaluations, payouts and risk metrics from all your funding firms, in a single dashboard. You'll know whether your evaluation business is profitable — not just guess.</value>
+  </data>
+  <data name="Curva de equity (trading)" xml:space="preserve">
+    <value>Equity curve (trading)</value>
+  </data>
+  <data name="Desde /plan, en cualquier momento. Mantienes el acceso hasta el final del periodo ya pagado." xml:space="preserve">
+    <value>From /plan, at any time. You keep access until the end of the period you already paid for.</value>
+  </data>
+  <data name="Divisa" xml:space="preserve">
+    <value>Currency</value>
+  </data>
+  <data name="Divisa de visualización" xml:space="preserve">
+    <value>Display currency</value>
+  </data>
+  <data name="EV por evaluación" xml:space="preserve">
+    <value>EV per evaluation</value>
+  </data>
+  <data name="El envío de emails no está configurado (Email:SmtpHost / Email:From), así que el enlace de confirmación se muestra aquí. En producción, configura SMTP para que la verificación sea real — ver README." xml:space="preserve">
+    <value>Email sending isn't configured (Email:SmtpHost / Email:From), so the confirmation link is shown here. In production, configure SMTP so verification is real — see README.</value>
+  </data>
+  <data name="Empezar con {0}" xml:space="preserve">
+    <value>Get started with {0}</value>
+  </data>
+  <data name="Empieza gratis" xml:space="preserve">
+    <value>Start for free</value>
+  </data>
+  <data name="Empieza gratis — 14 días de Pro incluidos" xml:space="preserve">
+    <value>Start for free — 14 days of Pro included</value>
+  </data>
+  <data name="En evaluación" xml:space="preserve">
+    <value>In evaluation</value>
+  </data>
+  <data name="Error: confirma tu email antes de iniciar sesión." xml:space="preserve">
+    <value>Error: confirm your email before signing in.</value>
+  </data>
+  <data name="Error: el enlace de confirmación no es válido." xml:space="preserve">
+    <value>Error: the confirmation link is not valid.</value>
+  </data>
+  <data name="Error: email o contraseña incorrectos." xml:space="preserve">
+    <value>Error: incorrect email or password.</value>
+  </data>
+  <data name="Error: no existe ningún registro pendiente para ese email." xml:space="preserve">
+    <value>Error: there's no pending registration for that email.</value>
+  </data>
+  <data name="Este track record no existe o ya no está disponible." xml:space="preserve">
+    <value>This track record doesn't exist or is no longer available.</value>
+  </data>
+  <data name="Esto es una simulación con 2.000 iteraciones y tus supuestos manuales. Regístrate y conecta tus cuentas para calcularlo con tu pass rate y tu distribución real de payouts." xml:space="preserve">
+    <value>This is a simulation with 2,000 iterations and your manual assumptions. Sign up and connect your accounts to calculate it with your real pass rate and payout distribution.</value>
+  </data>
+  <data name="Evaluaciones/mes" xml:space="preserve">
+    <value>Evaluations/month</value>
+  </data>
+  <data name="Evolución" xml:space="preserve">
+    <value>Trend</value>
+  </data>
+  <data name="Expectancy / trade" xml:space="preserve">
+    <value>Expectancy / trade</value>
+  </data>
+  <data name="Exportar" xml:space="preserve">
+    <value>Export</value>
+  </data>
+  <data name="Firmas" xml:space="preserve">
+    <value>Firms</value>
+  </data>
+  <data name="Fondeadas (activas)" xml:space="preserve">
+    <value>Funded (active)</value>
+  </data>
+  <data name="Fracción de Kelly" xml:space="preserve">
+    <value>Kelly fraction</value>
+  </data>
+  <data name="Funded trading · todo en un sitio" xml:space="preserve">
+    <value>Funded trading · all in one place</value>
+  </data>
+  <data name="General" xml:space="preserve">
+    <value>General</value>
+  </data>
+  <data name="Gratis" xml:space="preserve">
+    <value>Free</value>
+  </data>
+  <data name="Idioma" xml:space="preserve">
+    <value>Language</value>
+  </data>
+  <data name="Importa un CSV de NinjaTrader, conecta Tradovate o añade trades manualmente desde la ficha de una cuenta." xml:space="preserve">
+    <value>Import a NinjaTrader CSV, connect Tradovate, or add trades manually from an account's detail page.</value>
+  </data>
+  <data name="Informes que citan tus métricas exactas y la viabilidad real de tu negocio de evaluaciones — no un chatbot genérico." xml:space="preserve">
+    <value>Reports that cite your exact metrics and the real viability of your evaluation business — not a generic chatbot.</value>
+  </data>
+  <data name="Inicia sesión" xml:space="preserve">
+    <value>Sign in</value>
+  </data>
+  <data name="Iniciar sesión" xml:space="preserve">
+    <value>Sign in</value>
+  </data>
+  <data name="Introduce tu email y te volveremos a enviar el enlace de confirmación." xml:space="preserve">
+    <value>Enter your email and we'll resend you the confirmation link.</value>
+  </data>
+  <data name="KPIs de negocio de fondeo" xml:space="preserve">
+    <value>Funded trading business KPIs</value>
+  </data>
+  <data name="La mediana de caminos no recupera el bankroll inicial en 12 meses." xml:space="preserve">
+    <value>The median of paths doesn't recover the initial bankroll within 12 months.</value>
+  </data>
+  <data name="Lo que entra (payouts) contra lo que se gasta en evaluaciones y cuotas, mes a mes, con el neto acumulado del negocio." xml:space="preserve">
+    <value>What comes in (payouts) versus what's spent on evaluations and fees, month by month, with the business's cumulative net.</value>
+  </data>
+  <data name="Menú de navegación" xml:space="preserve">
+    <value>Navigation menu</value>
+  </data>
+  <data name="Monte Carlo de ruina del bankroll, EV por evaluación con intervalo de confianza y fracción de Kelly — nivel institucional aplicado a tu operativa." xml:space="preserve">
+    <value>Monte Carlo bankroll ruin simulation, EV per evaluation with a confidence interval, and Kelly fraction — institutional-grade analysis applied to your trading.</value>
+  </data>
+  <data name="Máx. drawdown" xml:space="preserve">
+    <value>Max. drawdown</value>
+  </data>
+  <data name="Mínimo 6 caracteres" xml:space="preserve">
+    <value>Minimum 6 characters</value>
+  </data>
+  <data name="Módulo de riesgo completo (Monte Carlo, EV, Kelly)" xml:space="preserve">
+    <value>Full risk module (Monte Carlo, EV, Kelly)</value>
+  </data>
+  <data name="Negocio de fondeo" xml:space="preserve">
+    <value>Funded trading business</value>
+  </data>
+  <data name="No se borra nada. Las cuentas por encima del límite pasan a solo lectura hasta que archives el exceso o vuelvas a subir de plan." xml:space="preserve">
+    <value>Nothing gets deleted. Accounts above the limit become read-only until you archive the excess or upgrade your plan again.</value>
+  </data>
+  <data name="No somos una prop firm ni vendemos evaluaciones. No somos señales ni promesas de rentabilidad. Somos contabilidad y estadística honesta — a veces la respuesta es que tu negocio de evaluaciones &lt;strong&gt;todavía&lt;/strong&gt; no es rentable, y es mejor saberlo hoy." xml:space="preserve">
+    <value>We're not a prop firm and we don't sell evaluations. We're not signals or promises of profit. We're honest accounting and statistics — sometimes the answer is that your evaluation business &lt;strong&gt;isn't&lt;/strong&gt; profitable yet, and it's better to know today.</value>
+  </data>
+  <data name="No tienes permiso para acceder a este recurso." xml:space="preserve">
+    <value>You don't have permission to access this resource.</value>
+  </data>
+  <data name="Nombre" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Operativa (trading)" xml:space="preserve">
+    <value>Trading activity</value>
+  </data>
+  <data name="Orientativa — opera a ½ Kelly como máximo." xml:space="preserve">
+    <value>Indicative — trade at half Kelly at most.</value>
+  </data>
+  <data name="P&amp;L neto acumulado de todos tus trades cerrados, día a día." xml:space="preserve">
+    <value>Cumulative net P&amp;L of all your closed trades, day by day.</value>
+  </data>
+  <data name="P(ruina) del bankroll" xml:space="preserve">
+    <value>Bankroll P(ruin)</value>
+  </data>
+  <data name="Para el operador serio" xml:space="preserve">
+    <value>For the serious trader</value>
+  </data>
+  <data name="Para el trader con varias cuentas" xml:space="preserve">
+    <value>For the trader with several accounts</value>
+  </data>
+  <data name="Para probar la app" xml:space="preserve">
+    <value>To try out the app</value>
+  </data>
+  <data name="Pass rate estimado (%)" xml:space="preserve">
+    <value>Estimated pass rate (%)</value>
+  </data>
+  <data name="Pass rate, coste por cuenta fondeada, payout medio, ROI y cashflow neto — como ciudadanos de primera clase, no una hoja de cálculo aparte." xml:space="preserve">
+    <value>Pass rate, cost per funded account, average payout, ROI and net cashflow — as first-class citizens, not a separate spreadsheet.</value>
+  </data>
+  <data name="Payout medio esperado ($)" xml:space="preserve">
+    <value>Expected average payout ($)</value>
+  </data>
+  <data name="Payout medio por fondeada" xml:space="preserve">
+    <value>Average payout per funded account</value>
+  </data>
+  <data name="Payouts totales recibidos" xml:space="preserve">
+    <value>Total payouts received</value>
+  </data>
+  <data name="Por qué {0}" xml:space="preserve">
+    <value>Why {0}</value>
+  </data>
+  <data name="Precios" xml:space="preserve">
+    <value>Pricing</value>
+  </data>
+  <data name="Precios simples, sin sorpresas" xml:space="preserve">
+    <value>Simple pricing, no surprises</value>
+  </data>
+  <data name="Preguntas IA ilimitadas" xml:space="preserve">
+    <value>Unlimited AI questions</value>
+  </data>
+  <data name="Preguntas frecuentes" xml:space="preserve">
+    <value>Frequently asked questions</value>
+  </data>
+  <data name="Página no encontrada" xml:space="preserve">
+    <value>Page not found</value>
+  </data>
+  <data name="Quemadas / Expiradas" xml:space="preserve">
+    <value>Failed / Expired</value>
+  </data>
+  <data name="R-múltiplo medio" xml:space="preserve">
+    <value>Average R-multiple</value>
+  </data>
+  <data name="ROI del negocio" xml:space="preserve">
+    <value>Business ROI</value>
+  </data>
+  <data name="Racha máx. pérdidas" xml:space="preserve">
+    <value>Max losing streak</value>
+  </data>
+  <data name="Rendimiento por tag" xml:space="preserve">
+    <value>Performance by tag</value>
+  </data>
+  <data name="Recordarme" xml:space="preserve">
+    <value>Remember me</value>
+  </data>
+  <data name="Reenviar" xml:space="preserve">
+    <value>Resend</value>
+  </data>
+  <data name="Reenviar confirmación" xml:space="preserve">
+    <value>Resend confirmation</value>
+  </data>
+  <data name="Reenviar el email de confirmación" xml:space="preserve">
+    <value>Resend the confirmation email</value>
+  </data>
+  <data name="Registra costes y payouts en tus cuentas para ver el cashflow mensual." xml:space="preserve">
+    <value>Log costs and payouts on your accounts to see the monthly cashflow.</value>
+  </data>
+  <data name="Registra tu propio track record de fondeo — tus cuentas, trades y métricas son solo tuyos." xml:space="preserve">
+    <value>Log your own funded trading track record — your accounts, trades and metrics are yours alone.</value>
+  </data>
+  <data name="Regístrate" xml:space="preserve">
+    <value>Sign up</value>
+  </data>
+  <data name="Regístrate para usar tus datos reales" xml:space="preserve">
+    <value>Sign up to use your real data</value>
+  </data>
+  <data name="Riesgo" xml:space="preserve">
+    <value>Risk</value>
+  </data>
+  <data name="Riesgo cuantitativo" xml:space="preserve">
+    <value>Quantitative risk</value>
+  </data>
+  <data name="Se ha bloqueado temporalmente por demasiados intentos fallidos. Inténtalo de nuevo en unos minutos." xml:space="preserve">
+    <value>It's been temporarily locked due to too many failed attempts. Try again in a few minutes.</value>
+  </data>
+  <data name="Semáforo EV básico" xml:space="preserve">
+    <value>Basic EV traffic light</value>
+  </data>
+  <data name="Sin edge" xml:space="preserve">
+    <value>No edge</value>
+  </data>
+  <data name="Sin movimientos todavía" xml:space="preserve">
+    <value>No activity yet</value>
+  </data>
+  <data name="Sin trades suficientes" xml:space="preserve">
+    <value>Not enough trades yet</value>
+  </data>
+  <data name="Sincronización automática (Tradovate / NinjaTrader)" xml:space="preserve">
+    <value>Automatic sync (Tradovate / NinjaTrader)</value>
+  </data>
+  <data name="Sistema" xml:space="preserve">
+    <value>System</value>
+  </data>
+  <data name="Starter y Pro usan un modelo rápido y económico (Haiku); Elite usa el modelo más avanzado disponible (Opus) para análisis más profundos." xml:space="preserve">
+    <value>Starter and Pro use a fast, low-cost model (Haiku); Elite uses the most advanced model available (Opus) for deeper analysis.</value>
+  </data>
+  <data name="Te has autenticado con" xml:space="preserve">
+    <value>You signed in with</value>
+  </data>
+  <data name="Te hemos enviado un email con un enlace para confirmar tu cuenta. Revisa tu bandeja de entrada (y la carpeta de spam)." xml:space="preserve">
+    <value>We've sent you an email with a link to confirm your account. Check your inbox (and spam folder).</value>
+  </data>
+  <data name="Todavía no hay trades registrados" xml:space="preserve">
+    <value>No trades logged yet</value>
+  </data>
+  <data name="Track record" xml:space="preserve">
+    <value>Track record</value>
+  </data>
+  <data name="Track record público" xml:space="preserve">
+    <value>Public track record</value>
+  </data>
+  <data name="Track record público de negocio de fondeo, generado con {0}." xml:space="preserve">
+    <value>Public funded trading track record, generated with {0}.</value>
+  </data>
+  <data name="Trades cerrados" xml:space="preserve">
+    <value>Closed trades</value>
+  </data>
+  <data name="Tu email está confirmado. Ya puedes iniciar sesión." xml:space="preserve">
+    <value>Your email is confirmed. You can now sign in.</value>
+  </data>
+  <data name="Tu nombre" xml:space="preserve">
+    <value>Your name</value>
+  </data>
+  <data name="Tu plan" xml:space="preserve">
+    <value>Your plan</value>
+  </data>
+  <data name="Tu track record," xml:space="preserve">
+    <value>Your track record,</value>
+  </data>
+  <data name="Un último paso" xml:space="preserve">
+    <value>One last step</value>
+  </data>
+  <data name="Ver precios" xml:space="preserve">
+    <value>See pricing</value>
+  </data>
+  <data name="Visión general del negocio de fondeo y de tu operativa." xml:space="preserve">
+    <value>Overview of your funded trading business and your trading activity.</value>
+  </data>
+  <data name="Volver al inicio de sesión" xml:space="preserve">
+    <value>Back to sign in</value>
+  </data>
+  <data name="el copiloto financiero del trader de fondeo." xml:space="preserve">
+    <value>the funded trader's financial copilot.</value>
+  </data>
+  <data name="o con tu email" xml:space="preserve">
+    <value>or with your email</value>
+  </data>
+  <data name="sin hojas de cálculo." xml:space="preserve">
+    <value>no spreadsheets.</value>
+  </data>
+  <data name="{0} cuentas activas" xml:space="preserve">
+    <value>{0} active accounts</value>
+  </data>
+  <data name="{0} informe IA cada {1} día (modelo avanzado)" xml:space="preserve">
+    <value>{0} AI report every {1} day (advanced model)</value>
+  </data>
+  <data name="{0} informe IA cada {1} días" xml:space="preserve">
+    <value>{0} AI report every {1} days</value>
+  </data>
+  <data name="{0} preguntas IA al mes" xml:space="preserve">
+    <value>{0} AI questions/month</value>
+  </data>
+  <data name="{0} — {1} del colchón de drawdown consumido (quedan {2})." xml:space="preserve">
+    <value>{0} — {1} of the drawdown buffer consumed (remaining: {2}).</value>
+  </data>
+  <data name="¿Cómo cancelo?" xml:space="preserve">
+    <value>How do I cancel?</value>
+  </data>
+  <data name="¿Cómo funciona el trial?" xml:space="preserve">
+    <value>How does the trial work?</value>
+  </data>
+  <data name="¿Es rentable tu negocio de evaluaciones?" xml:space="preserve">
+    <value>Is your evaluation business profitable?</value>
+  </data>
+  <data name="¿No te ha llegado?" xml:space="preserve">
+    <value>Didn't get it?</value>
+  </data>
+  <data name="¿No tienes cuenta?" xml:space="preserve">
+    <value>Don't have an account?</value>
+  </data>
+  <data name="¿Qué cuenta como &quot;cuenta activa&quot;?" xml:space="preserve">
+    <value>What counts as an "active account"?</value>
+  </data>
+  <data name="¿Qué modelo de IA usa cada plan?" xml:space="preserve">
+    <value>Which AI model does each plan use?</value>
+  </data>
+  <data name="¿Qué pasa si bajo de plan y tengo más cuentas de las permitidas?" xml:space="preserve">
+    <value>What happens if I downgrade and have more accounts than allowed?</value>
+  </data>
+  <data name="¿Ya tienes cuenta?" xml:space="preserve">
+    <value>Already have an account?</value>
+  </data>
+  <data name="El copiloto financiero del trader de fondeo" xml:space="preserve">
+    <value>The funded trader's financial copilot</value>
+  </data>
+  <data name="(distribución global: la cuenta tiene menos de 20 propios)" xml:space="preserve">
+    <value>(global distribution: the account has fewer than 20 of its own)</value>
+  </data>
+  <data name="(propios de la cuenta)" xml:space="preserve">
+    <value>(the account's own)</value>
+  </data>
+  <data name="+ Nueva cuenta" xml:space="preserve">
+    <value>+ New account</value>
+  </data>
+  <data name="1 informe IA a la semana" xml:space="preserve">
+    <value>1 AI report per week</value>
+  </data>
+  <data name="1 informe IA al día (modelo avanzado)" xml:space="preserve">
+    <value>1 AI report per day (advanced model)</value>
+  </data>
+  <data name="1 informe IA al mes" xml:space="preserve">
+    <value>1 AI report per month</value>
+  </data>
+  <data name="10 cuentas activas" xml:space="preserve">
+    <value>10 active accounts</value>
+  </data>
+  <data name="2 cuentas activas" xml:space="preserve">
+    <value>2 active accounts</value>
+  </data>
+  <data name="3 preguntas IA al mes" xml:space="preserve">
+    <value>3 AI questions per month</value>
+  </data>
+  <data name="30 preguntas IA al mes" xml:space="preserve">
+    <value>30 AI questions per month</value>
+  </data>
+  <data name="API key (mínimo 24 caracteres)" xml:space="preserve">
+    <value>API key (minimum 24 characters)</value>
+  </data>
+  <data name="API key de ingesta borrada." xml:space="preserve">
+    <value>Ingest API key deleted.</value>
+  </data>
+  <data name="API key de ingesta guardada." xml:space="preserve">
+    <value>Ingest API key saved.</value>
+  </data>
+  <data name="API key generada y guardada. Cópiala ahora." xml:space="preserve">
+    <value>API key generated and saved. Copy it now.</value>
+  </data>
+  <data name="Activar página pública" xml:space="preserve">
+    <value>Enable public page</value>
+  </data>
+  <data name="Actívala para compartir tu pass rate, win rate y profit factor con un enlace público." xml:space="preserve">
+    <value>Enable it to share your pass rate, win rate and profit factor with a public link.</value>
+  </data>
+  <data name="Ajustes de integraciones" xml:space="preserve">
+    <value>Integration settings</value>
+  </data>
+  <data name="Anual" xml:space="preserve">
+    <value>Yearly</value>
+  </data>
+  <data name="Análisis con IA" xml:space="preserve">
+    <value>AI analysis</value>
+  </data>
+  <data name="Análisis con IA (Claude)" xml:space="preserve">
+    <value>AI analysis (Claude)</value>
+  </data>
+  <data name="Añadir" xml:space="preserve">
+    <value>Add</value>
+  </data>
+  <data name="Añadir firma" xml:space="preserve">
+    <value>Add firm</value>
+  </data>
+  <data name="Bankroll final (mediana)" xml:space="preserve">
+    <value>Final bankroll (median)</value>
+  </data>
+  <data name="Bankroll mín. (P(ruina) &lt; 5 %)" xml:space="preserve">
+    <value>Min. bankroll (P(ruin) &lt; 5%)</value>
+  </data>
+  <data name="Borrar" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="Breakeven (mediana)" xml:space="preserve">
+    <value>Breakeven (median)</value>
+  </data>
+  <data name="CID y Secret son las credenciales de API de tu app registrada en Tradovate (no tu app de terceros habitual) — ver &lt;code&gt;GUIA_IMPLEMENTACION.md&lt;/code&gt; §5. También puede configurarse vía User Secrets/entorno (&lt;code&gt;Tradovate:Name&lt;/code&gt;, etc.); lo guardado aquí tiene prioridad." xml:space="preserve">
+    <value>CID and Secret are the API credentials of your app registered with Tradovate (not your usual third-party app) — see &lt;code&gt;GUIA_IMPLEMENTACION.md&lt;/code&gt; §5. They can also be configured via User Secrets/environment (&lt;code&gt;Tradovate:Name&lt;/code&gt;, etc.); what you save here takes priority.</value>
+  </data>
+  <data name="Cada mes se compran hasta N evaluaciones; cada una pasa con tu pass rate y, si pasa, cobra un payout muestreado de tu distribución histórica. Ruina = quedarse sin capital para comprar más evaluaciones antes de que el edge se materialice." xml:space="preserve">
+    <value>Each month up to N evaluations are purchased; each passes with your pass rate and, if it passes, collects a payout sampled from your historical distribution. Ruin = running out of capital to buy more evaluations before the edge materialises.</value>
+  </data>
+  <data name="Cancela tu suscripción para volver a Starter" xml:space="preserve">
+    <value>Cancel your subscription to go back to Starter</value>
+  </data>
+  <data name="Cancelar" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Cancelar edición" xml:space="preserve">
+    <value>Cancel editing</value>
+  </data>
+  <data name="Cant." xml:space="preserve">
+    <value>Qty.</value>
+  </data>
+  <data name="Cashflow mensual: payouts, costes y neto acumulado" xml:space="preserve">
+    <value>Monthly cashflow: payouts, costs and cumulative net</value>
+  </data>
+  <data name="Ciclo de vida" xml:space="preserve">
+    <value>Lifecycle</value>
+  </data>
+  <data name="Claude analiza los KPIs agregados de tu operativa y tu negocio de fondeo (nunca trades individuales) para diagnosticar fortalezas, fugas de dinero y viabilidad estadística." xml:space="preserve">
+    <value>Claude analyses the aggregated KPIs of your trading and your funded trading business (never individual trades) to diagnose strengths, money leaks and statistical viability.</value>
+  </data>
+  <data name="Comisiones" xml:space="preserve">
+    <value>Commissions</value>
+  </data>
+  <data name="Comprada" xml:space="preserve">
+    <value>Purchased</value>
+  </data>
+  <data name="Con EV ≤ 0, el «bankroll mínimo» solo financia la sangría del horizonte: no hace viable el negocio." xml:space="preserve">
+    <value>With EV ≤ 0, the “minimum bankroll” only funds the bleed over the horizon: it doesn't make the business viable.</value>
+  </data>
+  <data name="Conexión" xml:space="preserve">
+    <value>Connection</value>
+  </data>
+  <data name="Configurado" xml:space="preserve">
+    <value>Configured</value>
+  </data>
+  <data name="Copia esta API key ahora — no se volverá a mostrar:" xml:space="preserve">
+    <value>Copy this API key now — it won't be shown again:</value>
+  </data>
+  <data name="Coste eval. (opcional)" xml:space="preserve">
+    <value>Eval. cost (optional)</value>
+  </data>
+  <data name="Coste evaluación" xml:space="preserve">
+    <value>Evaluation cost</value>
+  </data>
+  <data name="Costes" xml:space="preserve">
+    <value>Costs</value>
+  </data>
+  <data name="Costes totales" xml:space="preserve">
+    <value>Total costs</value>
+  </data>
+  <data name="Crea tu primera cuenta con el botón «+ Nueva cuenta» o cambia el filtro de etapa." xml:space="preserve">
+    <value>Create your first account with the “+ New account” button or change the stage filter.</value>
+  </data>
+  <data name="Credenciales de Tradovate borradas." xml:space="preserve">
+    <value>Tradovate credentials deleted.</value>
+  </data>
+  <data name="Credenciales de Tradovate guardadas." xml:space="preserve">
+    <value>Tradovate credentials saved.</value>
+  </data>
+  <data name="Credenciales y claves usadas por la sincronización automática de trades (Tradovate) y por la ingesta push del AddOn de NinjaTrader 8. Se guardan cifradas en base de datos con &lt;code&gt;IDataProtector&lt;/code&gt;." xml:space="preserve">
+    <value>Credentials and keys used by automatic trade sync (Tradovate) and by the NinjaTrader 8 AddOn push ingest. They're stored encrypted in the database with &lt;code&gt;IDataProtector&lt;/code&gt;.</value>
+  </data>
+  <data name="Cuenta" xml:space="preserve">
+    <value>Account</value>
+  </data>
+  <data name="Cuentas activas:" xml:space="preserve">
+    <value>Active accounts:</value>
+  </data>
+  <data name="Cuentas de fondeo" xml:space="preserve">
+    <value>Funded accounts</value>
+  </data>
+  <data name="Cuentas ilimitadas" xml:space="preserve">
+    <value>Unlimited accounts</value>
+  </data>
+  <data name="Cuentas y su feed" xml:space="preserve">
+    <value>Accounts and their feed</value>
+  </data>
+  <data name="Curva de equity" xml:space="preserve">
+    <value>Equity curve</value>
+  </data>
+  <data name="Curva de equity de la cuenta" xml:space="preserve">
+    <value>Account equity curve</value>
+  </data>
+  <data name="Curva de equity: P&amp;L neto acumulado" xml:space="preserve">
+    <value>Equity curve: cumulative net P&amp;L</value>
+  </data>
+  <data name="Desactivar" xml:space="preserve">
+    <value>Disable</value>
+  </data>
+  <data name="Device ID (opcional)" xml:space="preserve">
+    <value>Device ID (optional)</value>
+  </data>
+  <data name="Disponible en el plan Elite — comparte tus KPIs agregados (sin importes ni trades) en una página pública." xml:space="preserve">
+    <value>Available on the Elite plan — share your aggregated KPIs (no amounts or trades) on a public page.</value>
+  </data>
+  <data name="Días mín. entre payouts" xml:space="preserve">
+    <value>Min. days between payouts</value>
+  </data>
+  <data name="EV = P(pasar) × payout medio − coste de evaluación − P(pasar) × activación. Kelly indica qué fracción del bankroll dedicar a evaluaciones por ciclo; opera a la mitad de lo que diga (½ Kelly) — es un marco orientativo, no una promesa." xml:space="preserve">
+    <value>EV = P(pass) × average payout − evaluation cost − P(pass) × activation. Kelly indicates what fraction of the bankroll to devote to evaluations per cycle; trade at half of what it says (½ Kelly) — it's a guiding framework, not a promise.</value>
+  </data>
+  <data name="EV negativo" xml:space="preserve">
+    <value>Negative EV</value>
+  </data>
+  <data name="EV por evaluación (observado)" xml:space="preserve">
+    <value>EV per evaluation (observed)</value>
+  </data>
+  <data name="EV positivo, muestra suficiente" xml:space="preserve">
+    <value>Positive EV, sufficient sample</value>
+  </data>
+  <data name="Editar" xml:space="preserve">
+    <value>Edit</value>
+  </data>
+  <data name="Editar firma" xml:space="preserve">
+    <value>Edit firm</value>
+  </data>
+  <data name="Editar nombre" xml:space="preserve">
+    <value>Edit name</value>
+  </data>
+  <data name="El AddOn &lt;code&gt;TrackRecordExporter.cs&lt;/code&gt; envía cada fill a &lt;code&gt;POST /api/ingest/ninjatrader/executions&lt;/code&gt; con esta clave en la cabecera &lt;code&gt;X-Api-Key&lt;/code&gt;. Ver &lt;code&gt;integrations/ninjatrader/README.md&lt;/code&gt;." xml:space="preserve">
+    <value>The &lt;code&gt;TrackRecordExporter.cs&lt;/code&gt; AddOn sends each fill to &lt;code&gt;POST /api/ingest/ninjatrader/executions&lt;/code&gt; with this key in the &lt;code&gt;X-Api-Key&lt;/code&gt; header. See &lt;code&gt;integrations/ninjatrader/README.md&lt;/code&gt;.</value>
+  </data>
+  <data name="El contenido que buscas no existe o ha sido movido." xml:space="preserve">
+    <value>The content you're looking for doesn't exist or has been moved.</value>
+  </data>
+  <data name="El feed y el ID externo de cada cuenta se editan desde su propia página de detalle." xml:space="preserve">
+    <value>Each account's feed and external ID are edited from its own detail page.</value>
+  </data>
+  <data name="El {0} de los caminos no se resolvió en 1.000 trades." xml:space="preserve">
+    <value>{0} of the paths didn't resolve within 1,000 trades.</value>
+  </data>
+  <data name="Eliminar" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="Eliminar cuenta" xml:space="preserve">
+    <value>Delete account</value>
+  </data>
+  <data name="Escenario bueno (P95)" xml:space="preserve">
+    <value>Good scenario (P95)</value>
+  </data>
+  <data name="Escenario malo (P5)" xml:space="preserve">
+    <value>Bad scenario (P5)</value>
+  </data>
+  <data name="Esta acción no se puede deshacer." xml:space="preserve">
+    <value>This action cannot be undone.</value>
+  </data>
+  <data name="Estado" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="Etapa" xml:space="preserve">
+    <value>Stage</value>
+  </data>
+  <data name="Export de «Control Center → Trade Performance → grid → Export». Reimportar el mismo archivo no duplica trades (ver &lt;code&gt;integrations/ninjatrader/README.md&lt;/code&gt;)." xml:space="preserve">
+    <value>Export from “Control Center → Trade Performance → grid → Export”. Re-importing the same file doesn't duplicate trades (see &lt;code&gt;integrations/ninjatrader/README.md&lt;/code&gt;).</value>
+  </data>
+  <data name="Exportar track record" xml:space="preserve">
+    <value>Export track record</value>
+  </data>
+  <data name="Exportar tu track record en PDF es una función de los planes Pro y Elite." xml:space="preserve">
+    <value>Exporting your track record as a PDF is a Pro and Elite plan feature.</value>
+  </data>
+  <data name="Fecha" xml:space="preserve">
+    <value>Date</value>
+  </data>
+  <data name="Fecha cierre" xml:space="preserve">
+    <value>Close date</value>
+  </data>
+  <data name="Fecha de compra" xml:space="preserve">
+    <value>Purchase date</value>
+  </data>
+  <data name="Fecha solicitud" xml:space="preserve">
+    <value>Request date</value>
+  </data>
+  <data name="Feed / plataforma" xml:space="preserve">
+    <value>Feed / platform</value>
+  </data>
+  <data name="Firma" xml:space="preserve">
+    <value>Firm</value>
+  </data>
+  <data name="Firmas de fondeo" xml:space="preserve">
+    <value>Funding firms</value>
+  </data>
+  <data name="Genera un informe completo o haz una pregunta puntual sobre tu operativa." xml:space="preserve">
+    <value>Generate a full report or ask a one-off question about your trading.</value>
+  </data>
+  <data name="Generado el {0}" xml:space="preserve">
+    <value>Generated on {0}</value>
+  </data>
+  <data name="Generando informe…" xml:space="preserve">
+    <value>Generating report…</value>
+  </data>
+  <data name="Generar informe completo" xml:space="preserve">
+    <value>Generate full report</value>
+  </data>
+  <data name="Generar segura" xml:space="preserve">
+    <value>Generate secure</value>
+  </data>
+  <data name="Genérala automáticamente o pega una cadena aleatoria larga" xml:space="preserve">
+    <value>Generate it automatically or paste a long random string</value>
+  </data>
+  <data name="Gestionar suscripción / cancelar" xml:space="preserve">
+    <value>Manage subscription / cancel</value>
+  </data>
+  <data name="Guardar" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="Guardar credenciales" xml:space="preserve">
+    <value>Save credentials</value>
+  </data>
+  <data name="Guardar cuenta" xml:space="preserve">
+    <value>Save account</value>
+  </data>
+  <data name="Historial" xml:space="preserve">
+    <value>History</value>
+  </data>
+  <data name="Horizonte (meses)" xml:space="preserve">
+    <value>Horizon (months)</value>
+  </data>
+  <data name="ID externo" xml:space="preserve">
+    <value>External ID</value>
+  </data>
+  <data name="ID externo (Tradovate/NT8)" xml:space="preserve">
+    <value>External ID (Tradovate/NT8)</value>
+  </data>
+  <data name="ID externo (nombre de cuenta en Tradovate/NT8)" xml:space="preserve">
+    <value>External ID (account name in Tradovate/NT8)</value>
+  </data>
+  <data name="Importados:" xml:space="preserve">
+    <value>Imported:</value>
+  </data>
+  <data name="Importando…" xml:space="preserve">
+    <value>Importing…</value>
+  </data>
+  <data name="Importar CSV de NinjaTrader 8" xml:space="preserve">
+    <value>Import NinjaTrader 8 CSV</value>
+  </data>
+  <data name="Importe" xml:space="preserve">
+    <value>Amount</value>
+  </data>
+  <data name="Imprimir / Guardar como PDF" xml:space="preserve">
+    <value>Print / Save as PDF</value>
+  </data>
+  <data name="Informe completo" xml:space="preserve">
+    <value>Full report</value>
+  </data>
+  <data name="Informes IA: {0} cada {1} día(s)" xml:space="preserve">
+    <value>AI reports: {0} every {1} day(s)</value>
+  </data>
+  <data name="Informes completos: {0} de {1} (se renueva el {2})" xml:space="preserve">
+    <value>Full reports: {0} of {1} (renews on {2})</value>
+  </data>
+  <data name="Ingesta NinjaTrader 8 (API key)" xml:space="preserve">
+    <value>NinjaTrader 8 ingest (API key)</value>
+  </data>
+  <data name="Journal de trades" xml:space="preserve">
+    <value>Trade journal</value>
+  </data>
+  <data name="Kelly (½ recomendado)" xml:space="preserve">
+    <value>Kelly (½ recommended)</value>
+  </data>
+  <data name="La clave de Anthropic solo se lee de la variable de entorno &lt;code&gt;ANTHROPIC_API_KEY&lt;/code&gt; o de &lt;code&gt;Ai:ApiKey&lt;/code&gt; en User Secrets — nunca se guarda desde esta pantalla ni en base de datos, para evitar exponerla. Ver &lt;code&gt;README.md&lt;/code&gt;." xml:space="preserve">
+    <value>The Anthropic key is only read from the &lt;code&gt;ANTHROPIC_API_KEY&lt;/code&gt; environment variable or from &lt;code&gt;Ai:ApiKey&lt;/code&gt; in User Secrets — it's never saved from this screen or in the database, to avoid exposing it. See &lt;code&gt;README.md&lt;/code&gt;.</value>
+  </data>
+  <data name="Las credenciales de Tradovate y la API key de ingesta de NinjaTrader se configuran en" xml:space="preserve">
+    <value>Tradovate credentials and the NinjaTrader ingest API key are configured at</value>
+  </data>
+  <data name="Límites de cuentas, sincronización automática y uso de IA de tu suscripción." xml:space="preserve">
+    <value>Account limits, automatic sync and AI usage of your subscription.</value>
+  </data>
+  <data name="Mejora tu plan" xml:space="preserve">
+    <value>Upgrade your plan</value>
+  </data>
+  <data name="Mensual" xml:space="preserve">
+    <value>Monthly</value>
+  </data>
+  <data name="Muestra" xml:space="preserve">
+    <value>Sample</value>
+  </data>
+  <data name="Muestrea tu distribución real de PnL por trade contra el profit target y el drawdown de la cuenta elegida. En evaluación ≈ P(pasar); en fondeada ≈ P(llegar al primer payout sin quemarla). Con menos de 20 trades propios se usa tu distribución global ({0} trades disponibles)." xml:space="preserve">
+    <value>Samples your real per-trade PnL distribution against the chosen account's profit target and drawdown. In evaluation ≈ P(passing); when funded ≈ P(reaching the first payout without busting it). With fewer than 20 of its own trades your global distribution is used ({0} trades available).</value>
+  </data>
+  <data name="Mínimo 10 caracteres" xml:space="preserve">
+    <value>Minimum 10 characters</value>
+  </data>
+  <data name="Módulo de riesgo completo" xml:space="preserve">
+    <value>Full risk module</value>
+  </data>
+  <data name="Neto acumulado" xml:space="preserve">
+    <value>Cumulative net</value>
+  </data>
+  <data name="No alcanzado" xml:space="preserve">
+    <value>Not reached</value>
+  </data>
+  <data name="No encontrado" xml:space="preserve">
+    <value>Not found</value>
+  </data>
+  <data name="No hay cuentas que coincidan con el filtro" xml:space="preserve">
+    <value>No accounts match the filter</value>
+  </data>
+  <data name="No hay una API key de Anthropic configurada. Define la variable de entorno &lt;code&gt;ANTHROPIC_API_KEY&lt;/code&gt; (o &lt;code&gt;Ai:ApiKey&lt;/code&gt; en &lt;code&gt;appsettings.Development.json&lt;/code&gt; / user-secrets) y reinicia la aplicación. Ver &lt;code&gt;README.md&lt;/code&gt;." xml:space="preserve">
+    <value>There's no Anthropic API key configured. Set the &lt;code&gt;ANTHROPIC_API_KEY&lt;/code&gt; environment variable (or &lt;code&gt;Ai:ApiKey&lt;/code&gt; in &lt;code&gt;appsettings.Development.json&lt;/code&gt; / user-secrets) and restart the application. See &lt;code&gt;README.md&lt;/code&gt;.</value>
+  </data>
+  <data name="No se pudieron guardar las credenciales. Revisa los datos e inténtalo de nuevo." xml:space="preserve">
+    <value>The credentials couldn't be saved. Check the details and try again.</value>
+  </data>
+  <data name="No se pudo completar la sincronización. Inténtalo de nuevo más tarde." xml:space="preserve">
+    <value>The sync couldn't be completed. Try again later.</value>
+  </data>
+  <data name="No se puede simular: la cuenta no tiene profit target/drawdown válidos o no hay ningún trade registrado del que muestrear." xml:space="preserve">
+    <value>Can't simulate: the account has no valid profit target/drawdown or there are no logged trades to sample from.</value>
+  </data>
+  <data name="Nombre / alias" xml:space="preserve">
+    <value>Name / alias</value>
+  </data>
+  <data name="Notas" xml:space="preserve">
+    <value>Notes</value>
+  </data>
+  <data name="Nueva cuenta" xml:space="preserve">
+    <value>New account</value>
+  </data>
+  <data name="Nueva etapa" xml:space="preserve">
+    <value>New stage</value>
+  </data>
+  <data name="Omitidos (ya importados):" xml:space="preserve">
+    <value>Skipped (already imported):</value>
+  </data>
+  <data name="P&amp;L bruto" xml:space="preserve">
+    <value>Gross P&amp;L</value>
+  </data>
+  <data name="P(alcanzar target)" xml:space="preserve">
+    <value>P(reach target)</value>
+  </data>
+  <data name="P(quemar la cuenta)" xml:space="preserve">
+    <value>P(bust the account)</value>
+  </data>
+  <data name="Pagos no configurados todavía — puedes seguir usando tu plan actual sin límite de tiempo." xml:space="preserve">
+    <value>Payments not configured yet — you can keep using your current plan with no time limit.</value>
+  </data>
+  <data name="Pass rate (opcional)" xml:space="preserve">
+    <value>Pass rate (optional)</value>
+  </data>
+  <data name="Payouts recibidos" xml:space="preserve">
+    <value>Payouts received</value>
+  </data>
+  <data name="Periodo de facturación" xml:space="preserve">
+    <value>Billing period</value>
+  </data>
+  <data name="Plan actual:" xml:space="preserve">
+    <value>Current plan:</value>
+  </data>
+  <data name="Plan gratuito" xml:space="preserve">
+    <value>Free plan</value>
+  </data>
+  <data name="Planner de bankroll — riesgo de ruina del negocio" xml:space="preserve">
+    <value>Bankroll planner — business risk of ruin</value>
+  </data>
+  <data name="Pregunta algo sobre tu operativa" xml:space="preserve">
+    <value>Ask something about your trading</value>
+  </data>
+  <data name="Pregunta: {0}" xml:space="preserve">
+    <value>Question: {0}</value>
+  </data>
+  <data name="Preguntando…" xml:space="preserve">
+    <value>Asking…</value>
+  </data>
+  <data name="Preguntar" xml:space="preserve">
+    <value>Ask</value>
+  </data>
+  <data name="Preguntas IA/mes:" xml:space="preserve">
+    <value>AI questions/month:</value>
+  </data>
+  <data name="Preguntas este mes: {0} de {1}" xml:space="preserve">
+    <value>Questions this month: {0} of {1}</value>
+  </data>
+  <data name="Prometedor, muestra insuficiente" xml:space="preserve">
+    <value>Promising, insufficient sample</value>
+  </data>
+  <data name="Próximo payout elegible el {0} (en {1} día(s)), según la regla de {2}." xml:space="preserve">
+    <value>Next payout eligible on {0} (in {1} day(s)), per {2}'s rule.</value>
+  </data>
+  <data name="Recargar" xml:space="preserve">
+    <value>Reload</value>
+  </data>
+  <data name="Recibido" xml:space="preserve">
+    <value>Received</value>
+  </data>
+  <data name="Registrar" xml:space="preserve">
+    <value>Log</value>
+  </data>
+  <data name="Riesgo (R)" xml:space="preserve">
+    <value>Risk (R)</value>
+  </data>
+  <data name="Riesgo intra-cuenta — ¿aguanta tu operativa las reglas de la firma?" xml:space="preserve">
+    <value>Intra-account risk — can your trading withstand the firm's rules?</value>
+  </data>
+  <data name="Riesgo y bankroll" xml:space="preserve">
+    <value>Risk and bankroll</value>
+  </data>
+  <data name="Se eliminará la cuenta «{0}» junto con todos sus datos asociados: {1} trade(s), {2} coste(s), {3} payout(s) y {4} evento(s) de ciclo de vida." xml:space="preserve">
+    <value>The account “{0}” will be deleted along with all its associated data: {1} trade(s), {2} cost(s), {3} payout(s) and {4} lifecycle event(s).</value>
+  </data>
+  <data name="Se ha producido un error inesperado." xml:space="preserve">
+    <value>An unexpected error has occurred.</value>
+  </data>
+  <data name="Selecciona…" xml:space="preserve">
+    <value>Select…</value>
+  </data>
+  <data name="Simulado con: pass rate {0}, coste evaluación {1}, activación {2}, {3} payout(s) históricos, {4} iteraciones." xml:space="preserve">
+    <value>Simulated with: pass rate {0}, evaluation cost {1}, activation {2}, {3} historical payout(s), {4} iterations.</value>
+  </data>
+  <data name="Simulando…" xml:space="preserve">
+    <value>Simulating…</value>
+  </data>
+  <data name="Simular" xml:space="preserve">
+    <value>Simulate</value>
+  </data>
+  <data name="Simular cuenta" xml:space="preserve">
+    <value>Simulate account</value>
+  </data>
+  <data name="Sin configurar" xml:space="preserve">
+    <value>Not configured</value>
+  </data>
+  <data name="Sin evaluaciones terminadas todavía: no hay muestra de la que estimar el EV. Registra el resultado de tus cuentas (fondeada/fallida) para activar este módulo." xml:space="preserve">
+    <value>No finished evaluations yet: there's no sample to estimate the EV from. Log the outcome of your accounts (funded/failed) to activate this module.</value>
+  </data>
+  <data name="Sin trades registrados todavía." xml:space="preserve">
+    <value>No trades logged yet.</value>
+  </data>
+  <data name="Sin trades suficientes todavía." xml:space="preserve">
+    <value>Not enough trades yet.</value>
+  </data>
+  <data name="Sincronización automática" xml:space="preserve">
+    <value>Automatic sync</value>
+  </data>
+  <data name="Sincronización automática:" xml:space="preserve">
+    <value>Automatic sync:</value>
+  </data>
+  <data name="Sincronizado: sin fills nuevos." xml:space="preserve">
+    <value>Synced: no new fills.</value>
+  </data>
+  <data name="Sincronizado: {0} fill(s) nuevo(s) ingestado(s) en total." xml:space="preserve">
+    <value>Synced: {0} new fill(s) ingested in total.</value>
+  </data>
+  <data name="Sincronizado: {0} fill(s) nuevo(s) ingestado(s)." xml:space="preserve">
+    <value>Synced: {0} new fill(s) ingested.</value>
+  </data>
+  <data name="Sincronizando…" xml:space="preserve">
+    <value>Syncing…</value>
+  </data>
+  <data name="Sincronizar ahora" xml:space="preserve">
+    <value>Sync now</value>
+  </data>
+  <data name="Sincronizar todas las cuentas ahora" xml:space="preserve">
+    <value>Sync all accounts now</value>
+  </data>
+  <data name="Solicitado" xml:space="preserve">
+    <value>Requested</value>
+  </data>
+  <data name="Símbolo" xml:space="preserve">
+    <value>Symbol</value>
+  </data>
+  <data name="Tamaño" xml:space="preserve">
+    <value>Size</value>
+  </data>
+  <data name="Tamaño cuenta" xml:space="preserve">
+    <value>Account size</value>
+  </data>
+  <data name="Tipo" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="Tipo de drawdown" xml:space="preserve">
+    <value>Drawdown type</value>
+  </data>
+  <data name="Todas las etapas" xml:space="preserve">
+    <value>All stages</value>
+  </data>
+  <data name="Todavía no hay firmas registradas." xml:space="preserve">
+    <value>No firms registered yet.</value>
+  </data>
+  <data name="Todavía no hay informes generados" xml:space="preserve">
+    <value>No reports generated yet</value>
+  </data>
+  <data name="Trades hasta ruina (media)" xml:space="preserve">
+    <value>Trades to ruin (average)</value>
+  </data>
+  <data name="Trades hasta target (media)" xml:space="preserve">
+    <value>Trades to target (average)</value>
+  </data>
+  <data name="Tu plan actual" xml:space="preserve">
+    <value>Your current plan</value>
+  </data>
+  <data name="Tu página está activa en" xml:space="preserve">
+    <value>Your page is live at</value>
+  </data>
+  <data name="Usuario (name)" xml:space="preserve">
+    <value>User (name)</value>
+  </data>
+  <data name="Usuario actual:" xml:space="preserve">
+    <value>Current user:</value>
+  </data>
+  <data name="Ver" xml:space="preserve">
+    <value>View</value>
+  </data>
+  <data name="Volver al dashboard" xml:space="preserve">
+    <value>Back to the dashboard</value>
+  </data>
+  <data name="Ya puedes solicitar tu próximo payout según la regla de {0}." xml:space="preserve">
+    <value>You can now request your next payout per {0}'s rule.</value>
+  </data>
+  <data name="acumulado" xml:space="preserve">
+    <value>cumulative</value>
+  </data>
+  <data name="año" xml:space="preserve">
+    <value>year</value>
+  </data>
+  <data name="equivale a {0}" xml:space="preserve">
+    <value>equivalent to {0}</value>
+  </data>
+  <data name="ilimitadas" xml:space="preserve">
+    <value>unlimited</value>
+  </data>
+  <data name="incluida" xml:space="preserve">
+    <value>included</value>
+  </data>
+  <data name="mes" xml:space="preserve">
+    <value>month</value>
+  </data>
+  <data name="muestreados {0} trades" xml:space="preserve">
+    <value>{0} trades sampled</value>
+  </data>
+  <data name="no incluida" xml:space="preserve">
+    <value>not included</value>
+  </data>
+  <data name="p.ej. 0.35" xml:space="preserve">
+    <value>e.g. 0.35</value>
+  </data>
+  <data name="p.ej. 14" xml:space="preserve">
+    <value>e.g. 14</value>
+  </data>
+  <data name="p.ej. 150" xml:space="preserve">
+    <value>e.g. 150</value>
+  </data>
+  <data name="para más cupo" xml:space="preserve">
+    <value>for more quota</value>
+  </data>
+  <data name="{0} evaluaciones" xml:space="preserve">
+    <value>{0} evaluations</value>
+  </data>
+  <data name="{0} fila(s) con error" xml:space="preserve">
+    <value>{0} row(s) with errors</value>
+  </data>
+  <data name="{0} meses" xml:space="preserve">
+    <value>{0} months</value>
+  </data>
+  <data name="¿Es estadísticamente viable el negocio de fondeo y cuánto capital necesita? Todo se calcula con tus datos reales: pass rate, costes y payouts observados, y tu distribución de PnL por trade (Monte Carlo, 10.000 iteraciones)." xml:space="preserve">
+    <value>Is the funded trading business statistically viable, and how much capital does it need? Everything is calculated from your real data: observed pass rate, costs and payouts, and your per-trade PnL distribution (Monte Carlo, 10,000 iterations).</value>
+  </data>
+  <data name="¿Por qué pierdo los lunes? ¿Es viable el negocio con mi pass rate actual?" xml:space="preserve">
+    <value>Why do I lose on Mondays? Is the business viable with my current pass rate?</value>
+  </data>
+  <data name="P(ruina)" xml:space="preserve">
+    <value>P(ruin)</value>
+  </data>
+  <data name="IC 95 % (bootstrap)" xml:space="preserve">
+    <value>95% CI (bootstrap)</value>
+  </data>
+  <data name="Aún no podemos calcular tu Firm Fit" xml:space="preserve">
+    <value>We can't calculate your Firm Fit yet</value>
+  </data>
+  <data name="Bankroll disponible" xml:space="preserve">
+    <value>Available bankroll</value>
+  </data>
+  <data name="Coste" xml:space="preserve">
+    <value>Cost</value>
+  </data>
+  <data name="Coste por fondeada" xml:space="preserve">
+    <value>Cost per funded</value>
+  </data>
+  <data name="Dado tu bankroll, cuántas evaluaciones al mes de este programa puedes comprar manteniendo la probabilidad de arruinar el negocio por debajo del 5 %." xml:space="preserve">
+    <value>Given your bankroll, how many evaluations of this program you can buy per month while keeping the probability of ruining the business below 5%.</value>
+  </data>
+  <data name="Días mínimos de trading" xml:space="preserve">
+    <value>Minimum trading days</value>
+  </data>
+  <data name="EV = P(pasar) × payout medio observado − coste de evaluación − P(pasar) × activación. Fit Score 0-100: 50 ≈ breakeven; por encima, cuanto más rentable es el programa para tu operativa. Payout medio usado: {0}." xml:space="preserve">
+    <value>EV = P(pass) × observed average payout − evaluation cost − P(pass) × activation. Fit Score 0-100: 50 ≈ breakeven; above that, the more profitable the program is for your trading. Average payout used: {0}.</value>
+  </data>
+  <data name="Límite de pérdida diaria" xml:space="preserve">
+    <value>Daily loss limit</value>
+  </data>
+  <data name="Muestra pequeña ({0} trades): el ranking es orientativo. Cuantos más trades cerrados registres, más fiable será." xml:space="preserve">
+    <value>Small sample ({0} trades): the ranking is indicative. The more closed trades you log, the more reliable it gets.</value>
+  </data>
+  <data name="Ocultar reglas" xml:space="preserve">
+    <value>Hide rules</value>
+  </data>
+  <data name="P(pasar)" xml:space="preserve">
+    <value>P(pass)</value>
+  </data>
+  <data name="Plan de compra — {0} {1}" xml:space="preserve">
+    <value>Purchase plan — {0} {1}</value>
+  </data>
+  <data name="Programa" xml:space="preserve">
+    <value>Program</value>
+  </data>
+  <data name="Registra tus trades cerrados (importa un CSV o añádelos a mano) para que podamos simular tu operativa contra las reglas de cada programa." xml:space="preserve">
+    <value>Log your closed trades (import a CSV or add them manually) so we can simulate your trading against each program's rules.</value>
+  </data>
+  <data name="Regla de consistencia" xml:space="preserve">
+    <value>Consistency rule</value>
+  </data>
+  <data name="Sensibilidad a las reglas de {0} {1}" xml:space="preserve">
+    <value>Rule sensitivity for {0} {1}</value>
+  </data>
+  <data name="Simulado con P(pasar) {0} de este programa y su coste de evaluación {1}." xml:space="preserve">
+    <value>Simulated with this program's P(pass) {0} and its evaluation cost {1}.</value>
+  </data>
+  <data name="Simular plan" xml:space="preserve">
+    <value>Simulate plan</value>
+  </data>
+  <data name="Tu plan muestra solo el programa mejor valorado." xml:space="preserve">
+    <value>Your plan shows only the top-rated program.</value>
+  </data>
+  <data name="apenas te afecta con tu operativa actual." xml:space="preserve">
+    <value>barely affects you with your current trading.</value>
+  </data>
+  <data name="evaluación" xml:space="preserve">
+    <value>evaluation</value>
+  </data>
+  <data name="para ver el ranking completo y la sensibilidad a cada regla." xml:space="preserve">
+    <value>to see the full ranking and the sensitivity to each rule.</value>
+  </data>
+  <data name="sin datos" xml:space="preserve">
+    <value>no data</value>
+  </data>
+  <data name="te cuesta {0} de probabilidad de pasar (sin ella: {1})." xml:space="preserve">
+    <value>costs you {0} of pass probability (without it: {1}).</value>
+  </data>
+  <data name="¿Qué evaluación te conviene comprar? Simulamos tu operativa real contra las reglas de cada programa del catálogo y las ordenamos por valor esperado — con tus datos, no con precios genéricos." xml:space="preserve">
+    <value>Which evaluation should you buy? We simulate your real trading against each catalog program's rules and rank them by expected value — with your data, not generic prices.</value>
+  </data>
+  <data name="¿Qué regla te penaliza?" xml:space="preserve">
+    <value>Which rule penalizes you?</value>
+  </data>
+  <data name="Firm Fit: tu mejor programa" xml:space="preserve">
+    <value>Firm Fit: your best-matched program</value>
+  </data>
+  <data name="Firm Fit completo: ranking, reglas y plan de compra" xml:space="preserve">
+    <value>Full Firm Fit: ranking, rules and purchase plan</value>
+  </data>
+  <data name="Simulamos tu operativa real contra las reglas de cada firma y te decimos qué evaluación comprar — ranking por valor esperado, no por precio. Con tus datos, no con promesas." xml:space="preserve">
+    <value>We simulate your real trading against each firm's rules and tell you which evaluation to buy — ranked by expected value, not price. With your data, not promises.</value>
+  </data>
+</root>

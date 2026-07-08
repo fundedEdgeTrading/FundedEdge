@@ -1,0 +1,47 @@
+@* Modal de confirmación genérico. Se invoca imperativamente vía ShowAsync(...), que devuelve
+   true/false según la elección del usuario — pensado para acciones destructivas (borrar cuenta y
+   sus datos asociados) donde un clic accidental no debe ser irreversible. *@
+
+@inject IStringLocalizer<SharedResources> L
+
+@if (_visible)
+{
+    <div class="confirm-backdrop" @onclick="() => Resolve(false)">
+        <div class="confirm-panel" role="alertdialog" aria-modal="true" aria-labelledby="confirm-title" @onclick:stopPropagation="true">
+            <h3 id="confirm-title" class="confirm-title">@Title</h3>
+            <p class="confirm-message">@Message</p>
+            <div class="confirm-actions">
+                <button type="button" class="btn btn-outline-secondary" @onclick="() => Resolve(false)">@CancelText</button>
+                <button type="button" class="btn btn-danger" @onclick="() => Resolve(true)">@ConfirmText</button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private bool _visible;
+    private string Title { get; set; } = "";
+    private string Message { get; set; } = "";
+    private string ConfirmText { get; set; } = "";
+    private string CancelText { get; set; } = "";
+    private TaskCompletionSource<bool>? _tcs;
+
+    public Task<bool> ShowAsync(string title, string message, string? confirmText = null, string? cancelText = null)
+    {
+        Title = title;
+        Message = message;
+        ConfirmText = confirmText ?? L["Eliminar"].Value;
+        CancelText = cancelText ?? L["Cancelar"].Value;
+        _visible = true;
+        _tcs = new TaskCompletionSource<bool>();
+        StateHasChanged();
+        return _tcs.Task;
+    }
+
+    private void Resolve(bool result)
+    {
+        _visible = false;
+        _tcs?.TrySetResult(result);
+        StateHasChanged();
+    }
+}

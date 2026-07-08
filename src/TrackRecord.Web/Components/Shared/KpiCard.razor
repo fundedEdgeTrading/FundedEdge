@@ -1,0 +1,10 @@
+<div class="stat-tile">
+    <div class="stat-label">@Title</div>
+    <div class="stat-value @Emphasis">@Value</div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string Title { get; set; } = "";
+    [Parameter, EditorRequired] public string Value { get; set; } = "";
+    [Parameter] public string Emphasis { get; set; } = "";
+}

@@ -1,0 +1,30 @@
+@inherits LayoutComponentBase
+@inject IStringLocalizer<SharedResources> L
+
+<div class="public-shell">
+    <header class="public-header">
+        <a class="public-brand" href="bienvenida">
+            <span class="brand-mark">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" /><polyline points="16 7 22 7 22 13" />
+                </svg>
+            </span>
+            <span>@Brand.Name</span>
+        </a>
+        <nav class="public-nav">
+            <a href="calculadora">@L["Calculadora"]</a>
+            <a href="precios">@L["Precios"]</a>
+            <a href="Account/Login">@L["Iniciar sesión"]</a>
+            <a class="btn btn-primary btn-sm" href="Account/Register">@L["Crear cuenta"]</a>
+            <CultureSelector />
+        </nav>
+    </header>
+
+    <main class="public-main">
+        @Body
+    </main>
+
+    <footer class="public-footer">
+        <span>© @DateTime.UtcNow.Year @Brand.Name · @L[Brand.Tagline]</span>
+    </footer>
+</div>

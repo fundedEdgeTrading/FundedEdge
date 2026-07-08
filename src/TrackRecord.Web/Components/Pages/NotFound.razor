@@ -1,0 +1,9 @@
+@page "/not-found"
+@layout MainLayout
+@inject IStringLocalizer<SharedResources> L
+
+<PageTitle>@L["No encontrado"] — @Brand.Name</PageTitle>
+
+<h1>@L["Página no encontrada"]</h1>
+<p class="text-muted">@L["El contenido que buscas no existe o ha sido movido."]</p>
+<a class="btn btn-primary mt-2" href="/">@L["Volver al dashboard"]</a>

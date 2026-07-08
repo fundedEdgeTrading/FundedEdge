@@ -1,0 +1,229 @@
+@page "/firm-fit"
+@rendermode InteractiveServer
+@implements IDisposable
+@inject IFirmFitService FirmFitService
+@inject IRiskAnalysisService RiskAnalysisService
+@inject CurrencyState Currency
+@inject IStringLocalizer<SharedResources> L
+
+<PageTitle>Firm Fit — @Brand.Name</PageTitle>
+
+<h1>Firm Fit</h1>
+<p class="text-muted">
+    @L["¿Qué evaluación te conviene comprar? Simulamos tu operativa real contra las reglas de cada programa del catálogo y las ordenamos por valor esperado — con tus datos, no con precios genéricos."]
+</p>
+
+@if (_ranking is null)
+{
+    <p><em>@L["Cargando…"]</em></p>
+}
+else if (_ranking.Programs.Count == 0)
+{
+    <EmptyState Title="@L["Aún no podemos calcular tu Firm Fit"]"
+                Text="@L["Registra tus trades cerrados (importa un CSV o añádelos a mano) para que podamos simular tu operativa contra las reglas de cada programa."]" />
+}
+else
+{
+    @if (_ranking.LowConfidence)
+    {
+        <div class="alert alert-warning">
+            @L["Muestra pequeña ({0} trades): el ranking es orientativo. Cuantos más trades cerrados registres, más fiable será.", _ranking.TradesAnalyzed]
+        </div>
+    }
+
+    @if (_ranking.IsLimitedByPlan)
+    {
+        <div class="alert alert-secondary">
+            @L["Tu plan muestra solo el programa mejor valorado."] <a href="plan">@L["Mejora tu plan"]</a> @L["para ver el ranking completo y la sensibilidad a cada regla."]
+        </div>
+    }
+
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead>
+                <tr>
+                    <th>@L["Programa"]</th>
+                    <th class="text-end">Fit Score</th>
+                    <th class="text-end">@L["P(pasar)"]</th>
+                    <th class="text-end">EV / @L["evaluación"]</th>
+                    <th class="text-end">@L["Coste por fondeada"]</th>
+                    <th class="text-end">@L["Coste"]</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var p in _ranking.Programs)
+                {
+                    <tr>
+                        <td>
+                            <strong>@p.FirmName</strong> · @p.ProgramName
+                            <div class="text-muted small">@Currency.Format(p.AccountSize, 0)</div>
+                        </td>
+                        <td class="text-end">
+                            <span class="badge @FitScoreBadge(p.FitScore)">@p.FitScore</span>
+                        </td>
+                        <td class="text-end">@p.PassProbability.ToString("P0")</td>
+                        <td class="text-end @(p.EvPerEvaluation is >= 0m ? "text-success" : p.EvPerEvaluation is < 0m ? "text-danger" : "")">
+                            @(p.EvPerEvaluation is null ? "—" : Currency.Format(p.EvPerEvaluation))
+                        </td>
+                        <td class="text-end">@(p.CostPerFundedAccount is null ? "—" : Currency.Format(p.CostPerFundedAccount, 0))</td>
+                        <td class="text-end">@Currency.Format(p.EvaluationCost, 0)</td>
+                        <td class="text-end">
+                            @if (p.RuleImpacts.Count > 0)
+                            {
+                                <button class="btn btn-sm btn-link p-0" @onclick="() => Toggle(p.ProgramId)">
+                                    @(_expanded == p.ProgramId ? L["Ocultar reglas"] : L["¿Qué regla te penaliza?"])
+                                </button>
+                            }
+                        </td>
+                    </tr>
+                    @if (_expanded == p.ProgramId && p.RuleImpacts.Count > 0)
+                    {
+                        <tr>
+                            <td colspan="7" class="bg-body-tertiary">
+                                <div class="small">
+                                    <strong>@L["Sensibilidad a las reglas de {0} {1}", p.FirmName, p.ProgramName]</strong>
+                                    <ul class="mb-0 mt-1">
+                                        @foreach (var impact in p.RuleImpacts)
+                                        {
+                                            <li>
+                                                @RuleName(impact.RuleKey):
+                                                @if (impact.Delta > 0.005)
+                                                {
+                                                    <text>@L["te cuesta {0} de probabilidad de pasar (sin ella: {1}).", impact.Delta.ToString("P0"), impact.PassProbabilityWithoutRule.ToString("P0")]</text>
+                                                }
+                                                else
+                                                {
+                                                    <text>@L["apenas te afecta con tu operativa actual."]</text>
+                                                }
+                                            </li>
+                                        }
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <p class="small text-muted">
+        @(L["EV = P(pasar) × payout medio observado − coste de evaluación − P(pasar) × activación. Fit Score 0-100: 50 ≈ breakeven; por encima, cuanto más rentable es el programa para tu operativa. Payout medio usado: {0}.",
+            _ranking.AvgPayoutPerFundedAccount is null ? L["sin datos"].Value : Currency.Format(_ranking.AvgPayoutPerFundedAccount)])
+    </p>
+
+    @* El plan de compra es parte del Firm Fit completo (Pro/Elite): reutiliza el planner de
+       bankroll del módulo de riesgo, que Starter no incluye. Starter ve su mejor programa como gancho. *@
+    @if (!_ranking.IsLimitedByPlan && _ranking.Programs.Count > 0)
+    {
+        var top = _ranking.Programs[0];
+        <div class="card mt-4">
+            <div class="card-body">
+                <h5 class="card-title">@L["Plan de compra — {0} {1}", top.FirmName, top.ProgramName]</h5>
+                <p class="small text-muted">
+                    @L["Dado tu bankroll, cuántas evaluaciones al mes de este programa puedes comprar manteniendo la probabilidad de arruinar el negocio por debajo del 5 %."]
+                </p>
+                <div class="row g-2 align-items-end">
+                    <div class="col-md-3">
+                        <label class="form-label">@L["Bankroll disponible"] (@Currency.Symbol)</label>
+                        <input type="number" class="form-control" @bind="_bankroll" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">@L["Evaluaciones/mes"]</label>
+                        <input type="number" class="form-control" @bind="_monthlyBudget" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">@L["Horizonte (meses)"]</label>
+                        <input type="number" class="form-control" @bind="_months" />
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-primary w-100" disabled="@_planning" @onclick="() => RunPurchasePlanAsync(top)">
+                            @(_planning ? L["Simulando…"] : L["Simular plan"])
+                        </button>
+                    </div>
+                </div>
+
+                @if (_purchasePlan is not null)
+                {
+                    <div class="kpi-grid mt-3">
+                        <KpiCard Title="@L["P(ruina)"]" Value="@_purchasePlan.Simulation.ProbabilityOfRuin.ToString("P1")"
+                                 Emphasis="@(_purchasePlan.Simulation.ProbabilityOfRuin <= 0.05 ? "text-success" : _purchasePlan.Simulation.ProbabilityOfRuin <= 0.20 ? "text-warning" : "text-danger")" />
+                        <KpiCard Title="@L["Bankroll final (mediana)"]" Value="@Currency.Format(_purchasePlan.Simulation.MedianFinalBankroll, 0)" />
+                        <KpiCard Title="@L["Bankroll mín. (P(ruina) < 5 %)"]"
+                                 Value="@(_purchasePlan.MinimumBankrollFor5PctRuin is null ? "—" : Currency.Format(_purchasePlan.MinimumBankrollFor5PctRuin, 0))" />
+                    </div>
+                    <p class="small text-muted mt-2 mb-0">
+                        @(L["Simulado con P(pasar) {0} de este programa y su coste de evaluación {1}.",
+                            top.PassProbability.ToString("P0"), Currency.Format(top.EvaluationCost, 0)])
+                    </p>
+                }
+            </div>
+        </div>
+    }
+}
+
+@code {
+    private FirmFitRankingDto? _ranking;
+    private Guid? _expanded;
+
+    private decimal _bankroll = 3_000m;
+    private int _monthlyBudget = 2;
+    private int _months = 12;
+    private bool _planning;
+    private BankrollPlanResult? _purchasePlan;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Currency.Changed += OnCurrencyChanged;
+        _ranking = await FirmFitService.RankProgramsAsync();
+    }
+
+    private void OnCurrencyChanged() => InvokeAsync(StateHasChanged);
+
+    public void Dispose() => Currency.Changed -= OnCurrencyChanged;
+
+    private void Toggle(Guid programId) => _expanded = _expanded == programId ? null : programId;
+
+    private async Task RunPurchasePlanAsync(FirmFitProgramDto program)
+    {
+        // Clamp defensivo: el simulador exige meses > 0 y no tiene sentido un presupuesto/bankroll
+        // negativo; evita una excepción no controlada que tiraría el circuito.
+        _bankroll = Math.Max(0m, _bankroll);
+        _monthlyBudget = Math.Clamp(_monthlyBudget, 1, 100);
+        _months = Math.Clamp(_months, 1, 120);
+
+        _planning = true;
+        _purchasePlan = null;
+        StateHasChanged();
+        try
+        {
+            _purchasePlan = await RiskAnalysisService.RunBankrollPlanAsync(new BankrollPlanRequest(
+                Bankroll: _bankroll,
+                MonthlyEvaluationBudget: _monthlyBudget,
+                Months: _months,
+                EvaluationCostOverride: program.EvaluationCost,
+                ActivationCostOverride: program.ActivationCost,
+                PassRateOverride: program.PassProbability));
+        }
+        finally
+        {
+            _planning = false;
+        }
+    }
+
+    private static string FitScoreBadge(int score) => score switch
+    {
+        >= 65 => "text-bg-success",
+        >= 45 => "text-bg-warning",
+        _ => "text-bg-danger",
+    };
+
+    private string RuleName(string ruleKey) => ruleKey switch
+    {
+        "daily-loss" => L["Límite de pérdida diaria"],
+        "consistency" => L["Regla de consistencia"],
+        "min-trading-days" => L["Días mínimos de trading"],
+        _ => ruleKey,
+    };
+}

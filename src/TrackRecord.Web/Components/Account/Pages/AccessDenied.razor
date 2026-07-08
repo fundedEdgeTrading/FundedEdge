@@ -1,0 +1,15 @@
+@page "/Account/AccessDenied"
+@inject IStringLocalizer<SharedResources> L
+
+<PageTitle>@L["Acceso denegado"] — @Brand.Name</PageTitle>
+
+<div class="auth-shell">
+    <AuthCard Title="@L["Acceso denegado"]" TitleClass="text-danger" Centered="true">
+        <Subtitle>@L["No tienes permiso para acceder a este recurso."]</Subtitle>
+        <ChildContent>
+            <p class="auth-footer">
+                <a href="Account/Login">@L["Volver al inicio de sesión"]</a>
+            </p>
+        </ChildContent>
+    </AuthCard>
+</div>

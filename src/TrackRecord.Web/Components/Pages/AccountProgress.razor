@@ -1,0 +1,294 @@
+@page "/accounts/{AccountId:guid}/progress"
+@rendermode InteractiveServer
+@implements IDisposable
+@inject IAccountProgressService ProgressService
+@inject IKpiService KpiService
+@inject CurrencyState Currency
+@inject NavigationManager Nav
+@inject IStringLocalizer<SharedResources> L
+
+<PageTitle>@L["Progreso"] — @Brand.Name</PageTitle>
+
+@if (_loading)
+{
+    <p><em>@L["Cargando…"]</em></p>
+}
+else if (_progress is null)
+{
+    <div class="alert alert-warning">
+        @L["Esta cuenta no tiene un programa de evaluación vinculado o no existe. Vincúlala desde"]
+        <a href="/accounts">@L["Cuentas"]</a>.
+    </div>
+}
+else
+{
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h1 class="mb-0">📊 @_progress.AccountDisplayName</h1>
+            <p class="text-muted mb-0">@_progress.PropFirmName · @_progress.ProgramName · <span class="badge @StageBadge(_progress.Stage)">@_progress.Stage</span></p>
+        </div>
+        <a class="btn btn-outline-secondary btn-sm" href="/accounts/@AccountId">← @L["Volver a la cuenta"]</a>
+    </div>
+
+    @if (_progress.Stage == AccountStage.Evaluation && _progress.EvaluationProgress is { } ep)
+    {
+        @* ── Fase Evaluación ──────────────────────────────────────────────────────── *@
+
+        <div class="row g-3 mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">🎯 Profit Target</h5>
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>@Currency.Format(ep.CurrentPnL) / @Currency.Format(ep.ProfitTarget)</span>
+                            <span class="@(ep.ProfitTargetPct >= 1 ? "text-success fw-bold" : "")">@ep.ProfitTargetPct.ToString("P1")</span>
+                        </div>
+                        <div class="progress" style="height:12px">
+                            <div class="progress-bar @(ep.ProfitTargetPct >= 1 ? "bg-success" : "bg-primary")"
+                                 style="width:@(Math.Min(ep.ProfitTargetPct * 100, 100).ToString("F1", System.Globalization.CultureInfo.InvariantCulture))%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">⚠️ Drawdown consumido <small class="text-muted fs-6">(@ep.DrawdownType)</small></h5>
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>@Currency.Format(ep.DrawdownConsumed) / @Currency.Format(ep.MaxDrawdown)</span>
+                            <span class="@(ep.DrawdownConsumedPct >= 0.8 ? "text-danger fw-bold" : "")">@ep.DrawdownConsumedPct.ToString("P1")</span>
+                        </div>
+                        <div class="progress" style="height:12px">
+                            <div class="progress-bar @DrawdownBarClass(ep.DrawdownConsumedPct)"
+                                 style="width:@(Math.Min(ep.DrawdownConsumedPct * 100, 100).ToString("F1", System.Globalization.CultureInfo.InvariantCulture))%"></div>
+                        </div>
+                        @if (ep.DrawdownConsumedPct >= 0.8)
+                        {
+                            <div class="alert alert-danger mt-2 mb-0 py-1 small">⚠️ @L["Has consumido más del 80% del drawdown permitido. Gestiona el riesgo."]</div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-3 mb-4">
+            @if (ep.DailyLossLimit.HasValue)
+            {
+                <div class="col-md-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h6 class="card-title">📅 @L["Daily loss limit"]</h6>
+                            <p class="mb-1"><strong>@L["Hoy"]:</strong> <span class="@(ep.TodayPnL < 0 ? "text-danger" : "text-success")">@Currency.Format(ep.TodayPnL)</span></p>
+                            <p class="mb-0 text-muted small">@L["Límite"]: @Currency.Format(ep.DailyLossLimit.Value)</p>
+                            @if (ep.TodayPnL <= -ep.DailyLossLimit.Value)
+                            {
+                                <div class="badge text-bg-danger mt-1">@L["Límite alcanzado"]</div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+
+            @if (ep.ConsistencyMaxDayFraction.HasValue)
+            {
+                <div class="col-md-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h6 class="card-title">📐 @L["Regla de consistencia"]</h6>
+                            <p class="mb-1"><strong>@L["Mejor día"]:</strong> @Currency.Format(ep.BestDayPnL)</p>
+                            <p class="mb-1">@L["Fracción"]: <span class="@(ep.BestDayFraction > (double)ep.ConsistencyMaxDayFraction.Value ? "text-danger fw-bold" : "")">@ep.BestDayFraction.ToString("P1")</span></p>
+                            <p class="mb-0 text-muted small">@L["Máximo permitido"]: @ep.ConsistencyMaxDayFraction.Value.ToString("P0")</p>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            @if (ep.MinTradingDays.HasValue)
+            {
+                <div class="col-md-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h6 class="card-title">📆 @L["Días de trading"]</h6>
+                            <p class="fs-3 fw-bold mb-0">@ep.TradingDaysCompleted <span class="fs-6 text-muted">/ @ep.MinTradingDays</span></p>
+                            @if (ep.TradingDaysCompleted >= ep.MinTradingDays.Value)
+                            {
+                                <span class="badge text-bg-success">@L["Requisito cumplido ✓"]</span>
+                            }
+                            else
+                            {
+                                <span class="badge text-bg-secondary">@(ep.MinTradingDays.Value - ep.TradingDaysCompleted) @L["días restantes"]</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="col-md-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h6 class="card-title">📆 @L["Días de trading"]</h6>
+                            <p class="fs-3 fw-bold mb-0">@ep.TradingDaysCompleted</p>
+                            <p class="mb-0 text-muted small">@L["Sin mínimo requerido"]</p>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            @if (ep.PassProbability.HasValue)
+            {
+                <div class="col-md-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h6 class="card-title">🎲 @L["P(pasar) Monte Carlo"]</h6>
+                            <p class="fs-3 fw-bold mb-0 @PassProbabilityClass(ep.PassProbability.Value)">
+                                @ep.PassProbability.Value.ToString("P1")
+                            </p>
+                            <p class="mb-0 text-muted small">@L["Estimación con tu historial de trades"]</p>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else if (_progress.Stage == AccountStage.Funded && _progress.FundedProgress is { } fp)
+    {
+        @* ── Fase Fondeada ────────────────────────────────────────────────────────── *@
+
+        <div class="row g-3 mb-4">
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h6 class="card-title">💰 @L["Profit desde fondeo"]</h6>
+                        <p class="fs-3 fw-bold mb-1 @(fp.ProfitSinceFunded >= 0 ? "text-success" : "text-danger")">
+                            @Currency.Format(fp.ProfitSinceFunded)
+                        </p>
+                        <p class="mb-0 text-muted small">@L["Payouts solicitados"]: @Currency.Format(fp.TotalPayoutsRequested)</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h6 class="card-title">💸 @L["Retiro máximo estimado"]</h6>
+                        <p class="fs-3 fw-bold mb-1 text-success">@Currency.Format(fp.MaxWithdrawalNet)</p>
+                        <p class="mb-0 text-muted small">
+                            @L["Bruto"]: @Currency.Format(fp.MaxWithdrawalGross)
+                            · @L["Split"]: @fp.PayoutSplitTraderPct.ToString("P0")
+                            @if (fp.PayoutMaxProfitPct.HasValue)
+                            {
+                                <span>· @L["Cap"]: @fp.PayoutMaxProfitPct.Value.ToString("P0") @L["del profit"]</span>
+                            }
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h6 class="card-title">🛡️ @L["Buffer de drawdown"]</h6>
+                        <p class="fs-3 fw-bold mb-1 @(fp.DrawdownBufferRemaining < fp.MaxDrawdown * 0.2m ? "text-danger" : "text-success")">
+                            @Currency.Format(fp.DrawdownBufferRemaining)
+                        </p>
+                        <p class="mb-0 text-muted small">@L["Máximo"]: @Currency.Format(fp.MaxDrawdown) · @fp.DrawdownType</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h6 class="card-title">📋 @L["Elegibilidad de payout"]</h6>
+                        @if (fp.IsPayoutEligible)
+                        {
+                            <span class="badge text-bg-success fs-6">✅ @L["Elegible ahora"]</span>
+                        }
+                        else if (fp.NextPayoutEligibleOn.HasValue)
+                        {
+                            var daysLeft = fp.NextPayoutEligibleOn.Value.DayNumber - DateOnly.FromDateTime(DateTime.Today).DayNumber;
+                            <p class="fs-5 fw-bold mb-1">@fp.NextPayoutEligibleOn.Value.ToString("d")</p>
+                            <span class="badge text-bg-warning">@daysLeft @L["días restantes"]</span>
+                        }
+                        else
+                        {
+                            <span class="badge text-bg-secondary">@L["Sin restricción de días"]</span>
+                        }
+                        @if (fp.FundedMinTradingDays.HasValue)
+                        {
+                            <p class="mt-2 mb-0 text-muted small">@L["Días trading fondeada"]: @fp.FundedTradingDaysCompleted / @fp.FundedMinTradingDays</p>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    @* ── Curva de equity ──────────────────────────────────────────────────────── *@
+    @if (_equity is not null && _equity.Count > 0)
+    {
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">@L["Curva de equity"]</h5>
+                <EquityChart Points="_equity" Currency="Currency.Current" />
+            </div>
+        </div>
+    }
+}
+
+@code {
+    [Parameter] public Guid AccountId { get; set; }
+
+    private AccountProgressDto? _progress;
+    private IReadOnlyList<EquityCurvePoint>? _equity;
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Currency.Changed += OnCurrencyChanged;
+        await LoadAsync();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (!_loading) await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+        _progress = await ProgressService.GetProgressAsync(AccountId);
+        _equity = await KpiService.GetEquityCurveAsync(AccountId);
+        _loading = false;
+    }
+
+    private void OnCurrencyChanged() => InvokeAsync(StateHasChanged);
+
+    public void Dispose() => Currency.Changed -= OnCurrencyChanged;
+
+    private static string StageBadge(AccountStage stage) => stage switch
+    {
+        AccountStage.Evaluation => "text-bg-secondary",
+        AccountStage.Funded     => "text-bg-success",
+        AccountStage.Failed     => "text-bg-danger",
+        AccountStage.Withdrawn  => "text-bg-dark",
+        AccountStage.Expired    => "text-bg-warning",
+        _                       => "text-bg-light",
+    };
+
+    private static string DrawdownBarClass(double pct) => pct switch
+    {
+        >= 0.9 => "bg-danger",
+        >= 0.8 => "bg-warning",
+        _      => "bg-success",
+    };
+
+    private static string PassProbabilityClass(double p) => p switch
+    {
+        >= 0.6 => "text-success",
+        >= 0.3 => "text-warning",
+        _      => "text-danger",
+    };
+}

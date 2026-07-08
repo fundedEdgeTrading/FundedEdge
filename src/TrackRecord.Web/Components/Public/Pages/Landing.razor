@@ -1,0 +1,97 @@
+@page "/bienvenida"
+@inject IStringLocalizer<SharedResources> L
+
+<SeoHead Title="@SeoTitle" Description="@SeoDescription" JsonLd="@JsonLd" />
+
+<section class="public-hero">
+    <span class="auth-visual-tag">@L["Funded trading · todo en un sitio"]</span>
+    <h1>@L[Brand.Tagline]</h1>
+    <p class="public-lead">
+        @L["Cuentas, evaluaciones, payouts y métricas de riesgo de todas tus firmas de fondeo, en un único dashboard. Sabrás si tu negocio de evaluaciones es rentable — no lo intuirás."]
+    </p>
+    <div class="public-hero-actions">
+        <a class="btn btn-primary btn-lg" href="Account/Register">@L["Empieza gratis"]</a>
+        <a class="btn btn-outline-secondary btn-lg" href="precios">@L["Ver precios"]</a>
+        <a class="btn btn-outline-secondary btn-lg" href="calculadora">@L["Calcula tu EV gratis"]</a>
+    </div>
+</section>
+
+<section class="public-section">
+    <h2>@L["Por qué {0}", Brand.Name]</h2>
+    <div class="row g-3">
+        <div class="col-md-6 col-lg-3">
+            <div class="card h-100 border-primary">
+                <div class="card-body">
+                    <h5 class="card-title">Firm Fit</h5>
+                    <p class="text-muted small mb-0">
+                        @L["Simulamos tu operativa real contra las reglas de cada firma y te decimos qué evaluación comprar — ranking por valor esperado, no por precio. Con tus datos, no con promesas."]
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">@L["KPIs de negocio de fondeo"]</h5>
+                    <p class="text-muted small mb-0">
+                        @L["Pass rate, coste por cuenta fondeada, payout medio, ROI y cashflow neto — como ciudadanos de primera clase, no una hoja de cálculo aparte."]
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">@L["Riesgo cuantitativo"]</h5>
+                    <p class="text-muted small mb-0">
+                        @L["Monte Carlo de ruina del bankroll, EV por evaluación con intervalo de confianza y fracción de Kelly — nivel institucional aplicado a tu operativa."]
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">@L["Analista de IA"]</h5>
+                    <p class="text-muted small mb-0">
+                        @L["Informes que citan tus métricas exactas y la viabilidad real de tu negocio de evaluaciones — no un chatbot genérico."]
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="public-section public-anti">
+    <p class="mb-0">
+        @((MarkupString)L["No somos una prop firm ni vendemos evaluaciones. No somos señales ni promesas de rentabilidad. Somos contabilidad y estadística honesta — a veces la respuesta es que tu negocio de evaluaciones <strong>todavía</strong> no es rentable, y es mejor saberlo hoy."].Value)
+    </p>
+</section>
+
+<section class="public-section text-center">
+    <a class="btn btn-primary btn-lg" href="Account/Register">@L["Empieza gratis — 14 días de Pro incluidos"]</a>
+</section>
+
+@code {
+    private string SeoTitle => $"{Brand.Name} — {L[Brand.Tagline]}";
+    private string SeoDescription => L[Brand.Description];
+
+    // Datos estructurados: producto SaaS financiero con plan gratuito. Se serializa con
+    // System.Text.Json para garantizar JSON válido y escapado (incluye < > & como \u..., seguro
+    // dentro de <script>). La descripción se localiza (ES/EN).
+    private string JsonLd => System.Text.Json.JsonSerializer.Serialize(new Dictionary<string, object>
+    {
+        ["@context"] = "https://schema.org",
+        ["@type"] = "SoftwareApplication",
+        ["name"] = Brand.Name,
+        ["applicationCategory"] = "FinanceApplication",
+        ["operatingSystem"] = "Web",
+        ["description"] = L[Brand.Description].Value,
+        ["offers"] = new Dictionary<string, object>
+        {
+            ["@type"] = "Offer",
+            ["price"] = "0",
+            ["priceCurrency"] = "EUR",
+        },
+    });
+}

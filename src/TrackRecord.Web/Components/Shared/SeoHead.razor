@@ -1,0 +1,61 @@
+@inject NavigationManager Nav
+
+@* Metadatos SEO/Open Graph reutilizables para páginas públicas. Emite <title>, meta description,
+   canonical, Open Graph y Twitter Card, y opcionalmente un bloque JSON-LD. El <script
+   type="application/ld+json"> es un bloque de datos (no se ejecuta), así que la CSP script-src
+   'self' de la app no lo bloquea. Ver GUIA_SEO_MARKETING_REBRANDING.md §2.1. *@
+
+<PageTitle>@Title</PageTitle>
+
+<HeadContent>
+    <meta name="description" content="@Description" />
+    <link rel="canonical" href="@CanonicalUrl" />
+
+    <meta property="og:type" content="@OgType" />
+    <meta property="og:site_name" content="@Brand.Name" />
+    <meta property="og:title" content="@Title" />
+    <meta property="og:description" content="@Description" />
+    <meta property="og:url" content="@CanonicalUrl" />
+    <meta property="og:image" content="@ImageUrl" />
+    <meta property="og:locale" content="@OgLocale" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="@Title" />
+    <meta name="twitter:description" content="@Description" />
+    <meta name="twitter:image" content="@ImageUrl" />
+
+    @if (!string.IsNullOrWhiteSpace(JsonLd))
+    {
+        <script type="application/ld+json">@((MarkupString)JsonLd)</script>
+    }
+</HeadContent>
+
+@code {
+    /// <summary>Título de la pestaña y de OG/Twitter. Idealmente ≤ 60 caracteres.</summary>
+    [Parameter, EditorRequired] public string Title { get; set; } = "";
+
+    /// <summary>Meta description y OG/Twitter description. Idealmente ≤ 155 caracteres con la keyword.</summary>
+    [Parameter, EditorRequired] public string Description { get; set; } = "";
+
+    /// <summary>Tipo Open Graph (website, article, profile…).</summary>
+    [Parameter] public string OgType { get; set; } = "website";
+
+    /// <summary>Imagen social (relativa a la raíz o absoluta). Por defecto el favicon.</summary>
+    [Parameter] public string? Image { get; set; }
+
+    /// <summary>Datos estructurados JSON-LD ya serializados (sin las etiquetas &lt;script&gt;).</summary>
+    [Parameter] public string? JsonLd { get; set; }
+
+    // Canonical sin query ni fragmento: evita que Google indexe variantes con parámetros.
+    private string CanonicalUrl => Nav.Uri.Split('?', '#')[0];
+
+    private string ImageUrl => AbsoluteUrl(Image ?? "favicon.png");
+
+    private string OgLocale =>
+        System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "en" ? "en_US" : "es_ES";
+
+    private string AbsoluteUrl(string relativeOrAbsolute) =>
+        Uri.TryCreate(relativeOrAbsolute, UriKind.Absolute, out var abs)
+            ? abs.ToString()
+            : new Uri(new Uri(Nav.BaseUri), relativeOrAbsolute).ToString();
+}

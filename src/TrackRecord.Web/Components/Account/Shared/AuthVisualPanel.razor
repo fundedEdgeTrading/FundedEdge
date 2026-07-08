@@ -1,0 +1,58 @@
+@inject IStringLocalizer<SharedResources> L
+
+<div class="auth-visual" aria-hidden="true">
+    <div class="auth-aurora"></div>
+
+    <div class="ticker-field">
+        <span class="ticker-chip ticker-chip--gold" style="--x:6%; --y:14%; --dur:17s; --delay:-2s;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9h14l-2 8H7z" /><path d="M6.5 9 9 5h6l2.5 4" /></svg>
+            <span>GC</span>
+        </span>
+        <span class="ticker-chip ticker-chip--oil" style="--x:74%; --y:8%; --dur:21s; --delay:-6s;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="12" height="16" rx="3" /><path d="M6 9.5h12" /><path d="M6 15h12" /></svg>
+            <span>CL</span>
+        </span>
+        <span class="ticker-chip ticker-chip--nasdaq" style="--x:38%; --y:6%; --dur:19s; --delay:-10s;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 18v-7" /><path d="M9 18V6" /><path d="M14 18v-5" /><path d="M19 18V4" /><path d="M3 18h18" /></svg>
+            <span>NQ</span>
+        </span>
+        <span class="ticker-chip ticker-chip--es" style="--x:82%; --y:38%; --dur:16s; --delay:-4s;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 16 9 10l4 4 8-9" /><path d="M15 5h6v6" /></svg>
+            <span>MES</span>
+        </span>
+        <span class="ticker-chip ticker-chip--gold" style="--x:14%; --y:60%; --dur:20s; --delay:-13s;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9h14l-2 8H7z" /><path d="M6.5 9 9 5h6l2.5 4" /></svg>
+            <span>MGC</span>
+        </span>
+        <span class="ticker-chip ticker-chip--oil" style="--x:58%; --y:56%; --dur:18s; --delay:-8s;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="12" height="16" rx="3" /><path d="M6 9.5h12" /><path d="M6 15h12" /></svg>
+            <span>MCL</span>
+        </span>
+        <span class="ticker-chip ticker-chip--nasdaq" style="--x:88%; --y:70%; --dur:22s; --delay:-1s;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 18v-7" /><path d="M9 18V6" /><path d="M14 18v-5" /><path d="M19 18V4" /><path d="M3 18h18" /></svg>
+            <span>MNQ</span>
+        </span>
+    </div>
+
+    <div class="auth-visual-content">
+        <span class="auth-visual-tag">@L["Funded trading · todo en un sitio"]</span>
+        <h2 class="auth-visual-heading">@L["Tu track record,"]<br />@L["sin hojas de cálculo."]</h2>
+        <p class="auth-visual-copy">
+            @L["Cuentas, evaluaciones, payouts y métricas de riesgo de todas tus firmas de fondeo, en un único dashboard."]
+        </p>
+    </div>
+
+    <div class="ticker-tape-mask">
+        <div class="ticker-tape">
+            @for (var i = 0; i < 2; i++)
+            {
+                <span class="ticker-quote up">GC <b>2.412,30</b> ▲0,4%</span>
+                <span class="ticker-quote down">CL <b>78,14</b> ▼0,2%</span>
+                <span class="ticker-quote up">NQ <b>20.984,00</b> ▲0,6%</span>
+                <span class="ticker-quote up">MES <b>5.812,25</b> ▲0,1%</span>
+                <span class="ticker-quote down">MGC <b>241,50</b> ▼0,1%</span>
+                <span class="ticker-quote up">MCL <b>78,14</b> ▲0,3%</span>
+            }
+        </div>
+    </div>
+</div>

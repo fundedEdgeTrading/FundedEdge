@@ -1,0 +1,17 @@
+@page "/Account/Lockout"
+@inject IStringLocalizer<SharedResources> L
+
+<PageTitle>@L["Cuenta bloqueada"] — @Brand.Name</PageTitle>
+
+<div class="auth-shell">
+    <AuthCard Title="@L["Cuenta bloqueada"]" TitleClass="text-danger" Centered="true">
+        <Subtitle>
+            <span role="alert">@L["Se ha bloqueado temporalmente por demasiados intentos fallidos. Inténtalo de nuevo en unos minutos."]</span>
+        </Subtitle>
+        <ChildContent>
+            <p class="auth-footer">
+                <a href="Account/Login">@L["Volver al inicio de sesión"]</a>
+            </p>
+        </ChildContent>
+    </AuthCard>
+</div>

@@ -1,0 +1,626 @@
+@page "/accounts/{AccountId:guid}"
+@rendermode InteractiveServer
+@implements IDisposable
+@inject ITradingAccountService AccountService
+@inject ICsvTradeImportService CsvImportService
+@inject ITradeSyncOrchestrator SyncOrchestrator
+@inject IKpiService KpiService
+@inject CurrencyState Currency
+@inject NavigationManager Nav
+@inject IStringLocalizer<SharedResources> L
+
+<PageTitle>@(_account?.DisplayName ?? L["Cuenta"].Value) — @Brand.Name</PageTitle>
+
+<ConfirmDialog @ref="_confirmDialog" />
+
+@if (_account is null)
+{
+    <p><em>@L["Cargando…"]</em></p>
+}
+else
+{
+    <div class="d-flex justify-content-between align-items-start">
+        <div>
+            @if (_editingName)
+            {
+                <EditForm Model="_renameForm" OnValidSubmit="SaveNameAsync" class="mb-1">
+                    <DataAnnotationsValidator />
+                    <div class="d-flex gap-2 align-items-center">
+                        <InputText class="form-control form-control-lg" style="max-width: 24rem;" @bind-Value="_renameForm.DisplayName" autofocus />
+                        <button type="submit" class="btn btn-primary btn-sm">@L["Guardar"]</button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="CancelRename">@L["Cancelar"]</button>
+                    </div>
+                    <ValidationMessage For="() => _renameForm.DisplayName" class="text-danger small" />
+                </EditForm>
+                @if (_nameError is not null)
+                {
+                    <p class="text-danger small mb-0">@_nameError</p>
+                }
+            }
+            else
+            {
+                <h1 class="d-flex align-items-center gap-2">
+                    @_account.DisplayName
+                    <button class="btn btn-sm btn-link p-0 text-muted" title="@L["Editar nombre"]" @onclick="StartRename">✏️</button>
+                </h1>
+            }
+            <p class="text-muted mb-0">@_account.PropFirmName · @Currency.Format(_account.AccountSize, 0) · <span class="badge @StageBadgeClass(_account.Stage)">@_account.Stage</span></p>
+        </div>
+        <div class="d-flex gap-2 align-items-center">
+            @if (_account.EvaluationProgramId.HasValue)
+            {
+                <a class="btn btn-outline-primary btn-sm" href="/accounts/@AccountId/progress">📊 @L["Ver progreso"]</a>
+            }
+            <button class="btn btn-outline-danger" @onclick="ConfirmAndDeleteAccountAsync">@L["Eliminar cuenta"]</button>
+        </div>
+    </div>
+
+    <div class="kpi-grid mt-3">
+        <KpiCard Title="Net P&amp;L" Value="@Currency.Format(NetPnL)" Emphasis="@(NetPnL >= 0 ? "text-success" : "text-danger")" />
+        <KpiCard Title="@L["Costes totales"]" Value="@Currency.Format(TotalCosts)" />
+        <KpiCard Title="@L["Payouts recibidos"]" Value="@Currency.Format(TotalPayouts)" />
+        <KpiCard Title="Profit target" Value="@Currency.Format(_account.ProfitTarget, 0)" />
+        <KpiCard Title="Max drawdown" Value="@Currency.Format(_account.MaxDrawdown, 0)" />
+    </div>
+
+    @if (_equity is { Count: > 1 })
+    {
+        <div class="card mt-3">
+            <div class="card-body">
+                <h5 class="card-title">@L["Curva de equity de la cuenta"]</h5>
+                <EquityChart Points="_equity" Currency="Currency.Current" />
+            </div>
+        </div>
+    }
+
+    <h2 class="mt-4">@L["Ciclo de vida"]</h2>
+    <EditForm Model="_transition" OnValidSubmit="TransitionAsync" class="row g-2 align-items-end mb-2">
+        <div class="col-md-3">
+            <label class="form-label">@L["Nueva etapa"]</label>
+            <InputSelect class="form-select" @bind-Value="_transition.NewStage">
+                @foreach (var v in Enum.GetValues<AccountStage>())
+                {
+                    <option value="@v">@v</option>
+                }
+            </InputSelect>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">@L["Fecha"]</label>
+            <InputDate class="form-control" @bind-Value="_transition.OccurredOn" />
+        </div>
+        <div class="col-md-4">
+            <label class="form-label">@L["Notas"]</label>
+            <InputText class="form-control" @bind-Value="_transition.Notes" />
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary w-100">@L["Registrar"]</button>
+        </div>
+    </EditForm>
+    <ul class="list-group mb-4">
+        @foreach (var evt in _account.Events)
+        {
+            <li class="list-group-item d-flex justify-content-between">
+                <span>@evt.FromStage → <strong>@evt.ToStage</strong> @(string.IsNullOrWhiteSpace(evt.Notes) ? "" : $"— {evt.Notes}")</span>
+                <span class="text-muted">@evt.OccurredAt.ToString("d")</span>
+            </li>
+        }
+    </ul>
+
+    <div class="row">
+        <div class="col-md-6">
+            <h2>@L["Costes"]</h2>
+            <EditForm Model="_costForm" OnValidSubmit="AddCostAsync" class="row g-2 align-items-end mb-2">
+                <div class="col-5">
+                    <label class="form-label">@L["Tipo"]</label>
+                    <InputSelect class="form-select" @bind-Value="_costForm.Kind">
+                        @foreach (var v in Enum.GetValues<CostKind>())
+                        {
+                            <option value="@v">@v</option>
+                        }
+                    </InputSelect>
+                </div>
+                <div class="col-3">
+                    <label class="form-label">@L["Importe"]</label>
+                    <InputNumber class="form-control" @bind-Value="_costForm.Amount" />
+                </div>
+                <div class="col-3">
+                    <label class="form-label">@L["Fecha"]</label>
+                    <InputDate class="form-control" @bind-Value="_costForm.PaidOn" />
+                </div>
+                <div class="col-1">
+                    <button type="submit" class="btn btn-primary">+</button>
+                </div>
+            </EditForm>
+            <ul class="list-group mb-4">
+                @foreach (var cost in _account.Costs)
+                {
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>@cost.Kind — @cost.PaidOn.ToString("d")</span>
+                        <span>
+                            @Currency.Format(cost.Amount)
+                            <button class="btn btn-sm btn-link text-danger" @onclick="() => RemoveCostAsync(cost.Id)">✕</button>
+                        </span>
+                    </li>
+                }
+            </ul>
+        </div>
+
+        <div class="col-md-6">
+            <h2>Payouts</h2>
+            @if (_account.NextPayoutEligibleOn is { } nextPayoutOn)
+            {
+                var daysLeft = nextPayoutOn.DayNumber - DateOnly.FromDateTime(DateTime.Today).DayNumber;
+                <div class="alert @(daysLeft <= 0 ? "alert-success" : "alert-secondary") small">
+                    @if (daysLeft <= 0)
+                    {
+                        <text>@L["Ya puedes solicitar tu próximo payout según la regla de {0}.", _account.PropFirmName]</text>
+                    }
+                    else
+                    {
+                        <text>@L["Próximo payout elegible el {0} (en {1} día(s)), según la regla de {2}.", nextPayoutOn.ToString("d"), daysLeft, _account.PropFirmName]</text>
+                    }
+                </div>
+            }
+            <EditForm Model="_payoutForm" OnValidSubmit="AddPayoutAsync" class="row g-2 align-items-end mb-2">
+                <div class="col-3">
+                    <label class="form-label">@L["Solicitado"]</label>
+                    <InputNumber class="form-control" @bind-Value="_payoutForm.AmountRequested" />
+                </div>
+                <div class="col-3">
+                    <label class="form-label">@L["Recibido"]</label>
+                    <InputNumber class="form-control" @bind-Value="_payoutForm.AmountReceived" />
+                </div>
+                <div class="col-3">
+                    <label class="form-label">@L["Fecha solicitud"]</label>
+                    <InputDate class="form-control" @bind-Value="_payoutForm.RequestedOn" />
+                </div>
+                <div class="col-2">
+                    <label class="form-label">@L["Estado"]</label>
+                    <InputSelect class="form-select" @bind-Value="_payoutForm.Status">
+                        @foreach (var v in Enum.GetValues<PayoutStatus>())
+                        {
+                            <option value="@v">@v</option>
+                        }
+                    </InputSelect>
+                </div>
+                <div class="col-1">
+                    <button type="submit" class="btn btn-primary">+</button>
+                </div>
+            </EditForm>
+            <ul class="list-group mb-4">
+                @foreach (var payout in _account.Payouts)
+                {
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>@payout.RequestedOn.ToString("d") — @payout.Status</span>
+                        <span>
+                            @Currency.Format(payout.AmountReceived)
+                            <button class="btn btn-sm btn-link text-danger" @onclick="() => RemovePayoutAsync(payout.Id)">✕</button>
+                        </span>
+                    </li>
+                }
+            </ul>
+        </div>
+    </div>
+
+    <h2 class="mt-4">@L["Conexión"]</h2>
+    <div class="card mb-3">
+        <div class="card-body">
+            <EditForm Model="_connectionForm" OnValidSubmit="SaveConnectionAsync" class="row g-2 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label">@L["Feed / plataforma"]</label>
+                    <InputSelect class="form-select" @bind-Value="_connectionForm.Feed">
+                        @foreach (var v in Enum.GetValues<DataFeedType>())
+                        {
+                            <option value="@v">@v</option>
+                        }
+                    </InputSelect>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">@L["ID externo (nombre de cuenta en Tradovate/NT8)"]</label>
+                    <InputText class="form-control" @bind-Value="_connectionForm.ExternalAccountId" />
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">@L["Guardar"]</button>
+                </div>
+                @if (_connectionForm.Feed == DataFeedType.Tradovate)
+                {
+                    <div class="col-md-3">
+                        <button type="button" class="btn btn-outline-secondary w-100" disabled="@_syncing" @onclick="SyncNowAsync">
+                            @(_syncing ? L["Sincronizando…"] : L["Sincronizar ahora"])
+                        </button>
+                    </div>
+                }
+            </EditForm>
+            @if (_syncMessage is not null)
+            {
+                <p class="small text-muted mt-2 mb-0">@_syncMessage</p>
+            }
+            <p class="text-muted small mt-2 mb-0">
+                @L["Las credenciales de Tradovate y la API key de ingesta de NinjaTrader se configuran en"]
+                <a href="/settings">/settings</a>.
+            </p>
+        </div>
+    </div>
+
+    <h2 class="mt-2">@L["Journal de trades"]</h2>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <h6 class="card-title">@L["Importar CSV de NinjaTrader 8"]</h6>
+            <p class="text-muted small mb-2">
+                @((MarkupString)L["Export de «Control Center → Trade Performance → grid → Export». Reimportar el mismo archivo no duplica trades (ver <code>integrations/ninjatrader/README.md</code>)."].Value)
+            </p>
+            <InputFile OnChange="OnCsvFileSelectedAsync" accept=".csv" disabled="@_csvImporting" />
+            @if (_csvImporting)
+            {
+                <p class="text-muted small mt-2 mb-0"><em>@L["Importando…"]</em></p>
+            }
+            else if (_csvImportSummary is not null)
+            {
+                <p class="small mt-2 mb-0">
+                    @L["Importados:"] <strong>@_csvImportSummary.Imported</strong> ·
+                    @L["Omitidos (ya importados):"] <strong>@_csvImportSummary.Skipped</strong>
+                    @if (_csvImportSummary.Errors.Count > 0)
+                    {
+                        <text> · <span class="text-danger">@L["{0} fila(s) con error", _csvImportSummary.Errors.Count]</span></text>
+                    }
+                </p>
+                @if (_csvImportSummary.Errors.Count > 0)
+                {
+                    <ul class="small text-danger mb-0">
+                        @foreach (var err in _csvImportSummary.Errors.Take(10))
+                        {
+                            <li>@err</li>
+                        }
+                    </ul>
+                }
+            }
+        </div>
+    </div>
+
+    <EditForm Model="_tradeForm" OnValidSubmit="AddTradeAsync" class="row g-2 align-items-end mb-2">
+        <div class="col-md-1">
+            <label class="form-label">@L["Símbolo"]</label>
+            <InputText class="form-control" @bind-Value="_tradeForm.Symbol" placeholder="MES" />
+        </div>
+        <div class="col-md-1">
+            <label class="form-label">Dir.</label>
+            <InputSelect class="form-select" @bind-Value="_tradeForm.Direction">
+                @foreach (var v in Enum.GetValues<TradeDirection>())
+                {
+                    <option value="@v">@v</option>
+                }
+            </InputSelect>
+        </div>
+        <div class="col-md-1">
+            <label class="form-label">@L["Cant."]</label>
+            <InputNumber class="form-control" @bind-Value="_tradeForm.Quantity" />
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">@L["Fecha cierre"]</label>
+            <InputDate class="form-control" @bind-Value="_tradeForm.ClosedOn" />
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">@L["P&L bruto"]</label>
+            <InputNumber class="form-control" @bind-Value="_tradeForm.GrossPnL" />
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">@L["Comisiones"]</label>
+            <InputNumber class="form-control" @bind-Value="_tradeForm.Commissions" />
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">@L["Riesgo (R)"]</label>
+            <InputNumber class="form-control" @bind-Value="_tradeForm.RiskedAmount" />
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">Tags (setup)</label>
+            <InputText class="form-control" @bind-Value="_tradeForm.Tags" placeholder="breakout, news" />
+        </div>
+        <div class="col-md-1">
+            <button type="submit" class="btn btn-primary w-100">+</button>
+        </div>
+    </EditForm>
+
+    @if (_account.Trades.Count == 0)
+    {
+        <p class="text-muted">@L["Sin trades registrados todavía."]</p>
+    }
+    else
+    {
+        <table class="table table-sm">
+            <thead>
+                <tr>
+                    <th>@L["Fecha"]</th>
+                    <th>@L["Símbolo"]</th>
+                    <th>Dir.</th>
+                    <th>@L["Cant."]</th>
+                    <th>Tags</th>
+                    <th class="text-end">Net P&amp;L</th>
+                    <th class="text-end">R</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var t in _account.Trades)
+                {
+                    <tr>
+                        <td>@t.ClosedAt.ToString("d")</td>
+                        <td>@t.Symbol</td>
+                        <td>@t.Direction</td>
+                        <td>@t.Quantity</td>
+                        <td>
+                            @foreach (var tag in ParseTags(t.Tags))
+                            {
+                                <span class="badge text-bg-secondary me-1">@tag</span>
+                            }
+                        </td>
+                        <td class="text-end @(t.NetPnL >= 0 ? "text-success" : "text-danger")">@Currency.Format(t.NetPnL)</td>
+                        <td class="text-end">@(t.RMultiple?.ToString("0.00") ?? "—")</td>
+                        <td><button class="btn btn-sm btn-link text-danger" @onclick="() => DeleteTradeAsync(t.Id)">✕</button></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+}
+
+@code {
+    [Parameter] public Guid AccountId { get; set; }
+
+    private TradingAccountDetailDto? _account;
+    private List<EquityCurvePoint>? _equity;
+    private ConfirmDialog? _confirmDialog;
+
+    private decimal NetPnL => _account?.Trades.Sum(t => t.NetPnL) ?? 0m;
+    private decimal TotalCosts => _account?.Costs.Sum(c => c.Amount) ?? 0m;
+    private decimal TotalPayouts => _account?.Payouts.Sum(p => p.AmountReceived) ?? 0m;
+
+    private TransitionFormModel _transition = new();
+    private CostFormModel _costForm = new();
+    private PayoutFormModel _payoutForm = new();
+    private TradeFormModel _tradeForm = new();
+    private ConnectionFormModel _connectionForm = new();
+
+    private bool _editingName;
+    private RenameFormModel _renameForm = new();
+    private string? _nameError;
+
+    private bool _csvImporting;
+    private CsvImportSummary? _csvImportSummary;
+
+    private bool _syncing;
+    private string? _syncMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Currency.Changed += OnCurrencyChanged;
+        await LoadAsync();
+    }
+
+    private void OnCurrencyChanged() => InvokeAsync(StateHasChanged);
+
+    public void Dispose() => Currency.Changed -= OnCurrencyChanged;
+
+    private async Task LoadAsync()
+    {
+        _account = await AccountService.GetByIdAsync(AccountId);
+        if (_account is null)
+        {
+            Nav.NavigateTo("/accounts");
+            return;
+        }
+
+        _connectionForm = new ConnectionFormModel { Feed = _account.Feed, ExternalAccountId = _account.ExternalAccountId };
+        _equity = (await KpiService.GetEquityCurveAsync(AccountId)).ToList();
+    }
+
+    private void StartRename()
+    {
+        _nameError = null;
+        _renameForm = new RenameFormModel { DisplayName = _account?.DisplayName ?? "" };
+        _editingName = true;
+    }
+
+    private void CancelRename()
+    {
+        _editingName = false;
+        _nameError = null;
+    }
+
+    private async Task SaveNameAsync()
+    {
+        if (_account is null) return;
+        _nameError = null;
+        try
+        {
+            await AccountService.RenameAsync(new RenameAccountRequest(AccountId, _renameForm.DisplayName));
+            _editingName = false;
+            await LoadAsync();
+        }
+        catch (ArgumentException ex)
+        {
+            _nameError = ex.Message;
+        }
+    }
+
+    private async Task SaveConnectionAsync()
+    {
+        await AccountService.UpdateConnectionAsync(new UpdateAccountConnectionRequest(
+            AccountId, _connectionForm.Feed, _connectionForm.ExternalAccountId));
+        await LoadAsync();
+    }
+
+    private async Task SyncNowAsync()
+    {
+        _syncing = true;
+        _syncMessage = null;
+        StateHasChanged();
+
+        try
+        {
+            var ingested = await SyncOrchestrator.SyncAccountAsync(AccountId);
+            _syncMessage = ingested == 0
+                ? L["Sincronizado: sin fills nuevos."]
+                : L["Sincronizado: {0} fill(s) nuevo(s) ingestado(s).", ingested];
+        }
+        finally
+        {
+            _syncing = false;
+        }
+
+        await LoadAsync();
+    }
+
+    private async Task TransitionAsync()
+    {
+        await AccountService.TransitionStageAsync(new TransitionAccountStageRequest(
+            AccountId, _transition.NewStage, _transition.OccurredOn.ToDateTime(TimeOnly.MinValue), _transition.Notes));
+        _transition = new TransitionFormModel();
+        await LoadAsync();
+    }
+
+    private async Task AddCostAsync()
+    {
+        await AccountService.AddCostAsync(new AddAccountCostRequest(AccountId, _costForm.Kind, _costForm.Amount, _costForm.PaidOn, null));
+        _costForm = new CostFormModel();
+        await LoadAsync();
+    }
+
+    private async Task RemoveCostAsync(Guid costId)
+    {
+        await AccountService.RemoveCostAsync(costId);
+        await LoadAsync();
+    }
+
+    private async Task AddPayoutAsync()
+    {
+        await AccountService.AddPayoutAsync(new AddPayoutRequest(
+            AccountId, _payoutForm.AmountRequested, _payoutForm.AmountReceived, _payoutForm.RequestedOn,
+            _payoutForm.Status == PayoutStatus.Paid ? _payoutForm.RequestedOn : null, _payoutForm.Status, null));
+        _payoutForm = new PayoutFormModel();
+        await LoadAsync();
+    }
+
+    private async Task RemovePayoutAsync(Guid payoutId)
+    {
+        await AccountService.RemovePayoutAsync(payoutId);
+        await LoadAsync();
+    }
+
+    private async Task AddTradeAsync()
+    {
+        var closedAt = _tradeForm.ClosedOn.ToDateTime(TimeOnly.MinValue);
+        await AccountService.AddTradeAsync(new CreateTradeRequest(
+            AccountId, _tradeForm.Symbol, _tradeForm.Direction, _tradeForm.Quantity,
+            0m, 0m, closedAt, closedAt, _tradeForm.GrossPnL, _tradeForm.Commissions,
+            _tradeForm.RiskedAmount, string.IsNullOrWhiteSpace(_tradeForm.Tags) ? null : _tradeForm.Tags, null));
+        _tradeForm = new TradeFormModel();
+        await LoadAsync();
+    }
+
+    private static string[] ParseTags(string? tags) =>
+        tags?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries) ?? [];
+
+    private async Task DeleteTradeAsync(Guid tradeId)
+    {
+        await AccountService.DeleteTradeAsync(tradeId);
+        await LoadAsync();
+    }
+
+    private async Task ConfirmAndDeleteAccountAsync()
+    {
+        if (_account is null || _confirmDialog is null) return;
+
+        var message = L["Se eliminará la cuenta «{0}» junto con todos sus datos asociados: {1} trade(s), {2} coste(s), {3} payout(s) y {4} evento(s) de ciclo de vida.",
+            _account.DisplayName, _account.Trades.Count, _account.Costs.Count, _account.Payouts.Count, _account.Events.Count].Value
+            + "\n\n" + L["Esta acción no se puede deshacer."].Value;
+
+        var confirmed = await _confirmDialog.ShowAsync(L["Eliminar cuenta"], message, confirmText: L["Eliminar cuenta"]);
+        if (!confirmed) return;
+
+        await AccountService.DeleteAsync(AccountId);
+        Nav.NavigateTo("/accounts");
+    }
+
+    private async Task OnCsvFileSelectedAsync(InputFileChangeEventArgs e)
+    {
+        _csvImporting = true;
+        _csvImportSummary = null;
+        StateHasChanged();
+
+        try
+        {
+            const long maxFileSizeBytes = 10 * 1024 * 1024; // 10 MB — de sobra para un export de trades
+            await using var stream = e.File.OpenReadStream(maxFileSizeBytes);
+            using var buffer = new MemoryStream();
+            await stream.CopyToAsync(buffer);
+            buffer.Position = 0;
+
+            _csvImportSummary = await CsvImportService.ImportAsync(AccountId, buffer);
+        }
+        finally
+        {
+            _csvImporting = false;
+        }
+
+        await LoadAsync();
+    }
+
+    private static string StageBadgeClass(AccountStage stage) => stage switch
+    {
+        AccountStage.Evaluation => "text-bg-secondary",
+        AccountStage.Funded => "text-bg-success",
+        AccountStage.Failed => "text-bg-danger",
+        AccountStage.Withdrawn => "text-bg-dark",
+        AccountStage.Expired => "text-bg-warning",
+        _ => "text-bg-light",
+    };
+
+    private class TransitionFormModel
+    {
+        public AccountStage NewStage { get; set; } = AccountStage.Funded;
+        public DateOnly OccurredOn { get; set; } = DateOnly.FromDateTime(DateTime.Today);
+        public string? Notes { get; set; }
+    }
+
+    private class CostFormModel
+    {
+        public CostKind Kind { get; set; } = CostKind.Evaluation;
+        public decimal Amount { get; set; }
+        public DateOnly PaidOn { get; set; } = DateOnly.FromDateTime(DateTime.Today);
+    }
+
+    private class PayoutFormModel
+    {
+        public decimal AmountRequested { get; set; }
+        public decimal AmountReceived { get; set; }
+        public DateOnly RequestedOn { get; set; } = DateOnly.FromDateTime(DateTime.Today);
+        public PayoutStatus Status { get; set; } = PayoutStatus.Requested;
+    }
+
+    private class TradeFormModel
+    {
+        [System.ComponentModel.DataAnnotations.Required]
+        public string Symbol { get; set; } = "";
+        public TradeDirection Direction { get; set; } = TradeDirection.Long;
+        public int Quantity { get; set; } = 1;
+        public DateOnly ClosedOn { get; set; } = DateOnly.FromDateTime(DateTime.Today);
+        public decimal GrossPnL { get; set; }
+        public decimal Commissions { get; set; }
+        public decimal? RiskedAmount { get; set; }
+        public string? Tags { get; set; }
+    }
+
+    private class ConnectionFormModel
+    {
+        public DataFeedType Feed { get; set; } = DataFeedType.Manual;
+        public string? ExternalAccountId { get; set; }
+    }
+
+    private class RenameFormModel
+    {
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "El nombre no puede estar vacío.")]
+        [System.ComponentModel.DataAnnotations.StringLength(200, MinimumLength = 1, ErrorMessage = "El nombre debe tener entre 1 y 200 caracteres.")]
+        public string DisplayName { get; set; } = "";
+    }
+}
