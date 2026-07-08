@@ -3,6 +3,7 @@
 @inject IPropFirmService PropFirmService
 @inject IEvaluationProgramService ProgramService
 @inject IExternalFirmDataProvider ExternalProvider
+@inject IKpiService KpiService
 @inject CurrencyState Currency
 @inject IStringLocalizer<SharedResources> L
 
@@ -80,6 +81,50 @@ else
             }
         </tbody>
     </table>
+}
+
+@* ── P&L de negocio por firma (GUIA_FUNCIONALIDADES_PROPUESTAS.md §3.1) ─────────────────────── *@
+
+@if (_firmBreakdown is { Count: > 0 })
+{
+    <hr class="my-4" />
+    <h2 class="h4">@L["P&L de negocio por firma"]</h2>
+    <p class="text-muted small">@L["La cuenta de resultados de cada firma con la que operas: ROI, coste por cuenta fondeada y tiempo medio hasta el primer payout."]</p>
+    <div class="table-responsive">
+        <table class="table table-sm table-hover align-middle">
+            <thead>
+                <tr>
+                    <th>@L["Firma"]</th>
+                    <th class="text-end">@L["Compradas"]</th>
+                    <th class="text-end">@L["Fondeadas"]</th>
+                    <th class="text-end">Pass rate</th>
+                    <th class="text-end">@L["Coste total"]</th>
+                    <th class="text-end">@L["Payouts totales"]</th>
+                    <th class="text-end">@L["Cashflow neto"]</th>
+                    <th class="text-end">@L["Coste / fondeada"]</th>
+                    <th class="text-end">ROI</th>
+                    <th class="text-end">@L["Días a 1er payout"]</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var f in _firmBreakdown)
+                {
+                    <tr>
+                        <td>@f.FirmName</td>
+                        <td class="text-end">@f.AccountsPurchased</td>
+                        <td class="text-end">@f.AccountsFunded</td>
+                        <td class="text-end">@(f.PassRate is null ? "—" : f.PassRate.Value.ToString("P0"))</td>
+                        <td class="text-end">@Currency.Format(f.TotalCosts, 0)</td>
+                        <td class="text-end">@Currency.Format(f.TotalPayoutsReceived, 0)</td>
+                        <td class="text-end @(f.NetCashflow >= 0 ? "text-success" : "text-danger")">@Currency.Format(f.NetCashflow, 0)</td>
+                        <td class="text-end">@(f.CostPerFundedAccount is null ? "—" : Currency.Format(f.CostPerFundedAccount, 0))</td>
+                        <td class="text-end @(f.BusinessRoi is >= 0 ? "text-success" : f.BusinessRoi is < 0 ? "text-danger" : "")">@(f.BusinessRoi is null ? "—" : f.BusinessRoi.Value.ToString("P0"))</td>
+                        <td class="text-end">@(f.AvgDaysFundedToFirstPayout is null ? "—" : $"{f.AvgDaysFundedToFirstPayout:0}")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
 }
 
 @* ── Sección de programas de evaluación ─────────────────────────────────────────────────── *@
@@ -305,6 +350,7 @@ else
     private List<PropFirmDto>? _firms;
     private Guid? _editingId;
     private FirmFormModel _form = new();
+    private List<FirmBusinessBreakdownDto>? _firmBreakdown;
 
     // ── Programs ─────────────────────────────────────────────────────────────────────────────
     private Guid? _selectedFirmId;
@@ -323,6 +369,7 @@ else
     private async Task LoadAsync()
     {
         _firms = (await PropFirmService.GetAllAsync()).ToList();
+        _firmBreakdown = (await KpiService.GetFirmBusinessBreakdownAsync()).ToList();
     }
 
     private async Task LoadProgramsAsync()

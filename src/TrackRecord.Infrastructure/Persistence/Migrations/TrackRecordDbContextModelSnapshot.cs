@@ -257,6 +257,44 @@ namespace TrackRecord.Infrastructure.Persistence.Migrations
                     b.ToTable("AiReports", (string)null);
                 });
 
+            modelBuilder.Entity("TrackRecord.Domain.Entities.DailyMindsetCheckIn", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date");
+
+                    b.Property<int>("DominantPreMarketEmotion")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ExternalStress")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("PreMarketFocus")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SleepQuality")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "Date")
+                        .IsUnique();
+
+                    b.ToTable("DailyMindsetCheckIns", (string)null);
+                });
+
             modelBuilder.Entity("TrackRecord.Domain.Entities.EvaluationProgram", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1278,6 +1316,44 @@ namespace TrackRecord.Infrastructure.Persistence.Migrations
                     b.ToTable("Trades", (string)null);
                 });
 
+            modelBuilder.Entity("TrackRecord.Domain.Entities.TradeEmotionLog", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Adherence")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Emotion")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Intensity")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("LoggedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("Moment")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<Guid>("TradeId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("WasImpulsive")
+                        .HasColumnType("bit");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TradeId");
+
+                    b.ToTable("TradeEmotionLogs", (string)null);
+                });
+
             modelBuilder.Entity("TrackRecord.Domain.Entities.TradingAccount", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1556,6 +1632,17 @@ namespace TrackRecord.Infrastructure.Persistence.Migrations
                     b.Navigation("Account");
 
                     b.Navigation("Instrument");
+                });
+
+            modelBuilder.Entity("TrackRecord.Domain.Entities.TradeEmotionLog", b =>
+                {
+                    b.HasOne("TrackRecord.Domain.Entities.Trade", "Trade")
+                        .WithMany()
+                        .HasForeignKey("TradeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Trade");
                 });
 
             modelBuilder.Entity("TrackRecord.Domain.Entities.TradingAccount", b =>

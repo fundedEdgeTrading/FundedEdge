@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using TrackRecord.Application.Abstractions;
+using TrackRecord.Application.Kpis;
 using TrackRecord.Domain.Entities;
 using TrackRecord.Domain.Enums;
 using TrackRecord.Infrastructure.Persistence;
@@ -88,7 +89,7 @@ public class PublicProfileService(
 
         var trades = await db.Trades.AsNoTracking()
             .Where(t => t.Account!.UserId == profile.UserId)
-            .Select(t => new { NetPnL = t.GrossPnL - t.Commissions, t.RiskedAmount })
+            .Select(t => new { t.Id, t.ClosedAt, NetPnL = t.GrossPnL - t.Commissions, t.RiskedAmount })
             .ToListAsync(ct);
 
         int totalTrades = trades.Count;
@@ -111,7 +112,29 @@ public class PublicProfileService(
 
         var displayName = !string.IsNullOrWhiteSpace(user.DisplayName) ? user.DisplayName : user.UserName ?? "Trader";
 
-        return new PublicProfileView(displayName, funded, passRate, totalTrades, winRate, profitFactor, avgRMultiple);
+        // "Verificado" = la mayoría de los trades vienen de la ingesta automática de un broker
+        // (Tradovate/NinjaTrader), no introducidos a mano — GUIA_FUNCIONALIDADES_PROPUESTAS.md §3.7.
+        bool isVerified = false;
+        if (totalTrades > 0)
+        {
+            var tradeIds = trades.Select(t => t.Id).ToList();
+            var verifiedTradeCount = await db.Executions.AsNoTracking()
+                .Where(e => e.TradeId != null && tradeIds.Contains(e.TradeId!.Value) && e.Source != TradeSourceType.Manual)
+                .Select(e => e.TradeId!.Value)
+                .Distinct()
+                .CountAsync(ct);
+            isVerified = (double)verifiedTradeCount / totalTrades >= 0.8;
+        }
+
+        var equityCurve = new List<EquityCurvePoint>();
+        decimal cumulative = 0m;
+        foreach (var day in trades.OrderBy(t => t.ClosedAt).GroupBy(t => DateOnly.FromDateTime(t.ClosedAt.Date)))
+        {
+            cumulative += day.Sum(t => t.NetPnL);
+            equityCurve.Add(new EquityCurvePoint(day.Key, cumulative));
+        }
+
+        return new PublicProfileView(displayName, funded, passRate, totalTrades, winRate, profitFactor, avgRMultiple, isVerified, equityCurve);
     }
 
     private static async Task<string> GenerateUniqueSlugAsync(TrackRecordDbContext db, CancellationToken ct)

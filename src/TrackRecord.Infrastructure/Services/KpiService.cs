@@ -246,4 +246,109 @@ public class KpiService(IDbContextFactory<TrackRecordDbContext> dbFactory, ICurr
         .OrderByDescending(d => d.NetPnL)
         .ToList();
     }
+
+    public async Task<IReadOnlyList<FirmBusinessBreakdownDto>> GetFirmBusinessBreakdownAsync(CancellationToken ct = default)
+    {
+        var userId = await currentUser.RequireUserIdAsync();
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
+
+        var accounts = await db.TradingAccounts
+            .AsNoTracking()
+            .Where(a => a.UserId == userId)
+            .Select(a => new
+            {
+                a.PropFirmId,
+                FirmName = a.PropFirm!.Name,
+                a.Stage,
+                a.FundedOn,
+                TotalCosts = a.Costs.Sum(c => (decimal?)c.Amount) ?? 0m,
+                TotalPayouts = a.Payouts.Sum(p => (decimal?)p.AmountReceived) ?? 0m,
+                FirstPayoutOn = a.Payouts
+                    .Where(p => p.PaidOn != null)
+                    .OrderBy(p => p.PaidOn)
+                    .Select(p => (DateOnly?)p.PaidOn)
+                    .FirstOrDefault(),
+            })
+            .ToListAsync(ct);
+
+        return accounts
+            .GroupBy(a => (a.PropFirmId, a.FirmName))
+            .Select(g =>
+            {
+                var everFunded = g.Count(a => a.FundedOn is not null);
+                var terminated = g.Count(a => a.FundedOn is not null || a.Stage is AccountStage.Failed or AccountStage.Expired);
+                var totalCosts = g.Sum(a => a.TotalCosts);
+                var totalPayouts = g.Sum(a => a.TotalPayouts);
+
+                var daysToPayout = g
+                    .Where(a => a.FundedOn is not null && a.FirstPayoutOn is not null)
+                    .Select(a => (a.FirstPayoutOn!.Value.ToDateTime(TimeOnly.MinValue) - a.FundedOn!.Value.ToDateTime(TimeOnly.MinValue)).TotalDays)
+                    .ToList();
+
+                return new FirmBusinessBreakdownDto(
+                    PropFirmId: g.Key.PropFirmId,
+                    FirmName: g.Key.FirmName,
+                    AccountsPurchased: g.Count(),
+                    AccountsFunded: g.Count(a => a.Stage == AccountStage.Funded),
+                    AccountsFailed: g.Count(a => a.Stage == AccountStage.Failed),
+                    EvaluationsTerminated: terminated,
+                    PassRate: terminated > 0 ? (double)everFunded / terminated : null,
+                    TotalCosts: totalCosts,
+                    TotalPayoutsReceived: totalPayouts,
+                    NetCashflow: totalPayouts - totalCosts,
+                    CostPerFundedAccount: everFunded > 0 ? totalCosts / everFunded : null,
+                    AvgPayoutPerFundedAccount: everFunded > 0 ? totalPayouts / everFunded : null,
+                    BusinessRoi: totalCosts > 0 ? (double)((totalPayouts - totalCosts) / totalCosts) : null,
+                    AvgDaysFundedToFirstPayout: daysToPayout.Count > 0 ? daysToPayout.Average() : null);
+            })
+            .OrderByDescending(d => d.NetCashflow)
+            .ToList();
+    }
+
+    public async Task<IReadOnlyList<TimeOfDayPerformancePoint>> GetTimeOfDayHeatmapAsync(CancellationToken ct = default)
+    {
+        var userId = await currentUser.RequireUserIdAsync();
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
+
+        var trades = await db.Trades.AsNoTracking()
+            .Where(t => t.Account!.UserId == userId)
+            .Select(t => new { t.OpenedAt, NetPnL = t.GrossPnL - t.Commissions })
+            .ToListAsync(ct);
+
+        return trades
+            .GroupBy(t => (t.OpenedAt.DayOfWeek, Hour: t.OpenedAt.Hour))
+            .Select(g =>
+            {
+                var pnls = g.Select(t => t.NetPnL).ToList();
+                var wins = pnls.Count(p => p > 0);
+                var winRate = (double)wins / pnls.Count;
+                var avgWin = pnls.Where(p => p > 0).DefaultIfEmpty(0m).Average();
+                var avgLoss = Math.Abs(pnls.Where(p => p < 0).DefaultIfEmpty(0m).Average());
+                var expectancy = (decimal)winRate * avgWin - (decimal)(1 - winRate) * avgLoss;
+
+                return new TimeOfDayPerformancePoint(g.Key.DayOfWeek, g.Key.Hour, pnls.Count, winRate, expectancy, pnls.Sum());
+            })
+            .OrderBy(p => p.DayOfWeek).ThenBy(p => p.Hour)
+            .ToList();
+    }
+
+    public async Task<DurationAsymmetryDto> GetDurationAsymmetryAsync(CancellationToken ct = default)
+    {
+        var userId = await currentUser.RequireUserIdAsync();
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
+
+        var trades = await db.Trades.AsNoTracking()
+            .Where(t => t.Account!.UserId == userId)
+            .Select(t => new { t.OpenedAt, t.ClosedAt, NetPnL = t.GrossPnL - t.Commissions })
+            .ToListAsync(ct);
+
+        var wins = trades.Where(t => t.NetPnL > 0).Select(t => (t.ClosedAt - t.OpenedAt).TotalMinutes).ToList();
+        var losses = trades.Where(t => t.NetPnL < 0).Select(t => (t.ClosedAt - t.OpenedAt).TotalMinutes).ToList();
+
+        return new DurationAsymmetryDto(
+            wins.Count > 0 ? wins.Average() : null,
+            losses.Count > 0 ? losses.Average() : null,
+            wins.Count,
+            losses.Count);
+    }
 }
