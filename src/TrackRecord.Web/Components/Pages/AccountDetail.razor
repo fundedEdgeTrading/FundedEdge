@@ -331,6 +331,14 @@ else
                         <label class="form-label small">Tags (@L["opcional"])</label>
                         <select class="form-select form-select-sm" @bind="_genericMapping.Tags">@ColumnOptions(includeNone: true)</select>
                     </div>
+                    <div class="col-md-3">
+                        <label class="form-label small">@L["Pérdida flotante máx. (opcional)"]</label>
+                        <select class="form-select form-select-sm" @bind="_genericMapping.MaxAdverseExcursion">@ColumnOptions(includeNone: true)</select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small">@L["Ganancia flotante máx. (opcional)"]</label>
+                        <select class="form-select form-select-sm" @bind="_genericMapping.MaxFavorableExcursion">@ColumnOptions(includeNone: true)</select>
+                    </div>
                 </div>
                 <button class="btn btn-sm btn-primary mt-2" disabled="@_genericCsvImporting" @onclick="ImportGenericCsvAsync">
                     @(_genericCsvImporting ? L["Importando…"] : L["Importar con este mapeo"])
@@ -393,10 +401,21 @@ else
             <label class="form-label">Tags (setup)</label>
             <InputText class="form-control" @bind-Value="_tradeForm.Tags" placeholder="breakout, news" />
         </div>
+        <div class="col-md-2">
+            <label class="form-label small">@L["Pérdida flotante máx. (opcional)"]</label>
+            <InputNumber class="form-control form-control-sm" @bind-Value="_tradeForm.MaxAdverseExcursion" placeholder="0" />
+        </div>
+        <div class="col-md-2">
+            <label class="form-label small">@L["Ganancia flotante máx. (opcional)"]</label>
+            <InputNumber class="form-control form-control-sm" @bind-Value="_tradeForm.MaxFavorableExcursion" placeholder="0" />
+        </div>
         <div class="col-md-1">
             <button type="submit" class="btn btn-primary w-100">+</button>
         </div>
     </EditForm>
+    <p class="text-muted small mt-1 mb-2">
+        @L["\"Pérdida/ganancia flotante máxima\": cuánto llegaste a estar en contra/a favor mientras el trade seguía abierto, antes de cerrarlo. Registrarlo habilita el análisis de MAE/MFE (calidad de ejecución)."]
+    </p>
 
     @if (_account.Trades.Count == 0)
     {
@@ -414,6 +433,8 @@ else
                     <th>Tags</th>
                     <th class="text-end">Net P&amp;L</th>
                     <th class="text-end">R</th>
+                    <th class="text-end">MAE</th>
+                    <th class="text-end">MFE</th>
                     <th></th>
                 </tr>
             </thead>
@@ -433,6 +454,8 @@ else
                         </td>
                         <td class="text-end @(t.NetPnL >= 0 ? "text-success" : "text-danger")">@Currency.Format(t.NetPnL)</td>
                         <td class="text-end">@(t.RMultiple?.ToString("0.00") ?? "—")</td>
+                        <td class="text-end text-danger">@(t.MaeR?.ToString("0.00") ?? "—")</td>
+                        <td class="text-end text-success">@(t.MfeR?.ToString("0.00") ?? "—")</td>
                         <td><button class="btn btn-sm btn-link text-danger" @onclick="() => DeleteTradeAsync(t.Id)">✕</button></td>
                     </tr>
                 }
@@ -601,7 +624,8 @@ else
         await AccountService.AddTradeAsync(new CreateTradeRequest(
             AccountId, _tradeForm.Symbol, _tradeForm.Direction, _tradeForm.Quantity,
             0m, 0m, closedAt, closedAt, _tradeForm.GrossPnL, _tradeForm.Commissions,
-            _tradeForm.RiskedAmount, string.IsNullOrWhiteSpace(_tradeForm.Tags) ? null : _tradeForm.Tags, null));
+            _tradeForm.RiskedAmount, string.IsNullOrWhiteSpace(_tradeForm.Tags) ? null : _tradeForm.Tags, null,
+            _tradeForm.MaxAdverseExcursion, _tradeForm.MaxFavorableExcursion));
         _tradeForm = new TradeFormModel();
         await LoadAsync();
     }
@@ -697,7 +721,9 @@ else
                 _genericMapping.EntryPrice, _genericMapping.ExitPrice, _genericMapping.OpenedAt, _genericMapping.ClosedAt,
                 _genericMapping.GrossPnL,
                 string.IsNullOrEmpty(_genericMapping.Commissions) ? null : _genericMapping.Commissions,
-                string.IsNullOrEmpty(_genericMapping.Tags) ? null : _genericMapping.Tags);
+                string.IsNullOrEmpty(_genericMapping.Tags) ? null : _genericMapping.Tags,
+                string.IsNullOrEmpty(_genericMapping.MaxAdverseExcursion) ? null : _genericMapping.MaxAdverseExcursion,
+                string.IsNullOrEmpty(_genericMapping.MaxFavorableExcursion) ? null : _genericMapping.MaxFavorableExcursion);
 
             _genericCsvSummary = await GenericCsvImportService.ImportAsync(AccountId, _genericCsvBuffer, mapping);
         }
@@ -740,6 +766,8 @@ else
             GrossPnL = Guess(["Profit", "P/L", "PnL", "Net Profit", "Gross P&L"]),
             Commissions = GuessOptional(["Commission", "Commissions", "Fees"]),
             Tags = GuessOptional(["Tags", "Tag", "Setup"]),
+            MaxAdverseExcursion = GuessOptional(["MAE", "Max Adverse Excursion", "Adverse Excursion"]),
+            MaxFavorableExcursion = GuessOptional(["MFE", "Max Favorable Excursion", "Favorable Excursion"]),
         };
     }
 
@@ -805,6 +833,8 @@ else
         public decimal Commissions { get; set; }
         public decimal? RiskedAmount { get; set; }
         public string? Tags { get; set; }
+        public decimal? MaxAdverseExcursion { get; set; }
+        public decimal? MaxFavorableExcursion { get; set; }
     }
 
     private class ConnectionFormModel
@@ -825,6 +855,8 @@ else
         public string GrossPnL { get; set; } = "";
         public string? Commissions { get; set; }
         public string? Tags { get; set; }
+        public string? MaxAdverseExcursion { get; set; }
+        public string? MaxFavorableExcursion { get; set; }
     }
 
     private class RenameFormModel

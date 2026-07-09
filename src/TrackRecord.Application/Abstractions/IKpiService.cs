@@ -20,4 +20,7 @@ public interface IKpiService
 
     /// <summary>Duración media de trades ganadores vs perdedores.</summary>
     Task<DurationAsymmetryDto> GetDurationAsymmetryAsync(CancellationToken ct = default);
+
+    /// <summary>Calidad de ejecución (MAE/MFE) sobre los trades con excursión registrada por el usuario.</summary>
+    Task<ExecutionQualityDto> GetExecutionQualityAsync(CancellationToken ct = default);
 }

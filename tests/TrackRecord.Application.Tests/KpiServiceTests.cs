@@ -219,4 +219,64 @@ public class KpiServiceTests
         var sut = BuildService(factory);
         Assert.Empty(await sut.GetTagPerformanceAsync());
     }
+
+    [Fact]
+    public async Task GetExecutionQualityAsync_ComputesCaptureRatioAndMaeMfeInR()
+    {
+        var accountId = Guid.NewGuid();
+
+        var factory = await SeedAsync(db =>
+        {
+            db.TradingAccounts.Add(new TradingAccount
+            {
+                Id = accountId,
+                UserId = UserId,
+                DisplayName = "Acc",
+                AccountSize = 50_000,
+                PurchasedOn = new DateOnly(2026, 1, 1),
+            });
+
+            db.Trades.AddRange(
+                // Cerró en +60 habiendo llegado a +100 de favorable y -20 de adverso; riesgo 100 => MAE 0.2R, MFE 1.0R, capture 0.6
+                new Trade { AccountId = accountId, Symbol = "MES", GrossPnL = 60m, Commissions = 0m, RiskedAmount = 100m, MaxAdverseExcursion = 20m, MaxFavorableExcursion = 100m },
+                // Sin datos de excursión: no cuenta para la cobertura ni las medias
+                new Trade { AccountId = accountId, Symbol = "MES", GrossPnL = 50m, Commissions = 0m, RiskedAmount = 100m });
+        });
+
+        var sut = BuildService(factory);
+        var result = await sut.GetExecutionQualityAsync();
+
+        Assert.Equal(1, result.TradesWithData);
+        Assert.Equal(0.5, result.CoveragePct);
+        Assert.Equal(0.6, result.AvgCaptureRatio!.Value, precision: 5);
+        Assert.Equal(0.2, result.AvgMaeR!.Value, precision: 5);
+        Assert.Equal(1.0, result.AvgMfeR!.Value, precision: 5);
+    }
+
+    [Fact]
+    public async Task GetExecutionQualityAsync_NoExcursionData_ReturnsZeroCoverageWithoutThrowing()
+    {
+        var accountId = Guid.NewGuid();
+        var factory = await SeedAsync(db =>
+        {
+            db.TradingAccounts.Add(new TradingAccount
+            {
+                Id = accountId,
+                UserId = UserId,
+                DisplayName = "Acc",
+                AccountSize = 50_000,
+                PurchasedOn = new DateOnly(2026, 1, 1),
+            });
+            db.Trades.Add(new Trade { AccountId = accountId, Symbol = "MES", GrossPnL = 100m, Commissions = 0m, RiskedAmount = 100m });
+        });
+
+        var sut = BuildService(factory);
+        var result = await sut.GetExecutionQualityAsync();
+
+        Assert.Equal(0, result.TradesWithData);
+        Assert.Equal(0, result.CoveragePct);
+        Assert.Null(result.AvgCaptureRatio);
+        Assert.Null(result.AvgMaeR);
+        Assert.Null(result.AvgMfeR);
+    }
 }

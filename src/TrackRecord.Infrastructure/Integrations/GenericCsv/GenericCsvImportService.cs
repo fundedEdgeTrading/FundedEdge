@@ -42,6 +42,8 @@ public class GenericCsvImportService(
         var grossPnLCol = Resolve(mapping.GrossPnL);
         var commissionsCol = mapping.Commissions is null ? -1 : Resolve(mapping.Commissions);
         var tagsCol = mapping.Tags is null ? -1 : Resolve(mapping.Tags);
+        var maeCol = mapping.MaxAdverseExcursion is null ? -1 : Resolve(mapping.MaxAdverseExcursion);
+        var mfeCol = mapping.MaxFavorableExcursion is null ? -1 : Resolve(mapping.MaxFavorableExcursion);
 
         await using var db = await dbFactory.CreateDbContextAsync(ct);
 
@@ -70,6 +72,8 @@ public class GenericCsvImportService(
                 var grossPnL = GenericCsvParser.ParseDecimal(Field(fields, grossPnLCol));
                 var commissions = commissionsCol >= 0 ? GenericCsvParser.ParseDecimal(Field(fields, commissionsCol)) : 0m;
                 var tags = tagsCol >= 0 ? Field(fields, tagsCol).Trim() : null;
+                var mae = maeCol >= 0 ? GenericCsvParser.ParseDecimal(Field(fields, maeCol)) : (decimal?)null;
+                var mfe = mfeCol >= 0 ? GenericCsvParser.ParseDecimal(Field(fields, mfeCol)) : (decimal?)null;
 
                 var rowKey = ComputeRowKey(symbol, openedAt, closedAt, quantity, entryPrice, exitPrice);
                 var entryExternalId = $"csv-generic-{rowKey}-entry";
@@ -87,7 +91,8 @@ public class GenericCsvImportService(
                     grossPnL, commissions, riskedAmount: null,
                     tags: string.IsNullOrWhiteSpace(tags) ? null : tags,
                     notes: "Importado de CSV (mapeo genérico)",
-                    TradeSourceType.CsvImport, entryExternalId, $"csv-generic-{rowKey}-exit");
+                    TradeSourceType.CsvImport, entryExternalId, $"csv-generic-{rowKey}-exit",
+                    maxAdverseExcursion: mae, maxFavorableExcursion: mfe);
 
                 db.Trades.Add(trade);
                 imported++;

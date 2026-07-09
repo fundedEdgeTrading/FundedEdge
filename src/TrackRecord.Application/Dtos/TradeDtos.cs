@@ -15,7 +15,9 @@ public record TradeListItemDto(
     DateTimeOffset ClosedAt,
     decimal NetPnL,
     decimal? RMultiple,
-    string? Tags);
+    string? Tags,
+    decimal? MaeR = null,
+    decimal? MfeR = null);
 
 public record CreateTradeRequest(
     Guid AccountId,
@@ -30,4 +32,7 @@ public record CreateTradeRequest(
     decimal Commissions,
     decimal? RiskedAmount,
     string? Tags,
-    string? Notes);
+    string? Notes,
+    // Máxima pérdida/ganancia flotante (en $) durante el trade. Opcionales — habilitan MAE/MFE.
+    decimal? MaxAdverseExcursion = null,
+    decimal? MaxFavorableExcursion = null);

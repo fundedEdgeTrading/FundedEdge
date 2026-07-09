@@ -76,6 +76,47 @@
     </div>
 }
 
+@if (_compliance is { Count: > 0 })
+{
+    <h2>@L["Semáforo de reglas"]</h2>
+    <div class="table-responsive mb-3">
+        <table class="table table-sm align-middle">
+            <thead>
+                <tr>
+                    <th>@L["Cuenta"]</th>
+                    <th>@L["Pérdida diaria"]</th>
+                    <th>@L["Drawdown"]</th>
+                    <th>@L["Consistencia"]</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var c in _compliance)
+                {
+                    <tr>
+                        <td>@c.AccountDisplayName</td>
+                        <td>
+                            @Dot(c.DailyLossLevel)
+                            @(c.DailyLossLimit is null ? L["N/A"].Value : L["quedan {0}", Currency.Format(c.DailyLossRemaining ?? 0, 0)].Value)
+                        </td>
+                        <td>@Dot(c.DrawdownLevel) @L["colchón {0}", Currency.Format(c.DrawdownRemainingBuffer, 0)]</td>
+                        <td>
+                            @if (c.ConsistencyLevel is null)
+                            {
+                                @L["N/A"]
+                            }
+                            else
+                            {
+                                @Dot(c.ConsistencyLevel.Value)
+                                @($"{c.ConsistencyTopDayFraction:P0} / {c.ConsistencyMaxDayFraction:P0}")
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
 @if (_business is null || _trading is null)
 {
     <h2>@L["Negocio de fondeo"]</h2>
@@ -228,6 +269,25 @@ else
                 @L["Duración media: ganadores {0} min vs perdedores {1} min.", _durationAsymmetry.AvgWinDurationMinutes.Value.ToString("0"), _durationAsymmetry.AvgLossDurationMinutes.Value.ToString("0")]
             </p>
         }
+
+        <h2 class="mt-4">@L["Calidad de ejecución (MAE/MFE)"]</h2>
+        @if (_executionQuality is { TradesWithData: > 0 })
+        {
+            <p class="chart-caption">@L["Basado en {0} trade(s) con excursión registrada ({1} de tu histórico).", _executionQuality.TradesWithData, _executionQuality.CoveragePct.ToString("P0")]</p>
+            <div class="kpi-grid">
+                <KpiCard Title="@L["Ratio de captura"]" Value="@(_executionQuality.AvgCaptureRatio is null ? "—" : _executionQuality.AvgCaptureRatio.Value.ToString("P0"))" />
+                <KpiCard Title="@L["MAE medio (R)"]" Value="@(_executionQuality.AvgMaeR is null ? "—" : $"{_executionQuality.AvgMaeR:0.00}R")" Emphasis="text-danger" />
+                <KpiCard Title="@L["MFE medio (R)"]" Value="@(_executionQuality.AvgMfeR is null ? "—" : $"{_executionQuality.AvgMfeR:0.00}R")" Emphasis="text-success" />
+            </div>
+            <p class="text-muted small mt-2 mb-0">
+                @L["Ratio de captura = cuánto del movimiento a favor máximo (MFE) terminaste quedándote — 100% es salir en el mejor punto posible."]
+            </p>
+        }
+        else
+        {
+            <EmptyState Title="@L["Sin datos de excursión todavía"]"
+                        Text="@L["Al añadir un trade manualmente (o mapear las columnas al importar CSV), registra la pérdida y ganancia flotante máxima para desbloquear esta métrica."]" />
+        }
     }
 }
 
@@ -243,6 +303,7 @@ else
     private List<TimeOfDayPerformancePoint> _bestHours = [];
     private List<TimeOfDayPerformancePoint> _worstHours = [];
     private DurationAsymmetryDto? _durationAsymmetry;
+    private ExecutionQualityDto? _executionQuality;
 
     private string RoiEmphasis => _business?.BusinessRoi switch
     {
@@ -280,6 +341,7 @@ else
         _bestHours = heatmap.OrderByDescending(p => p.Expectancy).Take(5).ToList();
         _worstHours = heatmap.OrderBy(p => p.Expectancy).Take(5).ToList();
         _durationAsymmetry = await KpiService.GetDurationAsymmetryAsync();
+        _executionQuality = await KpiService.GetExecutionQualityAsync();
 
         var limits = await PlanService.GetLimitsAsync();
         _drawdownAlerts = limits.FullRiskModule ? await RiskAnalysisService.GetDrawdownAlertsAsync() : [];

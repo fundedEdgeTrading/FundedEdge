@@ -351,4 +351,51 @@ public class KpiService(IDbContextFactory<TrackRecordDbContext> dbFactory, ICurr
             wins.Count,
             losses.Count);
     }
+
+    public async Task<ExecutionQualityDto> GetExecutionQualityAsync(CancellationToken ct = default)
+    {
+        var userId = await currentUser.RequireUserIdAsync();
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
+
+        var trades = await db.Trades.AsNoTracking()
+            .Where(t => t.Account!.UserId == userId)
+            .Select(t => new
+            {
+                NetPnL = t.GrossPnL - t.Commissions,
+                t.RiskedAmount,
+                t.MaxAdverseExcursion,
+                t.MaxFavorableExcursion,
+            })
+            .ToListAsync(ct);
+
+        if (trades.Count == 0)
+        {
+            return new ExecutionQualityDto(0, 0, null, null, null);
+        }
+
+        var withData = trades.Where(t => t.MaxAdverseExcursion is not null || t.MaxFavorableExcursion is not null).ToList();
+        var coverage = (double)withData.Count / trades.Count;
+
+        var captureRatios = trades
+            .Where(t => t.MaxFavorableExcursion is > 0)
+            .Select(t => (double)(t.NetPnL / t.MaxFavorableExcursion!.Value))
+            .ToList();
+
+        var maeRs = trades
+            .Where(t => t.RiskedAmount is > 0 && t.MaxAdverseExcursion is not null)
+            .Select(t => (double)(t.MaxAdverseExcursion!.Value / t.RiskedAmount!.Value))
+            .ToList();
+
+        var mfeRs = trades
+            .Where(t => t.RiskedAmount is > 0 && t.MaxFavorableExcursion is not null)
+            .Select(t => (double)(t.MaxFavorableExcursion!.Value / t.RiskedAmount!.Value))
+            .ToList();
+
+        return new ExecutionQualityDto(
+            withData.Count,
+            coverage,
+            captureRatios.Count > 0 ? captureRatios.Average() : null,
+            maeRs.Count > 0 ? maeRs.Average() : null,
+            mfeRs.Count > 0 ? mfeRs.Average() : null);
+    }
 }

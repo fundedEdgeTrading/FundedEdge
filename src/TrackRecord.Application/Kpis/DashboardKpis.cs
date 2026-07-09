@@ -96,3 +96,16 @@ public record DurationAsymmetryDto(
     double? AvgLossDurationMinutes,
     int WinCount,
     int LossCount);
+
+/// <summary>
+/// Calidad de ejecución vía MAE/MFE (GUIA_FUNCIONALIDADES_PROPUESTAS.md §3.4): cuánto capturas del
+/// movimiento favorable máximo y cuánto calor (adverso) aguantas antes de que el trade funcione.
+/// Solo se calcula sobre los trades donde el usuario registró MAE/MFE — <see cref="CoveragePct"/>
+/// indica qué fracción de la muestra los tiene.
+/// </summary>
+public record ExecutionQualityDto(
+    int TradesWithData,
+    double CoveragePct,
+    double? AvgCaptureRatio,
+    double? AvgMaeR,
+    double? AvgMfeR);

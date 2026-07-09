@@ -21,21 +21,18 @@
 else
 {
     <div class="kpi-grid">
-        <KpiCard Title="@L["Índice de tilt"]" Value="@($"{_metrics.TiltIndex}/100")" Emphasis="@TiltEmphasis" />
-        <KpiCard Title="@L["Score de disciplina"]" Value="@($"{_metrics.DisciplineScore}/100")" Emphasis="@DisciplineEmphasis" />
-        <KpiCard Title="@L["Coste emocional"]" Value="@(_metrics.EmotionalCostPerR is null ? "—" : $"{_metrics.EmotionalCostPerR:0.00}R")" />
+        <KpiCard Title="@L["Índice de tilt"]" Value="@Out100(_metrics.TiltIndex)" Emphasis="@TiltEmphasis" />
+        <KpiCard Title="@L["Score de disciplina"]" Value="@Out100(_metrics.DisciplineScore)" Emphasis="@DisciplineEmphasis" />
+        <KpiCard Title="@L["Coste emocional"]" Value="@FormatEmotionalCost(_metrics.EmotionalCostPerR)" />
         <KpiCard Title="@L["Racha de registro"]" Value="@L["{0} día(s)", _metrics.JournalStreakDays]" />
-        <KpiCard Title="@L["Cobertura del diario"]" Value="@_metrics.CoveragePct.ToString("P0")" />
+        <KpiCard Title="@L["Cobertura del diario"]" Value="@(_metrics.CoveragePct.ToString("P0"))" />
     </div>
 
-    @{
-        var badStreak = _metrics.Insights.FirstOrDefault(i => i.DetectorKey == "mala-racha-emocional");
-    }
-    @if (badStreak is not null)
+    @if (_badStreak is not null)
     {
         <div class="alert alert-danger mt-3">
-            <strong>@badStreak.Title</strong>
-            <p class="mb-0">@badStreak.Recommendation</p>
+            <strong>@_badStreak.Title</strong>
+            <p class="mb-0">@_badStreak.Recommendation</p>
         </div>
     }
 
@@ -140,6 +137,7 @@ else
     private bool _analyzing;
     private string? _aiError;
     private AiReportDto? _aiReport;
+    private PsychInsight? _badStreak;
 
     private string TiltEmphasis => _metrics?.TiltIndex switch
     {
@@ -162,6 +160,7 @@ else
 
         _analytics = await PsychologyService.GetAnalyticsAsync(from, to);
         _metrics = await PsychologyService.GetMetricsAsync(from, to);
+        _badStreak = _metrics.Insights.FirstOrDefault(i => i.DetectorKey == "mala-racha-emocional");
 
         _topCostlyEmotions = _analytics.EmotionPerformance
             .Where(p => p.AvgRMultiple is < 0)
@@ -197,4 +196,7 @@ else
     };
 
     private static string RenderMarkdown(string markdown) => Markdown.ToHtml(markdown, MarkdownPipeline);
+
+    private static string Out100(int value) => $"{value}/100";
+    private static string FormatEmotionalCost(decimal? value) => value is null ? "—" : $"{value:0.00}R";
 }
