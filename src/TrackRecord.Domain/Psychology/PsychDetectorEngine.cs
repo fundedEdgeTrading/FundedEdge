@@ -260,7 +260,7 @@ public static class PsychDetectorEngine
     }
 
     /// <summary>Valencia media diaria combinando emociones de trades (entrada/salida) y check-in diario.</summary>
-    internal static List<(DateOnly Date, double Valence)> DailyValence(
+    public static List<(DateOnly Date, double Valence)> DailyValence(
         IReadOnlyList<TradeWithEmotions> trades, IReadOnlyList<DailyMindset> checkIns)
     {
         var byDay = trades.GroupBy(t => DateOnly.FromDateTime(t.OpenedAt.Date))

@@ -102,7 +102,9 @@ public class TradingAccountService(
                     t.Id, t.AccountId, account.DisplayName, t.Symbol, t.Direction, t.Quantity,
                     t.AvgEntryPrice, t.AvgExitPrice, t.OpenedAt, t.ClosedAt,
                     t.GrossPnL - t.Commissions, t.RiskedAmount is > 0 ? (t.GrossPnL - t.Commissions) / t.RiskedAmount.Value : null,
-                    t.Tags))
+                    t.Tags,
+                    t.RiskedAmount is > 0 && t.MaxAdverseExcursion != null ? t.MaxAdverseExcursion / t.RiskedAmount.Value : null,
+                    t.RiskedAmount is > 0 && t.MaxFavorableExcursion != null ? t.MaxFavorableExcursion / t.RiskedAmount.Value : null))
                 .ToList(),
             nextPayoutEligibleOn,
             account.EvaluationProgramId);
@@ -344,7 +346,9 @@ public class TradingAccountService(
             request.Commissions,
             request.RiskedAmount,
             request.Tags,
-            request.Notes);
+            request.Notes,
+            request.MaxAdverseExcursion,
+            request.MaxFavorableExcursion);
 
         db.Trades.Add(trade); // Cascada: EF añade también las Executions colgadas de trade.Executions.
         await db.SaveChangesAsync(ct);

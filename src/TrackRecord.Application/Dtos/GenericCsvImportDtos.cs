@@ -16,4 +16,7 @@ public record GenericCsvColumnMapping(
     string ClosedAt,
     string GrossPnL,
     string? Commissions,
-    string? Tags);
+    string? Tags,
+    // Máxima pérdida/ganancia flotante durante el trade, si el export del broker las incluye. Opcionales — habilitan MAE/MFE.
+    string? MaxAdverseExcursion = null,
+    string? MaxFavorableExcursion = null);
