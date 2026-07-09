@@ -3,6 +3,7 @@
 @implements IDisposable
 @inject ITradingAccountService AccountService
 @inject ICsvTradeImportService CsvImportService
+@inject IGenericCsvImportService GenericCsvImportService
 @inject ITradeSyncOrchestrator SyncOrchestrator
 @inject IKpiService KpiService
 @inject CurrencyState Currency
@@ -278,6 +279,90 @@ else
         </div>
     </div>
 
+    @* ── Import CSV universal con mapeo de columnas (GUIA_FUNCIONALIDADES_PROPUESTAS.md §4.6) ── *@
+    <div class="card mb-3">
+        <div class="card-body">
+            <h6 class="card-title">@L["Importar CSV de otro broker (mapeo de columnas)"]</h6>
+            <p class="text-muted small mb-2">
+                @L["Para brokers sin soporte dedicado: sube el CSV, indica qué columna es cada campo y lo mapeamos nosotros. Reimportar el mismo archivo no duplica trades."]
+            </p>
+            <InputFile OnChange="OnGenericCsvFileSelectedAsync" accept=".csv" disabled="@_genericCsvImporting" />
+
+            @if (_genericCsvHeaders is { Count: > 0 })
+            {
+                <div class="row g-2 mt-2">
+                    <div class="col-md-3">
+                        <label class="form-label small">@L["Símbolo"]</label>
+                        <select class="form-select form-select-sm" @bind="_genericMapping.Symbol">@ColumnOptions()</select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small">@L["Dirección (long/short)"]</label>
+                        <select class="form-select form-select-sm" @bind="_genericMapping.Direction">@ColumnOptions()</select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small">@L["Cantidad"]</label>
+                        <select class="form-select form-select-sm" @bind="_genericMapping.Quantity">@ColumnOptions()</select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small">@L["Precio entrada"]</label>
+                        <select class="form-select form-select-sm" @bind="_genericMapping.EntryPrice">@ColumnOptions()</select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small">@L["Precio salida"]</label>
+                        <select class="form-select form-select-sm" @bind="_genericMapping.ExitPrice">@ColumnOptions()</select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small">@L["Fecha/hora entrada"]</label>
+                        <select class="form-select form-select-sm" @bind="_genericMapping.OpenedAt">@ColumnOptions()</select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small">@L["Fecha/hora salida"]</label>
+                        <select class="form-select form-select-sm" @bind="_genericMapping.ClosedAt">@ColumnOptions()</select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small">@L["P&L bruto"]</label>
+                        <select class="form-select form-select-sm" @bind="_genericMapping.GrossPnL">@ColumnOptions()</select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small">@L["Comisiones (opcional)"]</label>
+                        <select class="form-select form-select-sm" @bind="_genericMapping.Commissions">@ColumnOptions(includeNone: true)</select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small">Tags (@L["opcional"])</label>
+                        <select class="form-select form-select-sm" @bind="_genericMapping.Tags">@ColumnOptions(includeNone: true)</select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small">@L["Pérdida flotante máx. (opcional)"]</label>
+                        <select class="form-select form-select-sm" @bind="_genericMapping.MaxAdverseExcursion">@ColumnOptions(includeNone: true)</select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small">@L["Ganancia flotante máx. (opcional)"]</label>
+                        <select class="form-select form-select-sm" @bind="_genericMapping.MaxFavorableExcursion">@ColumnOptions(includeNone: true)</select>
+                    </div>
+                </div>
+                <button class="btn btn-sm btn-primary mt-2" disabled="@_genericCsvImporting" @onclick="ImportGenericCsvAsync">
+                    @(_genericCsvImporting ? L["Importando…"] : L["Importar con este mapeo"])
+                </button>
+            }
+
+            @if (_genericCsvError is not null)
+            {
+                <div class="alert alert-danger mt-2 mb-0 py-1 small">@_genericCsvError</div>
+            }
+            @if (_genericCsvSummary is not null)
+            {
+                <p class="small mt-2 mb-0">
+                    @L["Importados:"] <strong>@_genericCsvSummary.Imported</strong> ·
+                    @L["Omitidos (ya importados):"] <strong>@_genericCsvSummary.Skipped</strong>
+                    @if (_genericCsvSummary.Errors.Count > 0)
+                    {
+                        <text> · <span class="text-danger">@L["{0} fila(s) con error", _genericCsvSummary.Errors.Count]</span></text>
+                    }
+                </p>
+            }
+        </div>
+    </div>
+
     <EditForm Model="_tradeForm" OnValidSubmit="AddTradeAsync" class="row g-2 align-items-end mb-2">
         <div class="col-md-1">
             <label class="form-label">@L["Símbolo"]</label>
@@ -316,10 +401,21 @@ else
             <label class="form-label">Tags (setup)</label>
             <InputText class="form-control" @bind-Value="_tradeForm.Tags" placeholder="breakout, news" />
         </div>
+        <div class="col-md-2">
+            <label class="form-label small">@L["Pérdida flotante máx. (opcional)"]</label>
+            <InputNumber class="form-control form-control-sm" @bind-Value="_tradeForm.MaxAdverseExcursion" placeholder="0" />
+        </div>
+        <div class="col-md-2">
+            <label class="form-label small">@L["Ganancia flotante máx. (opcional)"]</label>
+            <InputNumber class="form-control form-control-sm" @bind-Value="_tradeForm.MaxFavorableExcursion" placeholder="0" />
+        </div>
         <div class="col-md-1">
             <button type="submit" class="btn btn-primary w-100">+</button>
         </div>
     </EditForm>
+    <p class="text-muted small mt-1 mb-2">
+        @L["\"Pérdida/ganancia flotante máxima\": cuánto llegaste a estar en contra/a favor mientras el trade seguía abierto, antes de cerrarlo. Registrarlo habilita el análisis de MAE/MFE (calidad de ejecución)."]
+    </p>
 
     @if (_account.Trades.Count == 0)
     {
@@ -337,6 +433,8 @@ else
                     <th>Tags</th>
                     <th class="text-end">Net P&amp;L</th>
                     <th class="text-end">R</th>
+                    <th class="text-end">MAE</th>
+                    <th class="text-end">MFE</th>
                     <th></th>
                 </tr>
             </thead>
@@ -356,6 +454,8 @@ else
                         </td>
                         <td class="text-end @(t.NetPnL >= 0 ? "text-success" : "text-danger")">@Currency.Format(t.NetPnL)</td>
                         <td class="text-end">@(t.RMultiple?.ToString("0.00") ?? "—")</td>
+                        <td class="text-end text-danger">@(t.MaeR?.ToString("0.00") ?? "—")</td>
+                        <td class="text-end text-success">@(t.MfeR?.ToString("0.00") ?? "—")</td>
                         <td><button class="btn btn-sm btn-link text-danger" @onclick="() => DeleteTradeAsync(t.Id)">✕</button></td>
                     </tr>
                 }
@@ -388,6 +488,13 @@ else
     private bool _csvImporting;
     private CsvImportSummary? _csvImportSummary;
 
+    private MemoryStream? _genericCsvBuffer;
+    private IReadOnlyList<string>? _genericCsvHeaders;
+    private GenericCsvMappingFormModel _genericMapping = new();
+    private bool _genericCsvImporting;
+    private string? _genericCsvError;
+    private CsvImportSummary? _genericCsvSummary;
+
     private bool _syncing;
     private string? _syncMessage;
 
@@ -399,7 +506,11 @@ else
 
     private void OnCurrencyChanged() => InvokeAsync(StateHasChanged);
 
-    public void Dispose() => Currency.Changed -= OnCurrencyChanged;
+    public void Dispose()
+    {
+        Currency.Changed -= OnCurrencyChanged;
+        _genericCsvBuffer?.Dispose();
+    }
 
     private async Task LoadAsync()
     {
@@ -513,7 +624,8 @@ else
         await AccountService.AddTradeAsync(new CreateTradeRequest(
             AccountId, _tradeForm.Symbol, _tradeForm.Direction, _tradeForm.Quantity,
             0m, 0m, closedAt, closedAt, _tradeForm.GrossPnL, _tradeForm.Commissions,
-            _tradeForm.RiskedAmount, string.IsNullOrWhiteSpace(_tradeForm.Tags) ? null : _tradeForm.Tags, null));
+            _tradeForm.RiskedAmount, string.IsNullOrWhiteSpace(_tradeForm.Tags) ? null : _tradeForm.Tags, null,
+            _tradeForm.MaxAdverseExcursion, _tradeForm.MaxFavorableExcursion));
         _tradeForm = new TradeFormModel();
         await LoadAsync();
     }
@@ -566,6 +678,118 @@ else
         await LoadAsync();
     }
 
+    private async Task OnGenericCsvFileSelectedAsync(InputFileChangeEventArgs e)
+    {
+        _genericCsvError = null;
+        _genericCsvSummary = null;
+        _genericCsvHeaders = null;
+        _genericCsvBuffer?.Dispose();
+        _genericCsvBuffer = null;
+
+        try
+        {
+            const long maxFileSizeBytes = 10 * 1024 * 1024;
+            await using var stream = e.File.OpenReadStream(maxFileSizeBytes);
+            var buffer = new MemoryStream();
+            await stream.CopyToAsync(buffer);
+            buffer.Position = 0;
+
+            _genericCsvBuffer = buffer;
+            _genericCsvHeaders = await GenericCsvImportService.ReadHeadersAsync(buffer, default);
+            _genericMapping = GuessMapping(_genericCsvHeaders);
+        }
+        catch (Exception ex)
+        {
+            _genericCsvError = ex.Message;
+        }
+    }
+
+    private async Task ImportGenericCsvAsync()
+    {
+        if (_genericCsvBuffer is null) return;
+
+        _genericCsvImporting = true;
+        _genericCsvError = null;
+        _genericCsvSummary = null;
+        StateHasChanged();
+
+        try
+        {
+            _genericCsvBuffer.Position = 0;
+            var mapping = new GenericCsvColumnMapping(
+                _genericMapping.Symbol, _genericMapping.Direction, _genericMapping.Quantity,
+                _genericMapping.EntryPrice, _genericMapping.ExitPrice, _genericMapping.OpenedAt, _genericMapping.ClosedAt,
+                _genericMapping.GrossPnL,
+                string.IsNullOrEmpty(_genericMapping.Commissions) ? null : _genericMapping.Commissions,
+                string.IsNullOrEmpty(_genericMapping.Tags) ? null : _genericMapping.Tags,
+                string.IsNullOrEmpty(_genericMapping.MaxAdverseExcursion) ? null : _genericMapping.MaxAdverseExcursion,
+                string.IsNullOrEmpty(_genericMapping.MaxFavorableExcursion) ? null : _genericMapping.MaxFavorableExcursion);
+
+            _genericCsvSummary = await GenericCsvImportService.ImportAsync(AccountId, _genericCsvBuffer, mapping);
+        }
+        catch (Exception ex)
+        {
+            _genericCsvError = ex.Message;
+        }
+        finally
+        {
+            _genericCsvImporting = false;
+        }
+
+        await LoadAsync();
+    }
+
+    /// <summary>
+    /// Adivina el mapeo inicial buscando alias habituales entre las cabeceras del CSV subido, para
+    /// que el &lt;select&gt; no arranque en un valor vacío que no exista entre las opciones (el
+    /// primer intento de importar sin tocar nada debería funcionar para exports razonablemente
+    /// estándar). El usuario puede corregir cualquier campo antes de importar.
+    /// </summary>
+    private static GenericCsvMappingFormModel GuessMapping(IReadOnlyList<string> headers)
+    {
+        string Guess(string[] aliases) =>
+            headers.FirstOrDefault(h => aliases.Any(a => string.Equals(a, h, StringComparison.OrdinalIgnoreCase)))
+            ?? headers[0];
+
+        string? GuessOptional(string[] aliases) =>
+            headers.FirstOrDefault(h => aliases.Any(a => string.Equals(a, h, StringComparison.OrdinalIgnoreCase)));
+
+        return new GenericCsvMappingFormModel
+        {
+            Symbol = Guess(["Symbol", "Instrument", "Ticker"]),
+            Direction = Guess(["Direction", "Side", "Market pos.", "Market Position"]),
+            Quantity = Guess(["Quantity", "Qty", "Size"]),
+            EntryPrice = Guess(["Entry price", "Entry Price", "Buy Price", "Open Price"]),
+            ExitPrice = Guess(["Exit price", "Exit Price", "Sell Price", "Close Price"]),
+            OpenedAt = Guess(["Entry time", "Entry Time", "Open Time", "Opened At"]),
+            ClosedAt = Guess(["Exit time", "Exit Time", "Close Time", "Closed At"]),
+            GrossPnL = Guess(["Profit", "P/L", "PnL", "Net Profit", "Gross P&L"]),
+            Commissions = GuessOptional(["Commission", "Commissions", "Fees"]),
+            Tags = GuessOptional(["Tags", "Tag", "Setup"]),
+            MaxAdverseExcursion = GuessOptional(["MAE", "Max Adverse Excursion", "Adverse Excursion"]),
+            MaxFavorableExcursion = GuessOptional(["MFE", "Max Favorable Excursion", "Favorable Excursion"]),
+        };
+    }
+
+    private RenderFragment ColumnOptions(bool includeNone = false) => builder =>
+    {
+        var seq = 0;
+        if (includeNone)
+        {
+            builder.OpenElement(seq++, "option");
+            builder.AddAttribute(seq++, "value", "");
+            builder.AddContent(seq++, L["(ninguna)"]);
+            builder.CloseElement();
+        }
+        foreach (var header in _genericCsvHeaders ?? [])
+        {
+            builder.OpenElement(seq++, "option");
+            builder.AddAttribute(seq++, "value", header);
+            builder.AddContent(seq++, header);
+            builder.CloseElement();
+        }
+    };
+
     private static string StageBadgeClass(AccountStage stage) => stage switch
     {
         AccountStage.Evaluation => "text-bg-secondary",
@@ -609,12 +833,30 @@ else
         public decimal Commissions { get; set; }
         public decimal? RiskedAmount { get; set; }
         public string? Tags { get; set; }
+        public decimal? MaxAdverseExcursion { get; set; }
+        public decimal? MaxFavorableExcursion { get; set; }
     }
 
     private class ConnectionFormModel
     {
         public DataFeedType Feed { get; set; } = DataFeedType.Manual;
         public string? ExternalAccountId { get; set; }
+    }
+
+    private class GenericCsvMappingFormModel
+    {
+        public string Symbol { get; set; } = "";
+        public string Direction { get; set; } = "";
+        public string Quantity { get; set; } = "";
+        public string EntryPrice { get; set; } = "";
+        public string ExitPrice { get; set; } = "";
+        public string OpenedAt { get; set; } = "";
+        public string ClosedAt { get; set; } = "";
+        public string GrossPnL { get; set; } = "";
+        public string? Commissions { get; set; }
+        public string? Tags { get; set; }
+        public string? MaxAdverseExcursion { get; set; }
+        public string? MaxFavorableExcursion { get; set; }
     }
 
     private class RenameFormModel

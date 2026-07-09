@@ -31,6 +31,25 @@ public class Trade : Entity
     public decimal? RiskedAmount { get; set; }
     public decimal? RMultiple => RiskedAmount is > 0 ? NetPnL / RiskedAmount.Value : null;
 
+    /// <summary>
+    /// Máxima pérdida flotante (en $, valor positivo) alcanzada mientras el trade estaba abierto —
+    /// auto-reportada por el trader (journal manual o mapeo de columnas al importar CSV), ya que no
+    /// se captura histórico de precio intra-trade. Habilita MAE (Maximum Adverse Excursion).
+    /// </summary>
+    public decimal? MaxAdverseExcursion { get; set; }
+
+    /// <summary>Máxima ganancia flotante (en $) alcanzada mientras el trade estaba abierto. Habilita MFE (Maximum Favorable Excursion).</summary>
+    public decimal? MaxFavorableExcursion { get; set; }
+
+    /// <summary>MAE expresado en R, igual que RMultiple. Cuánto "calor" (riesgo en contra) aguanta el trade antes de funcionar.</summary>
+    public decimal? MaeR => RiskedAmount is > 0 && MaxAdverseExcursion is not null ? MaxAdverseExcursion / RiskedAmount.Value : null;
+
+    /// <summary>MFE expresado en R.</summary>
+    public decimal? MfeR => RiskedAmount is > 0 && MaxFavorableExcursion is not null ? MaxFavorableExcursion / RiskedAmount.Value : null;
+
+    /// <summary>Fracción del movimiento favorable máximo que se llegó a capturar en el resultado final. 1.0 = saliste en el mejor punto posible.</summary>
+    public decimal? CaptureRatio => MaxFavorableExcursion is > 0 ? NetPnL / MaxFavorableExcursion.Value : null;
+
     public string? Tags { get; set; }
     public string? Notes { get; set; }
 

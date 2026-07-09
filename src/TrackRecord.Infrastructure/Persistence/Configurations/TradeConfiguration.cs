@@ -16,10 +16,15 @@ public class TradeConfiguration : IEntityTypeConfiguration<Trade>
         builder.Property(x => x.GrossPnL).HasColumnType("decimal(18,2)");
         builder.Property(x => x.Commissions).HasColumnType("decimal(18,2)");
         builder.Property(x => x.RiskedAmount).HasColumnType("decimal(18,2)");
+        builder.Property(x => x.MaxAdverseExcursion).HasColumnType("decimal(18,2)");
+        builder.Property(x => x.MaxFavorableExcursion).HasColumnType("decimal(18,2)");
         builder.Property(x => x.Tags).HasMaxLength(300);
         builder.Property(x => x.Notes).HasMaxLength(2000);
         builder.Ignore(x => x.NetPnL);
         builder.Ignore(x => x.RMultiple);
+        builder.Ignore(x => x.MaeR);
+        builder.Ignore(x => x.MfeR);
+        builder.Ignore(x => x.CaptureRatio);
 
         builder.HasOne(x => x.Instrument)
             .WithMany()

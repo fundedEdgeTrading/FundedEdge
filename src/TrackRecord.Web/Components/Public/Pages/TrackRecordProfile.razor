@@ -15,7 +15,15 @@ else if (_view is null)
 }
 else
 {
-    <h1>@_view.DisplayName</h1>
+    <h1>
+        @_view.DisplayName
+        @if (_view.IsVerified)
+        {
+            <span class="badge text-bg-success ms-2" title="@L["La mayoría de los trades proceden de la ingesta automática de un broker (Tradovate/NinjaTrader), no se han editado a mano."]">
+                ✓ @L["Verificado"]
+            </span>
+        }
+    </h1>
     <p class="public-lead">@L["Track record público de negocio de fondeo, generado con {0}.", Brand.Name]</p>
 
     <div class="row g-3 mb-4">
@@ -56,6 +64,16 @@ else
             </div></div>
         </div>
     </div>
+
+    @if (_view.EquityCurve.Count > 1)
+    {
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">@L["Curva de equity"]</h5>
+                <EquityChart Points="_view.EquityCurve" />
+            </div>
+        </div>
+    }
 
     <div class="public-section public-anti">
         <p class="mb-0">

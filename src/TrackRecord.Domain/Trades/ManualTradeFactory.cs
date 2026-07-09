@@ -40,7 +40,9 @@ public static class ManualTradeFactory
         string? notes,
         TradeSourceType source,
         string entryExternalId,
-        string exitExternalId)
+        string exitExternalId,
+        decimal? maxAdverseExcursion = null,
+        decimal? maxFavorableExcursion = null)
     {
         var normalizedSymbol = symbol.ToUpperInvariant();
 
@@ -59,6 +61,8 @@ public static class ManualTradeFactory
             RiskedAmount = riskedAmount,
             Tags = tags,
             Notes = notes,
+            MaxAdverseExcursion = maxAdverseExcursion,
+            MaxFavorableExcursion = maxFavorableExcursion,
         };
 
         var entrySide = direction == TradeDirection.Long ? OrderSide.Buy : OrderSide.Sell;
@@ -114,12 +118,15 @@ public static class ManualTradeFactory
         decimal commissions,
         decimal? riskedAmount,
         string? tags,
-        string? notes)
+        string? notes,
+        decimal? maxAdverseExcursion = null,
+        decimal? maxFavorableExcursion = null)
     {
         var tradeId = Guid.NewGuid();
         return Create(
             accountId, symbol, direction, quantity, avgEntryPrice, avgExitPrice, openedAt, closedAt,
             grossPnL, commissions, riskedAmount, tags, notes,
-            TradeSourceType.Manual, $"manual-{tradeId}-entry", $"manual-{tradeId}-exit");
+            TradeSourceType.Manual, $"manual-{tradeId}-entry", $"manual-{tradeId}-exit",
+            maxAdverseExcursion, maxFavorableExcursion);
     }
 }

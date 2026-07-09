@@ -21,6 +21,7 @@ public class ClaudeTradingAnalystService(
     AiOptions options,
     IKpiService kpiService,
     IRiskAnalysisService riskService,
+    IPsychologyService psychologyService,
     ICurrentUserAccessor currentUser,
     IPlanService planService,
     IDbContextFactory<TrackRecordDbContext> dbFactory) : ITradingAnalystService
@@ -35,7 +36,10 @@ public class ClaudeTradingAnalystService(
         suficiente, el bloque "riesgo" incluye además la esperanza matemática por evaluación con
         su intervalo de confianza al 95 % (bootstrap), la fracción de Kelly y una simulación Monte
         Carlo de ruina del bankroll bajo un escenario estándar documentado en "supuestos" — úsalo
-        como ancla cuantitativa de la viabilidad, citando el intervalo y no solo el punto.
+        como ancla cuantitativa de la viabilidad, citando el intervalo y no solo el punto. Si hay
+        un bloque "psicologia" (diario emocional auto-reportado por el trader), crúzalo con los
+        KPIs de trading en una sección "Psicología": ¿las fugas de PnL coinciden con las emociones
+        más caras? No lo trates como un dato menor.
 
         Tu trabajo:
         1. Diagnosticar fortalezas y fugas de dinero concretas, citando siempre la métrica exacta
@@ -49,6 +53,37 @@ public class ClaudeTradingAnalystService(
         Sé directo y escéptico: si la muestra de datos es pequeña (menos de ~20 trades cerrados o
         menos de ~10 evaluaciones terminadas), dilo explícitamente y evita conclusiones que los
         datos no soporten. Responde siempre en español y en Markdown.
+        """;
+
+    /// <summary>
+    /// Tono para el informe dedicado de psicología (GUIA_PSICOLOGIA_TRADING.md §8.3): coach de
+    /// rendimiento, no gurú; nombra el comportamiento sin juzgar a la persona; evidencia concreta
+    /// antes que consejo genérico; una prioridad por informe; nunca lenguaje clínico/diagnóstico.
+    /// </summary>
+    private const string PsychologySystemPrompt =
+        """
+        Eres un coach de rendimiento para traders de futuros (en la tradición de Brett Steenbarger
+        y Mark Douglas), no un gurú motivacional ni un profesional clínico. Recibirás estadísticas
+        agregadas del diario emocional auto-reportado de un trader (cobertura, check-in diario,
+        emociones más frecuentes, expectancy por emoción de entrada, disciplina, índice de tilt,
+        coste emocional en R, detecciones activas de patrones de riesgo) cruzadas con sus KPIs de
+        trading.
+
+        Instrucciones de tono, estrictas:
+        1. Valida la emoción, señala el comportamiento: nunca "hiciste mal", siempre "cuando
+           aparece X, el patrón de trading es Y — y te cuesta Z".
+        2. Evidencia concreta (números, frecuencias, trades citados por patrón) antes que consejo
+           genérico. Cada afirmación debe apoyarse en un dato del contexto.
+        3. Una sola prioridad de trabajo por informe, no una lista de diez. Elige la emoción o el
+           patrón con mayor coste medible y profundiza en ella.
+        4. Nunca uses lenguaje clínico ni de diagnóstico (nada de "trastorno", "patología",
+           "adicción"). Si detectas señales de malestar sostenido (fatiga/burnout recurrente,
+           racha emocional negativa prolongada), sugiere con tacto apoyo profesional — sin
+           alarmismo y dejando claro que esto es coaching de rendimiento, no tratamiento.
+        5. Si la cobertura del diario es baja (<30%), dilo explícitamente: las conclusiones son
+           orientativas, no definitivas, y anima a registrar más para afinarlas.
+
+        Responde siempre en español y en Markdown.
         """;
 
     public bool IsConfigured => options.IsApiKeyConfigured;
@@ -73,12 +108,58 @@ public class ClaudeTradingAnalystService(
         return await CallClaudeAndPersistAsync(AiReportKind.AdHocQuestion, question, userContent, ct);
     }
 
+    public async Task<AiReportDto> GeneratePsychologyReportAsync(CancellationToken ct = default)
+    {
+        await EnsureAllowedAsync(AiReportKind.PsychologyAnalysis, ct);
+        var psychology = await BuildPsychologyContextAsync(ct);
+        if (psychology is null)
+        {
+            throw new InvalidOperationException(
+                "Todavía no tienes diario emocional registrado. Registra las emociones de al menos unos trades en /psychology antes de pedir este informe.");
+        }
+
+        var trading = await kpiService.GetTradingKpisAsync(ct: ct);
+        var payload = JsonSerializer.Serialize(
+            new { psicologia = psychology, trading },
+            new JsonSerializerOptions { WriteIndented = true });
+
+        return await CallClaudeAndPersistAsync(AiReportKind.PsychologyAnalysis, null, payload, ct, PsychologySystemPrompt);
+    }
+
+    public async Task<AiReportDto> GenerateEventReportAsync(AiReportKind eventKind, string eventContext, CancellationToken ct = default)
+    {
+        await EnsureAllowedAsync(eventKind, ct);
+        var payload = await BuildStatsPayloadAsync(ct);
+        var instruction = eventKind switch
+        {
+            AiReportKind.LosingStreakAlert =>
+                "El trader lleva una racha de al menos 3 días consecutivos con resultado negativo. " +
+                "Genera un mini-informe de contención (máximo 200 palabras): qué está pasando según los datos " +
+                "y 1-2 acciones concretas para frenar el sangrado hoy. Sé directo, sin rodeos.",
+            AiReportKind.DrawdownRiskAlert =>
+                "Una cuenta del trader está a menos del 20% de su colchón de drawdown restante — riesgo real de " +
+                "quemarla. Genera un plan de emergencia breve (máximo 200 palabras): qué debe dejar de hacer ahora " +
+                "mismo para no perder la cuenta.",
+            AiReportKind.FirstPayoutMilestone =>
+                "El trader acaba de cobrar su primer payout de una cuenta fondeada. Genera un informe de " +
+                "consolidación breve (máximo 250 palabras): qué hizo distinto en este período según los datos, " +
+                "para que lo identifique y lo repita.",
+            _ => throw new ArgumentOutOfRangeException(nameof(eventKind), eventKind, "Tipo de evento no soportado."),
+        };
+
+        var userContent = $"{payload}\n\nEvento disparador: {eventContext}\n\n{instruction}";
+        return await CallClaudeAndPersistAsync(eventKind, null, userContent, ct);
+    }
+
     /// <summary>Lanza si el usuario ha agotado el cupo de IA de su plan (informes completos o preguntas ad-hoc).</summary>
     private async Task EnsureAllowedAsync(AiReportKind kind, CancellationToken ct)
     {
         var allowance = await planService.GetAiAllowanceAsync(ct);
 
-        if (kind == AiReportKind.Analysis && !allowance.CanGenerateReport)
+        var isReportKind = kind is AiReportKind.Analysis or AiReportKind.PsychologyAnalysis
+            or AiReportKind.LosingStreakAlert or AiReportKind.DrawdownRiskAlert or AiReportKind.FirstPayoutMilestone;
+
+        if (isReportKind && !allowance.CanGenerateReport)
         {
             throw new InvalidOperationException(
                 $"Has alcanzado el límite de informes completos de tu plan ({allowance.ReportsUsed}/{allowance.ReportsLimit}). " +
@@ -111,10 +192,57 @@ public class ClaudeTradingAnalystService(
         var business = await kpiService.GetBusinessKpisAsync(ct: ct);
         var trading = await kpiService.GetTradingKpisAsync(ct: ct);
         var riesgo = await BuildRiskSectionAsync(ct);
+        var psicologia = await BuildPsychologyContextAsync(ct);
 
         return JsonSerializer.Serialize(
-            new { negocio = business, trading, riesgo },
+            new { negocio = business, trading, riesgo, psicologia },
             new JsonSerializerOptions { WriteIndented = true });
+    }
+
+    /// <summary>
+    /// Bloque de psicología (GUIA_PSICOLOGIA_TRADING.md §8.1): agregados de los últimos 30 días,
+    /// nunca los logs crudos completos, para controlar tokens. Null si el usuario no tiene ningún
+    /// trade con diario emocional en la ventana — el informe sigue funcionando sin este bloque.
+    /// </summary>
+    private async Task<object?> BuildPsychologyContextAsync(CancellationToken ct)
+    {
+        var to = DateOnly.FromDateTime(DateTime.UtcNow.Date);
+        var from = to.AddDays(-30);
+
+        var metrics = await psychologyService.GetMetricsAsync(from, to, ct);
+        if (metrics.CoveragePct <= 0)
+        {
+            return null;
+        }
+
+        var analytics = await psychologyService.GetAnalyticsAsync(from, to, ct);
+
+        var emocionesFrecuentes = analytics.EmotionFrequency
+            .GroupBy(e => e.Emotion)
+            .Select(g => new { emocion = g.Key.ToString(), frecuencia = g.Sum(e => e.Count) })
+            .OrderByDescending(e => e.frecuencia)
+            .Take(5)
+            .ToList();
+
+        var expectancyPorEmocion = analytics.EmotionPerformance
+            .OrderByDescending(e => e.TradeCount)
+            .Take(6)
+            .Select(e => new { emocion = e.Emotion.ToString(), avgR = e.AvgRMultiple, n = e.TradeCount, winRate = e.WinRate })
+            .ToList();
+
+        return new
+        {
+            coberturaDiarioEmocionalPct = Math.Round(metrics.CoveragePct * 100, 0),
+            rachaDeRegistroDias = metrics.JournalStreakDays,
+            emocionesEntradaMasFrecuentes = emocionesFrecuentes,
+            expectancyPorEmocionEntrada = expectancyPorEmocion,
+            disciplinaPlanSeguidoPct = Math.Round(
+                analytics.DisciplineTrend.Count > 0 ? analytics.DisciplineTrend.Average(d => d.FollowedPlanRate) * 100 : 0, 0),
+            indiceTilt = metrics.TiltIndex,
+            scoreDisciplina = metrics.DisciplineScore,
+            costeEmocionalPorR = metrics.EmotionalCostPerR,
+            deteccionesActivas = metrics.Insights.Select(i => new { i.Title, severidad = i.Severity.ToString() }).ToList(),
+        };
     }
 
     /// <summary>
@@ -163,7 +291,7 @@ public class ClaudeTradingAnalystService(
         };
     }
 
-    private async Task<AiReportDto> CallClaudeAndPersistAsync(AiReportKind kind, string? question, string userContent, CancellationToken ct)
+    private async Task<AiReportDto> CallClaudeAndPersistAsync(AiReportKind kind, string? question, string userContent, CancellationToken ct, string? systemPromptOverride = null)
     {
         if (!IsConfigured)
         {
@@ -197,7 +325,7 @@ public class ClaudeTradingAnalystService(
             OutputConfig = outputConfig,
             System = new List<TextBlockParam>
             {
-                new() { Text = SystemPrompt, CacheControl = new CacheControlEphemeral() },
+                new() { Text = systemPromptOverride ?? SystemPrompt, CacheControl = new CacheControlEphemeral() },
             },
             Messages = [new() { Role = Role.User, Content = userContent }],
         };

@@ -21,6 +21,8 @@ public class TrackRecordDbContext(DbContextOptions<TrackRecordDbContext> options
     public DbSet<IntegrationSetting> IntegrationSettings => Set<IntegrationSetting>();
     public DbSet<PublicProfile> PublicProfiles => Set<PublicProfile>();
     public DbSet<ProcessedWebhookEvent> ProcessedWebhookEvents => Set<ProcessedWebhookEvent>();
+    public DbSet<TradeEmotionLog> TradeEmotionLogs => Set<TradeEmotionLog>();
+    public DbSet<DailyMindsetCheckIn> DailyMindsetCheckIns => Set<DailyMindsetCheckIn>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

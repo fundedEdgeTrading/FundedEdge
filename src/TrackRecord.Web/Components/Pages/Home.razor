@@ -5,6 +5,8 @@
 @inject IKpiService KpiService
 @inject IRiskAnalysisService RiskAnalysisService
 @inject IPlanService PlanService
+@inject IPsychologyService PsychologyService
+@inject IRuleComplianceService RuleComplianceService
 @inject CurrencyState Currency
 @inject NavigationManager Nav
 @inject IStringLocalizer<SharedResources> L
@@ -14,6 +16,14 @@
 <h1>Dashboard</h1>
 <p class="text-muted">@L["Visión general del negocio de fondeo y de tu operativa."]</p>
 
+@if (_pendingEmotionCount > 0)
+{
+    <div class="alert alert-info d-flex justify-content-between align-items-center">
+        <span>@L["Tienes {0} trade(s) sin diario emocional — completarlo lleva menos de un minuto.", _pendingEmotionCount]</span>
+        <a class="btn btn-sm btn-outline-primary" href="emotion-survey">@L["Registrar ahora"]</a>
+    </div>
+}
+
 @if (_drawdownAlerts is { Count: > 0 })
 {
     <div class="alert alert-danger">
@@ -22,6 +32,88 @@
         {
             <div>@L["{0} — {1} del colchón de drawdown consumido (quedan {2}).", alert.AccountDisplayName, alert.ConsumedFraction.ToString("P0"), Currency.Format(alert.RemainingBuffer)]</div>
         }
+    </div>
+}
+
+@if (_compliance is { Count: > 0 })
+{
+    <h2>@L["Semáforo de reglas"]</h2>
+    <div class="table-responsive mb-3">
+        <table class="table table-sm align-middle">
+            <thead>
+                <tr>
+                    <th>@L["Cuenta"]</th>
+                    <th>@L["Pérdida diaria"]</th>
+                    <th>@L["Drawdown"]</th>
+                    <th>@L["Consistencia"]</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var c in _compliance)
+                {
+                    <tr>
+                        <td>@c.AccountDisplayName</td>
+                        <td>
+                            @Dot(c.DailyLossLevel)
+                            @(c.DailyLossLimit is null ? L["N/A"].Value : L["quedan {0}", Currency.Format(c.DailyLossRemaining ?? 0, 0)].Value)
+                        </td>
+                        <td>@Dot(c.DrawdownLevel) @L["colchón {0}", Currency.Format(c.DrawdownRemainingBuffer, 0)]</td>
+                        <td>
+                            @if (c.ConsistencyLevel is null)
+                            {
+                                @L["N/A"]
+                            }
+                            else
+                            {
+                                @Dot(c.ConsistencyLevel.Value)
+                                @($"{c.ConsistencyTopDayFraction:P0} / {c.ConsistencyMaxDayFraction:P0}")
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@if (_compliance is { Count: > 0 })
+{
+    <h2>@L["Semáforo de reglas"]</h2>
+    <div class="table-responsive mb-3">
+        <table class="table table-sm align-middle">
+            <thead>
+                <tr>
+                    <th>@L["Cuenta"]</th>
+                    <th>@L["Pérdida diaria"]</th>
+                    <th>@L["Drawdown"]</th>
+                    <th>@L["Consistencia"]</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var c in _compliance)
+                {
+                    <tr>
+                        <td>@c.AccountDisplayName</td>
+                        <td>
+                            @Dot(c.DailyLossLevel)
+                            @(c.DailyLossLimit is null ? L["N/A"].Value : L["quedan {0}", Currency.Format(c.DailyLossRemaining ?? 0, 0)].Value)
+                        </td>
+                        <td>@Dot(c.DrawdownLevel) @L["colchón {0}", Currency.Format(c.DrawdownRemainingBuffer, 0)]</td>
+                        <td>
+                            @if (c.ConsistencyLevel is null)
+                            {
+                                @L["N/A"]
+                            }
+                            else
+                            {
+                                @Dot(c.ConsistencyLevel.Value)
+                                @($"{c.ConsistencyTopDayFraction:P0} / {c.ConsistencyMaxDayFraction:P0}")
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
     </div>
 }
 
@@ -145,6 +237,57 @@ else
                 </table>
             </div>
         }
+
+        @if (_bestHours.Count > 0 || _worstHours.Count > 0)
+        {
+            <h2 class="mt-4">@L["Mejores y peores franjas horarias"]</h2>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <h6 class="text-success">@L["Mejor expectancy"]</h6>
+                    <ul class="list-unstyled small">
+                        @foreach (var p in _bestHours)
+                        {
+                            <li>@HourLabel(p) — <span class="text-success">@Currency.Format(p.Expectancy ?? 0)</span> <span class="text-muted">(n=@p.TradeCount)</span></li>
+                        }
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <h6 class="text-danger">@L["Peor expectancy"]</h6>
+                    <ul class="list-unstyled small">
+                        @foreach (var p in _worstHours)
+                        {
+                            <li>@HourLabel(p) — <span class="text-danger">@Currency.Format(p.Expectancy ?? 0)</span> <span class="text-muted">(n=@p.TradeCount)</span></li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        }
+
+        @if (_durationAsymmetry is { AvgWinDurationMinutes: not null, AvgLossDurationMinutes: not null })
+        {
+            <p class="text-muted small mt-2">
+                @L["Duración media: ganadores {0} min vs perdedores {1} min.", _durationAsymmetry.AvgWinDurationMinutes.Value.ToString("0"), _durationAsymmetry.AvgLossDurationMinutes.Value.ToString("0")]
+            </p>
+        }
+
+        <h2 class="mt-4">@L["Calidad de ejecución (MAE/MFE)"]</h2>
+        @if (_executionQuality is { TradesWithData: > 0 })
+        {
+            <p class="chart-caption">@L["Basado en {0} trade(s) con excursión registrada ({1} de tu histórico).", _executionQuality.TradesWithData, _executionQuality.CoveragePct.ToString("P0")]</p>
+            <div class="kpi-grid">
+                <KpiCard Title="@L["Ratio de captura"]" Value="@(_executionQuality.AvgCaptureRatio is null ? "—" : _executionQuality.AvgCaptureRatio.Value.ToString("P0"))" />
+                <KpiCard Title="@L["MAE medio (R)"]" Value="@(_executionQuality.AvgMaeR is null ? "—" : $"{_executionQuality.AvgMaeR:0.00}R")" Emphasis="text-danger" />
+                <KpiCard Title="@L["MFE medio (R)"]" Value="@(_executionQuality.AvgMfeR is null ? "—" : $"{_executionQuality.AvgMfeR:0.00}R")" Emphasis="text-success" />
+            </div>
+            <p class="text-muted small mt-2 mb-0">
+                @L["Ratio de captura = cuánto del movimiento a favor máximo (MFE) terminaste quedándote — 100% es salir en el mejor punto posible."]
+            </p>
+        }
+        else
+        {
+            <EmptyState Title="@L["Sin datos de excursión todavía"]"
+                        Text="@L["Al añadir un trade manualmente (o mapear las columnas al importar CSV), registra la pérdida y ganancia flotante máxima para desbloquear esta métrica."]" />
+        }
     }
 }
 
@@ -155,6 +298,12 @@ else
     private List<EquityCurvePoint>? _equity;
     private IReadOnlyList<DrawdownAlertDto>? _drawdownAlerts;
     private IReadOnlyList<TagPerformanceDto>? _tagPerformance;
+    private int _pendingEmotionCount;
+    private IReadOnlyList<AccountComplianceStatusDto>? _compliance;
+    private List<TimeOfDayPerformancePoint> _bestHours = [];
+    private List<TimeOfDayPerformancePoint> _worstHours = [];
+    private DurationAsymmetryDto? _durationAsymmetry;
+    private ExecutionQualityDto? _executionQuality;
 
     private string RoiEmphasis => _business?.BusinessRoi switch
     {
@@ -188,8 +337,18 @@ else
         _equity = (await KpiService.GetEquityCurveAsync()).ToList();
         _tagPerformance = await KpiService.GetTagPerformanceAsync();
 
+        var heatmap = (await KpiService.GetTimeOfDayHeatmapAsync()).Where(p => p.TradeCount >= 3).ToList();
+        _bestHours = heatmap.OrderByDescending(p => p.Expectancy).Take(5).ToList();
+        _worstHours = heatmap.OrderBy(p => p.Expectancy).Take(5).ToList();
+        _durationAsymmetry = await KpiService.GetDurationAsymmetryAsync();
+        _executionQuality = await KpiService.GetExecutionQualityAsync();
+
         var limits = await PlanService.GetLimitsAsync();
         _drawdownAlerts = limits.FullRiskModule ? await RiskAnalysisService.GetDrawdownAlertsAsync() : [];
+
+        var today = DateOnly.FromDateTime(DateTime.UtcNow.Date);
+        _pendingEmotionCount = (await PsychologyService.GetPendingAsync(today.AddDays(-14), today)).Count;
+        _compliance = await RuleComplianceService.GetComplianceStatusAsync();
     }
 
     // Los KPI se calculan una vez en OnInitializedAsync; al cambiar de divisa solo hace falta
@@ -198,7 +357,32 @@ else
 
     public void Dispose() => Currency.Changed -= OnCurrencyChanged;
 
+    private static string HourLabel(TimeOfDayPerformancePoint p) =>
+        $"{DayName(p.DayOfWeek)} {p.Hour:00}:00";
+
+    private static string DayName(DayOfWeek day) => day switch
+    {
+        DayOfWeek.Monday => "Lun",
+        DayOfWeek.Tuesday => "Mar",
+        DayOfWeek.Wednesday => "Mié",
+        DayOfWeek.Thursday => "Jue",
+        DayOfWeek.Friday => "Vie",
+        DayOfWeek.Saturday => "Sáb",
+        _ => "Dom",
+    };
+
     private static string FormatPercent(double? value) => value is null ? "—" : $"{value:P1}";
     private static string FormatRatio(double? value) => value is null ? "—" : value.Value.ToString("0.00");
     private string FormatMoney(decimal? value) => Currency.Format(value);
+
+    private static MarkupString Dot(ComplianceLevel level)
+    {
+        var color = level switch
+        {
+            ComplianceLevel.Red => "var(--danger)",
+            ComplianceLevel.Yellow => "#d29922",
+            _ => "var(--good)",
+        };
+        return new MarkupString($"<span class=\"compliance-dot\" style=\"background:{color}\"></span>");
+    }
 }
