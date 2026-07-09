@@ -2097,3 +2097,79 @@ fieldset.fgroup {
 .empty-state .empty-action {
     margin-top: 1.1rem;
 }
+
+/* ============================================================
+   Rediseño v1 — Tarjetas de plan (/plan)
+   ============================================================ */
+
+.stage-accent {
+    color: var(--accent-strong);
+    background: var(--accent-soft);
+    border: 1px solid rgba(47, 214, 163, 0.35);
+}
+
+.plan-card.card {
+    transition: border-color 0.15s var(--ease), transform 0.15s var(--ease), box-shadow 0.15s var(--ease);
+}
+
+    .plan-card.card:hover {
+        border-color: var(--border-strong);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-2);
+    }
+
+.plan-current.card {
+    position: relative;
+    border-color: rgba(47, 214, 163, 0.45);
+    overflow: hidden;
+}
+
+    .plan-current.card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--hairline);
+    }
+
+.plan-price {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    font-size: 1.45rem;
+    font-weight: 650;
+    letter-spacing: -0.01em;
+    color: var(--text-1);
+    margin: 0.2rem 0 0;
+}
+
+    .plan-price small {
+        font-size: 0.8rem;
+        font-weight: 500;
+        color: var(--text-3);
+    }
+
+ul.plan-features {
+    list-style: none;
+    padding: 0;
+    margin: 0.9rem 0;
+    display: grid;
+    gap: 0.45rem;
+}
+
+    ul.plan-features li {
+        position: relative;
+        padding-left: 1.35rem;
+        font-size: 0.84rem;
+        color: var(--text-2);
+    }
+
+        ul.plan-features li::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            top: 0;
+            color: var(--accent-strong);
+            font-weight: 700;
+        }

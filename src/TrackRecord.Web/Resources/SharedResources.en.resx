@@ -1311,4 +1311,22 @@
   <data name="ya aparece en tu listado." xml:space="preserve">
     <value>is now in your list.</value>
   </data>
+  <data name="Sincronización automática de trades vía API de Tradovate." xml:space="preserve">
+    <value>Automatic trade sync via the Tradovate API.</value>
+  </data>
+  <data name="Credenciales de API" xml:space="preserve">
+    <value>API credentials</value>
+  </data>
+  <data name="Clave de ingesta" xml:space="preserve">
+    <value>Ingest key</value>
+  </data>
+  <data name="Estado de partida" xml:space="preserve">
+    <value>Starting state</value>
+  </data>
+  <data name="Emociones" xml:space="preserve">
+    <value>Emotions</value>
+  </data>
+  <data name="Disciplina" xml:space="preserve">
+    <value>Discipline</value>
+  </data>
 </root>
