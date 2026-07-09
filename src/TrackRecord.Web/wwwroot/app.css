@@ -30,6 +30,13 @@
     --warning-soft: rgba(217, 165, 33, 0.14);
     --radius: 14px;
     --radius-sm: 10px;
+    /* Rediseño v1: superficie elevada para paneles de formulario, hairline de
+       panel activo y niveles de sombra compartidos por tarjetas y paneles. */
+    --surface-raised: #161c2a;
+    --hairline: linear-gradient(90deg, transparent, rgba(47, 214, 163, 0.55), transparent);
+    --shadow-1: 0 12px 32px -20px rgba(0, 0, 0, 0.55);
+    --shadow-2: 0 20px 48px -24px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.03);
+    --ease: cubic-bezier(0.2, 0.8, 0.3, 1);
     /* Tipografías self-hostables (licencia OFL). Si los .woff2 no están en wwwroot/fonts,
        degradan al stack del sistema sin romper nada. Ver GUIA_SEO_MARKETING_REBRANDING.md §1.2. */
     --font-sans: "Inter", "Segoe UI Variable Text", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -1521,3 +1528,572 @@ input[type="file"] {
         background: var(--accent-soft);
         color: var(--accent-strong);
     }
+
+/* ============================================================
+   Rediseño v1 — KPI tiles con contexto (delta + subtexto + sparkline)
+   ============================================================ */
+
+.stat-tile {
+    position: relative;
+}
+
+.stat-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.4rem;
+}
+
+    .stat-top .stat-label {
+        margin-bottom: 0;
+    }
+
+.delta {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 999px;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.delta.up {
+    color: var(--good-text);
+    background: var(--good-soft);
+    border: 1px solid rgba(63, 185, 80, 0.25);
+}
+
+.delta.down {
+    color: var(--danger-text);
+    background: var(--danger-soft);
+    border: 1px solid rgba(248, 81, 73, 0.25);
+}
+
+.stat-sub {
+    font-size: 0.74rem;
+    color: var(--text-3);
+    margin-top: 3px;
+}
+
+/* ============================================================
+   Rediseño v1 — Tarjeta de cuenta (listados; alternativa a la tabla)
+   ============================================================ */
+
+.account-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+    gap: 14px;
+}
+
+.account-card {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.025), rgba(255, 255, 255, 0)), var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    cursor: pointer;
+    transition: border-color 0.15s var(--ease), transform 0.15s var(--ease), box-shadow 0.15s var(--ease);
+}
+
+    .account-card:hover {
+        border-color: rgba(47, 214, 163, 0.35);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-2);
+    }
+
+    .account-card:focus-visible {
+        outline: none;
+        box-shadow: 0 0 0 3px var(--accent-soft);
+    }
+
+.ac-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 15px 17px 13px;
+}
+
+.firm-mark {
+    width: 38px;
+    height: 38px;
+    border-radius: 11px;
+    flex: none;
+    display: grid;
+    place-items: center;
+    background: var(--surface-3);
+    border: 1px solid var(--border-strong);
+    font-weight: 700;
+    font-size: 0.82rem;
+    letter-spacing: 0.02em;
+    color: var(--accent-strong);
+}
+
+.ac-title {
+    min-width: 0;
+    flex: 1;
+}
+
+    .ac-title b {
+        display: block;
+        font-size: 0.95rem;
+        font-weight: 600;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .ac-title span {
+        font-size: 0.76rem;
+        color: var(--text-3);
+    }
+
+/* Badge de etapa con punto de estado (tabla + tarjetas) */
+.stage {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex: none;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    padding: 4px 10px;
+    border-radius: 999px;
+}
+
+    .stage::before {
+        content: "";
+        width: 6px;
+        height: 6px;
+        border-radius: 999px;
+        background: currentColor;
+    }
+
+.stage-funded {
+    color: var(--good-text);
+    background: var(--good-soft);
+    border: 1px solid rgba(63, 185, 80, 0.3);
+}
+
+.stage-eval {
+    color: var(--text-2);
+    background: rgba(255, 255, 255, 0.07);
+    border: 1px solid var(--border-strong);
+}
+
+.stage-failed {
+    color: var(--danger-text);
+    background: var(--danger-soft);
+    border: 1px solid rgba(248, 81, 73, 0.3);
+}
+
+.stage-warn {
+    color: var(--warning-text);
+    background: var(--warning-soft);
+    border: 1px solid rgba(217, 165, 33, 0.3);
+}
+
+.stage-muted {
+    color: var(--text-3);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+}
+
+.ac-pnl {
+    padding: 2px 17px 12px;
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+}
+
+    .ac-pnl .val {
+        font-family: var(--font-mono);
+        font-variant-numeric: tabular-nums;
+        font-size: 1.55rem;
+        font-weight: 650;
+        letter-spacing: -0.01em;
+    }
+
+    .ac-pnl .lbl {
+        font-size: 0.72rem;
+        color: var(--text-3);
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+    }
+
+.meters {
+    padding: 0 17px 14px;
+    display: grid;
+    gap: 9px;
+}
+
+.meter-cap {
+    font-size: 0.72rem;
+    color: var(--text-2);
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 4px;
+}
+
+    .meter-cap .mono {
+        font-family: var(--font-mono);
+        font-variant-numeric: tabular-nums;
+        color: var(--text-1);
+    }
+
+.track {
+    height: 6px;
+    border-radius: 999px;
+    background: var(--surface-3);
+    overflow: hidden;
+}
+
+.fill {
+    height: 100%;
+    border-radius: 999px;
+}
+
+.fill-target {
+    background: linear-gradient(90deg, #22b088, var(--accent-strong));
+}
+
+.fill-ok {
+    background: var(--good);
+}
+
+.fill-warn {
+    background: var(--warning);
+}
+
+.fill-hot {
+    background: var(--danger);
+}
+
+.ac-foot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    border-top: 1px solid var(--border);
+    padding: 10px 17px;
+    background: rgba(255, 255, 255, 0.015);
+}
+
+    .ac-foot .kv {
+        font-size: 0.74rem;
+        color: var(--text-3);
+    }
+
+        .ac-foot .kv b {
+            color: var(--text-2);
+            font-family: var(--font-mono);
+            font-weight: 600;
+            font-variant-numeric: tabular-nums;
+        }
+
+    .ac-foot .go {
+        font-size: 0.78rem;
+        color: var(--accent-strong);
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+/* Conmutador de vista tabla/tarjetas: reutiliza .currency-toggle a ancho natural */
+.view-toggle .currency-option {
+    padding: 0.35rem 0.75rem;
+}
+
+/* ============================================================
+   Rediseño v1 — Formularios por secciones (panel de alta/edición)
+   ============================================================ */
+
+.form-card {
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-2);
+    overflow: hidden;
+    position: relative;
+}
+
+    .form-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--hairline);
+    }
+
+.form-head {
+    padding: 20px 26px 4px;
+}
+
+    .form-head h3, .form-head .form-title {
+        margin: 0 0 2px;
+        font-size: 1.08rem;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+        color: var(--text-1);
+    }
+
+    .form-head p {
+        margin: 0;
+        font-size: 0.84rem;
+        color: var(--text-2);
+    }
+
+fieldset.fgroup {
+    border: 0;
+    margin: 0;
+    padding: 20px 26px;
+    min-width: 0;
+}
+
+    fieldset.fgroup + fieldset.fgroup {
+        border-top: 1px solid var(--border);
+    }
+
+.fgroup legend {
+    float: none;
+    width: auto;
+    padding: 0;
+    margin-bottom: 2px;
+    font-size: 0.72rem;
+    font-weight: 650;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent-strong);
+}
+
+.fgroup .gdesc {
+    font-size: 0.8rem;
+    color: var(--text-3);
+    margin: 0 0 14px;
+}
+
+.form-hint {
+    font-size: 0.72rem;
+    color: var(--text-3);
+    margin-top: 4px;
+}
+
+/* Prefijo de moneda en inputs numéricos */
+.igroup {
+    display: flex;
+}
+
+    .igroup .prefix {
+        display: grid;
+        place-items: center;
+        padding: 0 11px;
+        background: var(--surface-3);
+        border: 1px solid var(--border-strong);
+        border-right: 0;
+        border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+        font-family: var(--font-mono);
+        font-size: 0.8rem;
+        color: var(--text-3);
+    }
+
+    .igroup .form-control {
+        border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+        font-family: var(--font-mono);
+        font-variant-numeric: tabular-nums;
+    }
+
+/* Validación inline: el estado lo marca el borde del campo + hint en rojo */
+.field-invalid .form-control, .field-invalid .form-select {
+    border-color: var(--danger);
+}
+
+.field-invalid .form-hint, .field-invalid .validation-message {
+    color: var(--danger-text);
+}
+
+.req {
+    color: var(--danger-text);
+}
+
+/* Toggle segmentado a ancho completo (enums cortos en formularios) */
+.seg-block {
+    display: flex;
+    width: 100%;
+    background: var(--surface-2);
+    border-color: var(--border-strong);
+}
+
+/* Ficha técnica del programa (sustituye al <details>) */
+.spec {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 16px 18px;
+    margin-top: 6px;
+}
+
+.spec-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+    .spec-head b {
+        font-size: 0.88rem;
+    }
+
+.spec-cols {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+}
+
+.spec-col h4 {
+    margin: 0 0 8px;
+    font-size: 0.66rem;
+    font-weight: 650;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-3);
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 6px;
+}
+
+.spec dl {
+    margin: 0;
+    display: grid;
+    gap: 5px;
+}
+
+.spec .kv2 {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.spec dt {
+    font-size: 0.78rem;
+    font-weight: 400;
+    color: var(--text-2);
+}
+
+.spec dd {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-1);
+    text-align: right;
+}
+
+/* Pie de acciones del formulario */
+.form-foot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    padding: 15px 26px;
+    border-top: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.02);
+}
+
+    .form-foot .status {
+        font-size: 0.78rem;
+        color: var(--text-3);
+    }
+
+    .form-foot .actions {
+        display: flex;
+        gap: 10px;
+        margin-left: auto;
+    }
+
+/* ============================================================
+   Rediseño v1 — Tabla: celda compuesta, chevron y hover mint
+   ============================================================ */
+
+.row-title b {
+    display: block;
+    font-weight: 600;
+}
+
+.row-title span {
+    font-size: 0.74rem;
+    color: var(--text-3);
+}
+
+.table tbody tr .chev {
+    color: var(--text-3);
+    text-align: right;
+}
+
+.table.table-hover tbody tr:hover {
+    --bs-table-hover-bg: rgba(47, 214, 163, 0.045);
+}
+
+    .table.table-hover tbody tr:hover .chev {
+        color: var(--accent-strong);
+    }
+
+.num-muted {
+    color: var(--text-3);
+}
+
+/* ============================================================
+   Rediseño v1 — Toast de confirmación + CTA en estados vacíos
+   ============================================================ */
+
+.app-toast {
+    position: fixed;
+    right: 22px;
+    bottom: 22px;
+    z-index: 1080;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    max-width: 360px;
+    background: var(--surface-raised);
+    border: 1px solid rgba(63, 185, 80, 0.35);
+    border-radius: var(--radius-sm);
+    padding: 13px 16px;
+    box-shadow: var(--shadow-2);
+}
+
+    .app-toast .tick {
+        width: 26px;
+        height: 26px;
+        flex: none;
+        border-radius: 999px;
+        display: grid;
+        place-items: center;
+        background: var(--good-soft);
+        color: var(--good-text);
+    }
+
+    .app-toast b {
+        font-size: 0.87rem;
+        display: block;
+    }
+
+    .app-toast span {
+        font-size: 0.77rem;
+        color: var(--text-2);
+    }
+
+@media (prefers-reduced-motion: no-preference) {
+    .app-toast {
+        animation: fade-up 0.25s var(--ease) backwards;
+    }
+}
+
+.empty-state .empty-action {
+    margin-top: 1.1rem;
+}

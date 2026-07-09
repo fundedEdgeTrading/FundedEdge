@@ -14,9 +14,15 @@
     {
         <div class="empty-text">@Text</div>
     }
+    @if (ChildContent is not null)
+    {
+        <div class="empty-action">@ChildContent</div>
+    }
 </div>
 
 @code {
     [Parameter, EditorRequired] public string Title { get; set; } = "";
     [Parameter] public string? Text { get; set; }
+    /// <summary>CTA opcional (botón/enlace) renderizado bajo el texto.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
 }

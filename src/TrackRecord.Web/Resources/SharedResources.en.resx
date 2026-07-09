@@ -1248,4 +1248,67 @@
   <data name="Simulamos tu operativa real contra las reglas de cada firma y te decimos qué evaluación comprar — ranking por valor esperado, no por precio. Con tus datos, no con promesas." xml:space="preserve">
     <value>We simulate your real trading against each firm's rules and tell you which evaluation to buy — ranked by expected value, not price. With your data, not promises.</value>
   </data>
+  <data name="Ver detalle" xml:space="preserve">
+    <value>View details</value>
+  </data>
+  <data name="Elige la firma y el programa: las reglas se rellenan solas. El modo manual pide las reglas a mano." xml:space="preserve">
+    <value>Pick the firm and program: the rules fill in automatically. Manual mode asks for the rules by hand.</value>
+  </data>
+  <data name="Identificación" xml:space="preserve">
+    <value>Identification</value>
+  </data>
+  <data name="Qué cuenta es y de quién." xml:space="preserve">
+    <value>Which account it is and whose.</value>
+  </data>
+  <data name="Rellena las reglas automáticamente" xml:space="preserve">
+    <value>Fills in the rules automatically</value>
+  </data>
+  <data name="Como quieras verla en tus listados" xml:space="preserve">
+    <value>However you want to see it in your lists</value>
+  </data>
+  <data name="Autocompletadas desde" xml:space="preserve">
+    <value>Auto-filled from</value>
+  </data>
+  <data name="Ficha técnica de referencia:" xml:space="preserve">
+    <value>Reference spec sheet:</value>
+  </data>
+  <data name="Ficha del programa" xml:space="preserve">
+    <value>Program spec</value>
+  </data>
+  <data name="Sin programa seleccionado: define las reglas a mano." xml:space="preserve">
+    <value>No program selected: define the rules by hand.</value>
+  </data>
+  <data name="Compra y conexión" xml:space="preserve">
+    <value>Purchase &amp; connection</value>
+  </data>
+  <data name="Cuándo la compraste y de dónde llegan los datos." xml:space="preserve">
+    <value>When you bought it and where the data comes from.</value>
+  </data>
+  <data name="Opcional · para sincronizar operaciones" xml:space="preserve">
+    <value>Optional · to sync trades</value>
+  </data>
+  <data name="Los campos marcados con" xml:space="preserve">
+    <value>Fields marked with</value>
+  </data>
+  <data name="son obligatorios" xml:space="preserve">
+    <value>are required</value>
+  </data>
+  <data name="Vista" xml:space="preserve">
+    <value>View</value>
+  </data>
+  <data name="Tarjetas" xml:space="preserve">
+    <value>Cards</value>
+  </data>
+  <data name="Tabla" xml:space="preserve">
+    <value>Table</value>
+  </data>
+  <data name="Crea tu primera cuenta de fondeo y empieza a trackear objetivos, drawdown y payouts." xml:space="preserve">
+    <value>Create your first funded account and start tracking targets, drawdown and payouts.</value>
+  </data>
+  <data name="Cuenta creada" xml:space="preserve">
+    <value>Account created</value>
+  </data>
+  <data name="ya aparece en tu listado." xml:space="preserve">
+    <value>is now in your list.</value>
+  </data>
 </root>

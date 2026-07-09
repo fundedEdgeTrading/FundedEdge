@@ -33,6 +33,7 @@ public class TradingAccountService(
                 a.PropFirmId,
                 a.PropFirm!.Name,
                 a.AccountSize,
+                a.ProfitTarget,
                 a.Stage,
                 a.Feed,
                 a.ExternalAccountId,
