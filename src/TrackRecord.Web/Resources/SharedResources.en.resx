@@ -1632,4 +1632,592 @@
   <data name="Editar perfil" xml:space="preserve">
     <value>Edit profile</value>
   </data>
+  <data name=" programa(s)" xml:space="preserve">
+    <value> program(s)</value>
+  </data>
+  <data name="&quot;Pérdida/ganancia flotante máxima&quot;: cuánto llegaste a estar en contra/a favor mientras el trade seguía abierto, antes de cerrarlo. Registrarlo habilita el análisis de MAE/MFE (calidad de ejecución)." xml:space="preserve">
+    <value>"Max floating loss/profit": how far the trade moved against/in favour of you while it was still open, before closing it. Logging it enables MAE/MFE analysis (execution quality).</value>
+  </data>
+  <data name="% de trades con plan seguido, por semana." xml:space="preserve">
+    <value>% of trades that followed the plan, per week.</value>
+  </data>
+  <data name="(ninguna)" xml:space="preserve">
+    <value>(none)</value>
+  </data>
+  <data name="Administración" xml:space="preserve">
+    <value>Administration</value>
+  </data>
+  <data name="Administración de usuarios" xml:space="preserve">
+    <value>User administration</value>
+  </data>
+  <data name="Administrator: acceso total al panel. Support: solo lectura del panel. Sin rol: usuario estándar." xml:space="preserve">
+    <value>Administrator: full access to the panel. Support: read-only access to the panel. No role: standard user.</value>
+  </data>
+  <data name="Al añadir un trade manualmente (o mapear las columnas al importar CSV), registra la pérdida y ganancia flotante máxima para desbloquear esta métrica." xml:space="preserve">
+    <value>When adding a trade manually (or mapping columns when importing a CSV), log the max floating loss and profit to unlock this metric.</value>
+  </data>
+  <data name="Alerta: racha de pérdidas" xml:space="preserve">
+    <value>Alert: losing streak</value>
+  </data>
+  <data name="Alerta: riesgo de drawdown" xml:space="preserve">
+    <value>Alert: drawdown risk</value>
+  </data>
+  <data name="Analizando…" xml:space="preserve">
+    <value>Analysing…</value>
+  </data>
+  <data name="Analizar mi psicología con IA" xml:space="preserve">
+    <value>Analyse my psychology with AI</value>
+  </data>
+  <data name="Añadir programa" xml:space="preserve">
+    <value>Add program</value>
+  </data>
+  <data name="Basado en {0} trade(s) con excursión registrada ({1} de tu histórico)." xml:space="preserve">
+    <value>Based on {0} trade(s) with recorded excursion ({1} of your history).</value>
+  </data>
+  <data name="Bruto" xml:space="preserve">
+    <value>Gross</value>
+  </data>
+  <data name="Buffer de drawdown" xml:space="preserve">
+    <value>Drawdown buffer</value>
+  </data>
+  <data name="Cada cuadrado es un día de operativa; el color refleja la valencia emocional media (verde = positiva, rojo = negativa)." xml:space="preserve">
+    <value>Each square is a trading day; the colour reflects the average emotional valence (green = positive, red = negative).</value>
+  </data>
+  <data name="Calendario emocional" xml:space="preserve">
+    <value>Emotional calendar</value>
+  </data>
+  <data name="Calidad de ejecución (MAE/MFE)" xml:space="preserve">
+    <value>Execution quality (MAE/MFE)</value>
+  </data>
+  <data name="Calidad de sueño" xml:space="preserve">
+    <value>Sleep quality</value>
+  </data>
+  <data name="Cambiar el plan aquí no toca la suscripción de Stripe: un próximo webhook de facturación puede volver a sobreescribirlo." xml:space="preserve">
+    <value>Changing the plan here doesn't touch the Stripe subscription: a future billing webhook may overwrite it again.</value>
+  </data>
+  <data name="Cambios guardados." xml:space="preserve">
+    <value>Changes saved.</value>
+  </data>
+  <data name="Cantidad" xml:space="preserve">
+    <value>Quantity</value>
+  </data>
+  <data name="Cap" xml:space="preserve">
+    <value>Cap</value>
+  </data>
+  <data name="Cap retiro" xml:space="preserve">
+    <value>Withdrawal cap</value>
+  </data>
+  <data name="Capital emocional" xml:space="preserve">
+    <value>Emotional capital</value>
+  </data>
+  <data name="Capital emocional: media móvil de valencia diaria" xml:space="preserve">
+    <value>Emotional capital: moving average of daily valence</value>
+  </data>
+  <data name="Cargando..." xml:space="preserve">
+    <value>Loading...</value>
+  </data>
+  <data name="Cobertura del diario" xml:space="preserve">
+    <value>Journal coverage</value>
+  </data>
+  <data name="Comisiones (opcional)" xml:space="preserve">
+    <value>Commissions (optional)</value>
+  </data>
+  <data name="Compradas" xml:space="preserve">
+    <value>Bought</value>
+  </data>
+  <data name="Con más diario emocional registrado, los detectores podrán identificar patrones de riesgo." xml:space="preserve">
+    <value>With more emotional journal entries logged, the detectors will be able to identify risk patterns.</value>
+  </data>
+  <data name="Confirmar eliminación" xml:space="preserve">
+    <value>Confirm deletion</value>
+  </data>
+  <data name="Consistencia" xml:space="preserve">
+    <value>Consistency</value>
+  </data>
+  <data name="Consistencia máx." xml:space="preserve">
+    <value>Max. consistency</value>
+  </data>
+  <data name="Continuar" xml:space="preserve">
+    <value>Continue</value>
+  </data>
+  <data name="Coste / fondeada" xml:space="preserve">
+    <value>Cost / funded account</value>
+  </data>
+  <data name="Coste activación" xml:space="preserve">
+    <value>Activation cost</value>
+  </data>
+  <data name="Coste emocional" xml:space="preserve">
+    <value>Emotional cost</value>
+  </data>
+  <data name="Coste eval." xml:space="preserve">
+    <value>Evaluation cost</value>
+  </data>
+  <data name="Coste total" xml:space="preserve">
+    <value>Total cost</value>
+  </data>
+  <data name="Cruce de tu diario emocional con tu operativa real: qué emociones te cuestan dinero, si hay una mala racha activa y qué trabajar primero." xml:space="preserve">
+    <value>Cross-referencing your emotional journal with your real trading activity: which emotions cost you money, whether there's an active losing streak, and what to work on first.</value>
+  </data>
+  <data name="Cuentas activas" xml:space="preserve">
+    <value>Active accounts</value>
+  </data>
+  <data name="Cuentas, evaluaciones, payouts y métricas de riesgo de todas tus firmas de fondeo, en un único dashboard. Contabilidad y estadística honesta sobre tu operativa real." xml:space="preserve">
+    <value>Accounts, evaluations, payouts and risk metrics from all your funding firms, in a single dashboard. Honest accounting and statistics about your real trading activity.</value>
+  </data>
+  <data name="Daily loss limit" xml:space="preserve">
+    <value>Daily loss limit</value>
+  </data>
+  <data name="Define los tipos de entrada que utilizas (breakout, pullback, reversión…) para poder etiquetar tus trades y comparar el rendimiento entre ellos." xml:space="preserve">
+    <value>Define the entry types you use (breakout, pullback, reversal…) so you can tag your trades and compare performance between them.</value>
+  </data>
+  <data name="Diario emocional" xml:space="preserve">
+    <value>Emotional journal</value>
+  </data>
+  <data name="Dirección (long/short)" xml:space="preserve">
+    <value>Direction (long/short)</value>
+  </data>
+  <data name="Distribución de emociones registradas en el período." xml:space="preserve">
+    <value>Distribution of emotions logged during the period.</value>
+  </data>
+  <data name="Drawdown" xml:space="preserve">
+    <value>Drawdown</value>
+  </data>
+  <data name="Duración media: ganadores {0} min vs perdedores {1} min." xml:space="preserve">
+    <value>Average duration: winners {0} min vs losers {1} min.</value>
+  </data>
+  <data name="Días a 1er payout" xml:space="preserve">
+    <value>Days to 1st payout</value>
+  </data>
+  <data name="Días de trading" xml:space="preserve">
+    <value>Trading days</value>
+  </data>
+  <data name="Días entre payouts" xml:space="preserve">
+    <value>Days between payouts</value>
+  </data>
+  <data name="Días mín. fondeada" xml:space="preserve">
+    <value>Min. days funded</value>
+  </data>
+  <data name="Días mín. trading" xml:space="preserve">
+    <value>Min. trading days</value>
+  </data>
+  <data name="Días mínimos" xml:space="preserve">
+    <value>Minimum days</value>
+  </data>
+  <data name="Días payouts" xml:space="preserve">
+    <value>Payout days</value>
+  </data>
+  <data name="Días trading fondeada" xml:space="preserve">
+    <value>Funded trading days</value>
+  </data>
+  <data name="Editar programa" xml:space="preserve">
+    <value>Edit program</value>
+  </data>
+  <data name="Editar usuario" xml:space="preserve">
+    <value>Edit user</value>
+  </data>
+  <data name="Elegibilidad de payout" xml:space="preserve">
+    <value>Payout eligibility</value>
+  </data>
+  <data name="Elegible ahora" xml:space="preserve">
+    <value>Eligible now</value>
+  </data>
+  <data name="Eliminar un usuario borra de forma irreversible todas sus cuentas, trades, costes, payouts, informes y ajustes." xml:space="preserve">
+    <value>Deleting a user irreversibly erases all their accounts, trades, costs, payouts, reports and settings.</value>
+  </data>
+  <data name="Emoción dominante ahora mismo" xml:space="preserve">
+    <value>Dominant emotion right now</value>
+  </data>
+  <data name="Emoción → rendimiento" xml:space="preserve">
+    <value>Emotion → performance</value>
+  </data>
+  <data name="En parte" xml:space="preserve">
+    <value>Partially</value>
+  </data>
+  <data name="Entrar como" xml:space="preserve">
+    <value>Log in as</value>
+  </data>
+  <data name="Esta cuenta no tiene un programa de evaluación vinculado o no existe. Vincúlala desde" xml:space="preserve">
+    <value>This account has no linked evaluation program, or it no longer exists. Link it from</value>
+  </data>
+  <data name="Esta firma no tiene programas activos." xml:space="preserve">
+    <value>This firm has no active programs.</value>
+  </data>
+  <data name="Esta funcionalidad es coaching de rendimiento sobre datos auto-reportados por ti — no es diagnóstico ni tratamiento psicológico. Si sientes malestar sostenido, busca apoyo profesional." xml:space="preserve">
+    <value>This feature is performance coaching based on data you self-report — it is not a psychological diagnosis or treatment. If you feel sustained distress, seek professional support.</value>
+  </data>
+  <data name="Estimación con tu historial de trades" xml:space="preserve">
+    <value>Estimate using your trade history</value>
+  </data>
+  <data name="Estrés externo (vida/trabajo)" xml:space="preserve">
+    <value>External stress (life/work)</value>
+  </data>
+  <data name="Evaluación" xml:space="preserve">
+    <value>Evaluation</value>
+  </data>
+  <data name="Expectancy media (R) por emoción de entrada — la evidencia de qué emociones tratar primero." xml:space="preserve">
+    <value>Average expectancy (R) by entry emotion — the evidence for which emotions to address first.</value>
+  </data>
+  <data name="Fase fondeada" xml:space="preserve">
+    <value>Funded phase</value>
+  </data>
+  <data name="Fase fondeada (vacío = igual que evaluación)" xml:space="preserve">
+    <value>Funded phase (empty = same as evaluation)</value>
+  </data>
+  <data name="Fecha/hora entrada" xml:space="preserve">
+    <value>Entry date/time</value>
+  </data>
+  <data name="Fecha/hora salida" xml:space="preserve">
+    <value>Exit date/time</value>
+  </data>
+  <data name="Foco pre-mercado" xml:space="preserve">
+    <value>Pre-market focus</value>
+  </data>
+  <data name="Fondeadas" xml:space="preserve">
+    <value>Funded</value>
+  </data>
+  <data name="Fracción" xml:space="preserve">
+    <value>Fraction</value>
+  </data>
+  <data name="Ganancia flotante máx. (opcional)" xml:space="preserve">
+    <value>Max floating profit (optional)</value>
+  </data>
+  <data name="Guardando…" xml:space="preserve">
+    <value>Saving…</value>
+  </data>
+  <data name="Guardar todos" xml:space="preserve">
+    <value>Save all</value>
+  </data>
+  <data name="Guardar versión" xml:space="preserve">
+    <value>Save version</value>
+  </data>
+  <data name="Guardar y siguiente" xml:space="preserve">
+    <value>Save and next</value>
+  </data>
+  <data name="Has consumido más del 80% del drawdown permitido. Gestiona el riesgo." xml:space="preserve">
+    <value>You've used more than 80% of the allowed drawdown. Manage your risk.</value>
+  </data>
+  <data name="Hito: primer payout" xml:space="preserve">
+    <value>Milestone: first payout</value>
+  </data>
+  <data name="Hoy" xml:space="preserve">
+    <value>Today</value>
+  </data>
+  <data name="Igual que eval." xml:space="preserve">
+    <value>Same as eval.</value>
+  </data>
+  <data name="Importar CSV de otro broker (mapeo de columnas)" xml:space="preserve">
+    <value>Import CSV from another broker (column mapping)</value>
+  </data>
+  <data name="Importar con este mapeo" xml:space="preserve">
+    <value>Import with this mapping</value>
+  </data>
+  <data name="Importar desde JSON" xml:space="preserve">
+    <value>Import from JSON</value>
+  </data>
+  <data name="Importar programas desde JSON" xml:space="preserve">
+    <value>Import programs from JSON</value>
+  </data>
+  <data name="Informe de psicología" xml:space="preserve">
+    <value>Psychology report</value>
+  </data>
+  <data name="Insights activos" xml:space="preserve">
+    <value>Active insights</value>
+  </data>
+  <data name="KPIs por usuario" xml:space="preserve">
+    <value>KPIs per user</value>
+  </data>
+  <data name="La cuenta de resultados de cada firma con la que operas: ROI, coste por cuenta fondeada y tiempo medio hasta el primer payout." xml:space="preserve">
+    <value>The P&amp;L of each firm you trade with: ROI, cost per funded account and average time to first payout.</value>
+  </data>
+  <data name="Límite" xml:space="preserve">
+    <value>Limit</value>
+  </data>
+  <data name="Límite alcanzado" xml:space="preserve">
+    <value>Limit reached</value>
+  </data>
+  <data name="MAE medio (R)" xml:space="preserve">
+    <value>Average MAE (R)</value>
+  </data>
+  <data name="MFE medio (R)" xml:space="preserve">
+    <value>Average MFE (R)</value>
+  </data>
+  <data name="Media móvil (7 días) de tu valencia emocional diaria — tu &quot;equity curve&quot; emocional." xml:space="preserve">
+    <value>7-day moving average of your daily emotional valence — your emotional "equity curve".</value>
+  </data>
+  <data name="Mejor día" xml:space="preserve">
+    <value>Best day</value>
+  </data>
+  <data name="Mejor expectancy" xml:space="preserve">
+    <value>Best expectancy</value>
+  </data>
+  <data name="Mejores y peores franjas horarias" xml:space="preserve">
+    <value>Best and worst time slots</value>
+  </data>
+  <data name="Menos de un minuto por trade. Ninguna respuesta es &quot;correcta&quot; — las emociones no son el enemigo, operar desde ellas sin saberlo sí lo es." xml:space="preserve">
+    <value>Less than a minute per trade. No answer is "correct" — emotions aren't the enemy, trading from them unknowingly is.</value>
+  </data>
+  <data name="Máximo" xml:space="preserve">
+    <value>Maximum</value>
+  </data>
+  <data name="Máximo permitido" xml:space="preserve">
+    <value>Maximum allowed</value>
+  </data>
+  <data name="N/A" xml:space="preserve">
+    <value>N/A</value>
+  </data>
+  <data name="Neto" xml:space="preserve">
+    <value>Net</value>
+  </data>
+  <data name="No tenía plan" xml:space="preserve">
+    <value>Had no plan</value>
+  </data>
+  <data name="Nombre del setup" xml:space="preserve">
+    <value>Setup name</value>
+  </data>
+  <data name="Nota (opcional)" xml:space="preserve">
+    <value>Note (optional)</value>
+  </data>
+  <data name="Ordenados de mayor a menor ROI de negocio (payouts frente a costes)." xml:space="preserve">
+    <value>Sorted from highest to lowest business ROI (payouts versus costs).</value>
+  </data>
+  <data name="P&amp;L de negocio por firma" xml:space="preserve">
+    <value>Business P&amp;L by firm</value>
+  </data>
+  <data name="P(pasar) Monte Carlo" xml:space="preserve">
+    <value>P(pass) Monte Carlo</value>
+  </data>
+  <data name="Para brokers sin soporte dedicado: sube el CSV, indica qué columna es cada campo y lo mapeamos nosotros. Reimportar el mismo archivo no duplica trades." xml:space="preserve">
+    <value>For brokers without dedicated support: upload the CSV, tell us which column is each field, and we'll map it for you. Re-importing the same file won't duplicate trades.</value>
+  </data>
+  <data name="Payouts solicitados" xml:space="preserve">
+    <value>Payouts requested</value>
+  </data>
+  <data name="Payouts totales" xml:space="preserve">
+    <value>Total payouts</value>
+  </data>
+  <data name="Peor expectancy" xml:space="preserve">
+    <value>Worst expectancy</value>
+  </data>
+  <data name="Perfil emocional" xml:space="preserve">
+    <value>Emotional profile</value>
+  </data>
+  <data name="Personalizado (manual)" xml:space="preserve">
+    <value>Custom (manual)</value>
+  </data>
+  <data name="Precio entrada" xml:space="preserve">
+    <value>Entry price</value>
+  </data>
+  <data name="Precio salida" xml:space="preserve">
+    <value>Exit price</value>
+  </data>
+  <data name="Profit desde fondeo" xml:space="preserve">
+    <value>Profit since funded</value>
+  </data>
+  <data name="Programas de evaluación" xml:space="preserve">
+    <value>Evaluation programs</value>
+  </data>
+  <data name="Progreso" xml:space="preserve">
+    <value>Progress</value>
+  </data>
+  <data name="Psicología" xml:space="preserve">
+    <value>Psychology</value>
+  </data>
+  <data name="Pérdida diaria" xml:space="preserve">
+    <value>Daily loss</value>
+  </data>
+  <data name="Pérdida flotante máx. (opcional)" xml:space="preserve">
+    <value>Max floating loss (optional)</value>
+  </data>
+  <data name="Qué trabajar ahora" xml:space="preserve">
+    <value>What to work on now</value>
+  </data>
+  <data name="Racha de registro" xml:space="preserve">
+    <value>Logging streak</value>
+  </data>
+  <data name="Racha de registro: {0} día(s) seguido(s)." xml:space="preserve">
+    <value>Logging streak: {0} day(s) in a row.</value>
+  </data>
+  <data name="Ratio de captura" xml:space="preserve">
+    <value>Capture ratio</value>
+  </data>
+  <data name="Ratio de captura = cuánto del movimiento a favor máximo (MFE) terminaste quedándote — 100% es salir en el mejor punto posible." xml:space="preserve">
+    <value>Capture ratio = how much of the maximum favourable move (MFE) you ended up keeping — 100% means exiting at the best possible point.</value>
+  </data>
+  <data name="Registra check-ins diarios y emociones de trades para ver el calendario emocional." xml:space="preserve">
+    <value>Log daily check-ins and trade emotions to see the emotional calendar.</value>
+  </data>
+  <data name="Registra emociones en tus trades para ver tu perfil emocional." xml:space="preserve">
+    <value>Log emotions on your trades to see your emotional profile.</value>
+  </data>
+  <data name="Registra la adherencia a tu plan en cada trade para ver esta tendencia." xml:space="preserve">
+    <value>Log your plan adherence on each trade to see this trend.</value>
+  </data>
+  <data name="Registra tu diario emocional para ver la evolución de tu capital emocional." xml:space="preserve">
+    <value>Log your emotional journal to see how your emotional capital evolves.</value>
+  </data>
+  <data name="Registrar ahora" xml:space="preserve">
+    <value>Log it now</value>
+  </data>
+  <data name="Registrar diario emocional" xml:space="preserve">
+    <value>Log emotional journal</value>
+  </data>
+  <data name="Reglas del programa" xml:space="preserve">
+    <value>Program rules</value>
+  </data>
+  <data name="Requisito cumplido ✓" xml:space="preserve">
+    <value>Requirement met ✓</value>
+  </data>
+  <data name="Retiro máximo estimado" xml:space="preserve">
+    <value>Estimated maximum withdrawal</value>
+  </data>
+  <data name="Roles" xml:space="preserve">
+    <value>Roles</value>
+  </data>
+  <data name="Saltar este trade" xml:space="preserve">
+    <value>Skip this trade</value>
+  </data>
+  <data name="Saltar por hoy" xml:space="preserve">
+    <value>Skip for today</value>
+  </data>
+  <data name="Score de disciplina" xml:space="preserve">
+    <value>Discipline score</value>
+  </data>
+  <data name="Selecciona una firma" xml:space="preserve">
+    <value>Select a firm</value>
+  </data>
+  <data name="Selecciona una firma primero" xml:space="preserve">
+    <value>Select a firm first</value>
+  </data>
+  <data name="Semáforo de reglas" xml:space="preserve">
+    <value>Rules status</value>
+  </data>
+  <data name="Sesión impersonada por un administrador." xml:space="preserve">
+    <value>Session impersonated by an administrator.</value>
+  </data>
+  <data name="Setup" xml:space="preserve">
+    <value>Setup</value>
+  </data>
+  <data name="Setups" xml:space="preserve">
+    <value>Setups</value>
+  </data>
+  <data name="Setups de entrada" xml:space="preserve">
+    <value>Entry setups</value>
+  </data>
+  <data name="Sin confirmar" xml:space="preserve">
+    <value>Unconfirmed</value>
+  </data>
+  <data name="Sin datos de excursión todavía" xml:space="preserve">
+    <value>No excursion data yet</value>
+  </data>
+  <data name="Sin datos suficientes" xml:space="preserve">
+    <value>Not enough data</value>
+  </data>
+  <data name="Sin mínimo requerido" xml:space="preserve">
+    <value>No minimum required</value>
+  </data>
+  <data name="Sin patrones detectados" xml:space="preserve">
+    <value>No patterns detected</value>
+  </data>
+  <data name="Sin restricción de días" xml:space="preserve">
+    <value>No day restriction</value>
+  </data>
+  <data name="Split" xml:space="preserve">
+    <value>Split</value>
+  </data>
+  <data name="Sube un fichero JSON con el array de programas. Los programas se previsualizan antes de guardar." xml:space="preserve">
+    <value>Upload a JSON file with the array of programs. Programs are previewed before saving.</value>
+  </data>
+  <data name="Sí" xml:space="preserve">
+    <value>Yes</value>
+  </data>
+  <data name="Tendencia de disciplina" xml:space="preserve">
+    <value>Discipline trend</value>
+  </data>
+  <data name="Tienes {0} trade(s) sin diario emocional — completarlo lleva menos de un minuto." xml:space="preserve">
+    <value>You have {0} trade(s) without an emotional journal entry — completing it takes less than a minute.</value>
+  </data>
+  <data name="Todavía no has definido ningún setup." xml:space="preserve">
+    <value>You haven't defined any setup yet.</value>
+  </data>
+  <data name="Trade {0} de {1}" xml:space="preserve">
+    <value>Trade {0} of {1}</value>
+  </data>
+  <data name="Usuario no encontrado." xml:space="preserve">
+    <value>User not found.</value>
+  </data>
+  <data name="Usuarios" xml:space="preserve">
+    <value>Users</value>
+  </data>
+  <data name="Valencia media del día (color) frente al resultado de operativa." xml:space="preserve">
+    <value>Average valence of the day (colour) versus trading result.</value>
+  </data>
+  <data name="Ver mi psicología" xml:space="preserve">
+    <value>View my psychology</value>
+  </data>
+  <data name="Ver progreso" xml:space="preserve">
+    <value>View progress</value>
+  </data>
+  <data name="Verificado" xml:space="preserve">
+    <value>Verified</value>
+  </data>
+  <data name="Vista previa — " xml:space="preserve">
+    <value>Preview — </value>
+  </data>
+  <data name="Volver a la cuenta" xml:space="preserve">
+    <value>Back to account</value>
+  </data>
+  <data name="Volver a usuarios" xml:space="preserve">
+    <value>Back to users</value>
+  </data>
+  <data name="colchón {0}" xml:space="preserve">
+    <value>buffer {0}</value>
+  </data>
+  <data name="cuentas" xml:space="preserve">
+    <value>accounts</value>
+  </data>
+  <data name="del profit" xml:space="preserve">
+    <value>of profit</value>
+  </data>
+  <data name="días restantes" xml:space="preserve">
+    <value>days remaining</value>
+  </data>
+  <data name="máx. 3" xml:space="preserve">
+    <value>max. 3</value>
+  </data>
+  <data name="opcional" xml:space="preserve">
+    <value>optional</value>
+  </data>
+  <data name="p.ej. Breakout apertura" xml:space="preserve">
+    <value>e.g. Opening breakout</value>
+  </data>
+  <data name="quedan {0}" xml:space="preserve">
+    <value>{0} left</value>
+  </data>
+  <data name="{0} día(s)" xml:space="preserve">
+    <value>{0} day(s)</value>
+  </data>
+  <data name="{0} trade(s) de evidencia" xml:space="preserve">
+    <value>{0} trade(s) of evidence</value>
+  </data>
+  <data name="¡Diario completado!" xml:space="preserve">
+    <value>Journal completed!</value>
+  </data>
+  <data name="¿Cómo llegas hoy al mercado?" xml:space="preserve">
+    <value>How are you approaching the market today?</value>
+  </data>
+  <data name="¿Entrada impulsiva?" xml:space="preserve">
+    <value>Impulsive entry?</value>
+  </data>
+  <data name="¿Qué sentías al entrar?" xml:space="preserve">
+    <value>What were you feeling on entry?</value>
+  </data>
+  <data name="¿Seguiste tu plan?" xml:space="preserve">
+    <value>Did you follow your plan?</value>
+  </data>
+  <data name="¿Y durante / al salir?" xml:space="preserve">
+    <value>And during / on exit?</value>
+  </data>
+  <data name="Índice de tilt" xml:space="preserve">
+    <value>Tilt index</value>
+  </data>
 </root>
