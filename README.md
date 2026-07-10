@@ -59,8 +59,8 @@ cambia manualmente en el formulario de alta. Ver "Enviar emails de confirmación
 para que el enlace de confirmación se envíe de verdad; sin configurar, se muestra en pantalla
 (solo apto para desarrollo).
 
-- **Cuentas, cuentas de fondeo, trades, costes, payouts, ajustes de integraciones (Tradovate/
-  NinjaTrader/IA) y divisa preferida son privados por usuario** — cada usuario solo ve y gestiona
+- **Cuentas, cuentas de fondeo, trades, costes, payouts y divisa preferida son privados por
+  usuario** — cada usuario solo ve y gestiona
   los suyos.
 - El **catálogo de firmas de fondeo (`/firms`) e instrumentos es compartido**: lo ve y usa
   cualquier usuario registrado, igual que antes de añadir autenticación.
@@ -220,54 +220,43 @@ necesita?* Todo se calcula con tus datos reales, nunca con supuestos genéricos:
 Estas métricas alimentan también el prompt del análisis con IA: Claude recibe el EV con su
 intervalo, Kelly y la P(ruina) de un escenario estándar documentado.
 
-## Sincronización automática de trades (Fase 2)
+## Importación de operaciones (CSV de Tradovate / NinjaTrader 8)
 
-La app puede recibir trades sin captura manual desde dos fuentes: **Tradovate** (sincronización
-periódica en segundo plano) y **NinjaTrader 8** (push desde un AddOn). Ambas comparten el mismo
-pipeline de ingesta idempotente (`IExecutionIngestService` + `TradeBuilder` FIFO), así que un trade
-importado, sincronizado o manual es indistinguible salvo por el `Source` de sus `Execution`.
+Los trades llegan a la app **importando el CSV que exportan las propias plataformas** — sin
+credenciales, API keys ni procesos en segundo plano:
 
-### Configurar credenciales — página `/settings`
+- **Tradovate** (web o desktop): `Reports → Performance` → icono de descarga → `Performance.csv`.
+  Columnas: `symbol, qty, buyPrice, sellPrice, pnl, boughtTimestamp, soldTimestamp…`. La dirección
+  (long/short) se infiere del orden temporal compra/venta; el export no incluye comisiones por
+  trade ni MAE/MFE.
+- **NinjaTrader 8**: `Control Center → New → Trade Performance → pestaña Trades → clic derecho →
+  Export…` (CSV). Con las columnas `Profit`, `Commission`, `MAE` y `MFE` visibles (y
+  `Display unit = Currency`) se importan también comisiones y excursiones máximas.
 
-La forma recomendada de configurar Tradovate y la API key de ingesta de NinjaTrader es la página
-**`/settings`** de la propia app: las credenciales se guardan cifradas en la base de datos
-(`IntegrationSettings`, vía `IDataProtector`) y tienen prioridad sobre lo que haya en configuración.
+La importación vive en la ficha de cada cuenta (`/accounts/{id}`), que además incluye un tutorial
+paso a paso en un modal. El formato se **autodetecta** por las cabeceras
+(`CsvTradeImportService`), ambos exports se normalizan al mismo modelo de fila (`CsvTradeRow`) y
+la importación es **idempotente**: reimportar el mismo archivo (o uno que solape fechas) no
+duplica trades. Para CSV de otras plataformas existe la importación genérica con mapeo manual de
+columnas.
 
-- **Tradovate**: usuario, contraseña, CID y Secret de tu app registrada en Tradovate (no tu login
-  habitual de terceros — ver `GUIA_IMPLEMENTACION.md` §5 para cómo solicitarla). Tras guardarlas,
-  cada cuenta con Feed = Tradovate se sincroniza sola cada `Sync:IntervalMinutes` (10 min por
-  defecto, configurable en `appsettings.json`); también hay un botón "Sincronizar ahora" en
-  `/settings` (todas las cuentas) y en cada ficha de cuenta (`/accounts/{id}`, solo esa cuenta).
-- **NinjaTrader 8**: genera una API key propia (cualquier cadena aleatoria larga) y guárdala ahí.
-  Es la misma clave que debes poner en la variable de entorno `TRACKRECORD_API_KEY` al instalar el
-  AddOn — ver [`integrations/ninjatrader/README.md`](./integrations/ninjatrader/README.md).
+Cada cuenta tiene una `Plataforma` (`Manual` / `Tradovate` / `NinjaTrader`) que solo condiciona
+qué pestaña del tutorial se muestra por defecto.
 
-Alternativamente, ambas también se pueden configurar sin tocar la UI vía User Secrets/entorno
-(nunca en `appsettings.json` versionado) — útil para despliegues automatizados:
+## Usuario de demostración
 
-```powershell
-dotnet user-secrets set "Tradovate:Name" "..." --project src/TrackRecord.Web
-dotnet user-secrets set "Tradovate:Password" "..." --project src/TrackRecord.Web
-dotnet user-secrets set "Tradovate:Cid" "..." --project src/TrackRecord.Web
-dotnet user-secrets set "Tradovate:Sec" "..." --project src/TrackRecord.Web
-dotnet user-secrets set "Ingest:NinjaTraderApiKey" "..." --project src/TrackRecord.Web
+Con `Database:SeedDemo=true` (activado por defecto en `appsettings.Development.json`), al arrancar
+se crea un usuario de prueba con una batería completa de datos: 6 cuentas en distintos puntos del
+ciclo de vida (evaluación en curso, reset, fondeadas con payouts pagados/pendientes, suspendida
+por drawdown y retirada), ~250 trades deterministas con MAE/MFE, costes de todo tipo, transiciones
+auditables y registros de psicología (check-ins diarios y diario emocional). Ver `DemoDataSeeder`.
+
+```
+email     demo@fundededge.test
+password  FundedEdge!Demo2026
 ```
 
-Lo guardado desde `/settings` (base de datos) siempre tiene prioridad sobre estos valores de
-configuración si ambos están presentes.
-
-### Conectar una cuenta a un feed
-
-Cada cuenta de fondeo tiene un `Feed` (`Manual` / `Tradovate` / `NinjaTrader`) y un `ExternalAccountId`
-(el nombre/ID de esa cuenta en la plataforma correspondiente). Se editan desde la sección "Conexión"
-en la ficha de la cuenta (`/accounts/{id}`) — no hace falta recrear la cuenta para conectarla después.
-
-### NinjaTrader 8
-
-El AddOn `integrations/ninjatrader/TrackRecordExporter.cs` envía cada fill por HTTP al arrancar
-NT8; ver su README para instalación, mapeo de cuentas y la cola de reintentos local. Es un archivo
-de referencia deliberadamente fuera de la solución .NET (depende de ensamblados de NinjaTrader que
-no son paquetes NuGet) — se copia dentro de NinjaTrader 8 (`Documents\NinjaTrader 8\bin\Custom\AddOns`).
+El seed es idempotente (si el usuario ya existe no hace nada) y no debe activarse en producción.
 
 ## Estructura de la solución
 
@@ -280,7 +269,7 @@ TrackRecord.slnx
 │   └── TrackRecord.Web             # Blazor Server: dashboard y páginas CRUD
 └── tests/
     ├── TrackRecord.Domain.Tests       # Ciclo de vida, TradeBuilder FIFO, simuladores Monte Carlo/EV
-    └── TrackRecord.Application.Tests  # KPIs, ingesta/CSV/Tradovate/settings/riesgo, con EF Core InMemory
+    └── TrackRecord.Application.Tests  # KPIs, importación CSV (Tradovate/NT8), settings, riesgo — EF Core InMemory
 ```
 
 ## Qué incluye esta versión (Fases 1–3 completas)
@@ -292,14 +281,10 @@ TrackRecord.slnx
   - Registro de costes (evaluación, activación, reset, cuota mensual...).
   - Registro de payouts (solicitado, recibido, estado).
   - Journal manual de trades (símbolo, dirección, P&L, comisiones, riesgo → R-múltiplo).
-  - Importación de CSV de NinjaTrader 8 (export "Trade Performance"), idempotente al reimportar.
-  - Conexión a Tradovate/NinjaTrader (feed + ID externo) y botón "Sincronizar ahora".
+  - Importación unificada de CSV (Tradovate y NinjaTrader 8) con autodetección de formato,
+    tutorial en modal e idempotencia al reimportar; import genérico con mapeo de columnas.
 - Dashboard (`/`) con KPIs de negocio (pass rate, coste por cuenta fondeada, payout medio, ROI, cashflow neto) y de trading (win rate, profit factor, expectancy, drawdown, rachas).
 - **Análisis con IA (`/ai`)**: informe completo bajo demanda (fortalezas, fugas, viabilidad del negocio, plan de acción) y preguntas puntuales sobre tu operativa, usando Claude (`claude-haiku-4-5`, esfuerzo bajo) sobre los KPIs agregados. Histórico de informes persistido en `AiReports`.
-- **Sincronización automática (Fase 2)**: `TradeBuilder` reconstruye trades FIFO a partir de fills
-  individuales (soporta escalados, cierres parciales y flips); `TradeSyncService` sincroniza
-  Tradovate en segundo plano; un endpoint de ingesta (`POST /api/ingest/ninjatrader/executions`,
-  protegido con API key) recibe fills en tiempo real del AddOn de NinjaTrader 8. Ver `/settings`.
 - **Módulo de riesgo (`/risk`, Fase 3)**: EV por evaluación con IC 95 % (bootstrap), Monte Carlo
   de ruina del bankroll con bankroll mínimo recomendado, Monte Carlo intra-cuenta contra las
   reglas de la firma, fracción de Kelly, e integración de todo ello en el prompt de IA. Informe
@@ -309,22 +294,16 @@ TrackRecord.slnx
   riesgo, gráficas) — no hay conversión de tipo de cambio, los importes se guardan tal cual se
   introducen. La preferencia se persiste por instancia (`CurrencyPreferenceService`).
 
-### Trades manuales y la entidad `Execution` (preparado para Tradovate/NT8)
+### Trades manuales y la entidad `Execution`
 
 El journal manual de trades **no** escribe directamente un `Trade` suelto: `ManualTradeFactory`
 (en `TrackRecord.Domain.Trades`) construye el `Trade` junto con las dos `Execution` (entrada y
-salida, `Source = Manual`) que lo representan — la misma entidad `Execution` que usará el futuro
-`TradeSyncService` para los fills reales de Tradovate (`Source = Tradovate`) y NinjaTrader 8
-(`Source = NinjaTraderAddOn`) descritos en la guía (§5-7). Un trade manual y uno importado son
-indistinguibles a nivel de almacenamiento; solo cambia el origen de sus `Execution`. Al eliminar
-un trade solo se borran sus `Execution` manuales (sintéticas); los fills de fuentes reales se
-conservan huérfanos para que un futuro `TradeBuilder` (FIFO) pueda reconstruir trades a partir de
-ellos.
+salida) que lo representan — la misma entidad que usa la importación de CSV
+(`Source = CsvImport`). Un trade manual y uno importado son indistinguibles a nivel de
+almacenamiento; solo cambia el origen de sus `Execution`.
 
-**Fuera de alcance de esta versión** (Fase 4 del roadmap de la guía): sincronización en tiempo
-real vía WebSocket de Tradovate (hoy es *pull* periódico, cada `Sync:IntervalMinutes`), alertas de
-proximidad a drawdown/elegibilidad de payout, etiquetado de trades asistido por IA y export PDF
-del track record.
+**Fuera de alcance de esta versión**: alertas de proximidad a drawdown/elegibilidad de payout,
+etiquetado de trades asistido por IA y export PDF del track record.
 
 ## Ejecutar los tests
 

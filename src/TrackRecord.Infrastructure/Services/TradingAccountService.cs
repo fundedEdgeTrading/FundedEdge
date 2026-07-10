@@ -333,7 +333,7 @@ public class TradingAccountService(
         await EnsureAccountOwnedAsync(db, request.AccountId, userId, ct);
 
         // ManualTradeFactory crea el Trade junto con sus dos Execution (entrada/salida, Source=Manual):
-        // la misma entidad que usará el futuro TradeSyncService para fills reales de Tradovate/NT8.
+        // la misma entidad Execution que usa la importación de CSV (Tradovate/NT8).
         var trade = ManualTradeFactory.CreateManual(
             request.AccountId,
             request.Symbol,
@@ -365,7 +365,7 @@ public class TradingAccountService(
         if (trade is null) return;
 
         // Las Executions "Manual" son sintéticas: solo existen para representar este trade y se
-        // borran con él. Las de fuentes reales (Tradovate/NinjaTrader) se conservan huérfanas
+        // borran con él. Las de otras fuentes se conservan huérfanas
         // (TradeId -> null, ver DeleteBehavior.SetNull en TradeConfiguration) para que un futuro
         // TradeBuilder pueda reconstruir el trade a partir de los fills originales.
         var manualExecutions = trade.Executions.Where(e => e.Source == TradeSourceType.Manual).ToList();

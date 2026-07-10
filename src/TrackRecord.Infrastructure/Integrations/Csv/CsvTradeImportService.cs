@@ -7,17 +7,32 @@ using TrackRecord.Domain.Enums;
 using TrackRecord.Domain.Trades;
 using TrackRecord.Infrastructure.Persistence;
 
-namespace TrackRecord.Infrastructure.Integrations.NinjaTrader;
+namespace TrackRecord.Infrastructure.Integrations.Csv;
 
+/// <summary>
+/// Importador unificado: acepta indistintamente el CSV de rendimiento de Tradovate y el export
+/// de "Trade Performance" de NinjaTrader 8. El formato se detecta automáticamente por las
+/// cabeceras de la primera línea y cada parser lo normaliza al mismo <see cref="CsvTradeRow"/>,
+/// de modo que el resto de la aplicación (KPIs, reglas, equity, MAE/MFE…) no distingue el origen.
+/// </summary>
 public class CsvTradeImportService(IDbContextFactory<TrackRecordDbContext> dbFactory, ICurrentUserAccessor currentUser) : ICsvTradeImportService
 {
-    private static readonly NinjaTraderCsvParser Parser = new();
+    private static readonly NinjaTraderCsvParser NinjaTraderParser = new();
+    private static readonly TradovateCsvParser TradovateParser = new();
 
     public async Task<CsvImportSummary> ImportAsync(Guid accountId, Stream csvStream, CancellationToken ct = default)
     {
         var userId = await currentUser.RequireUserIdAsync();
-        using var reader = new StreamReader(csvStream);
-        var parseResult = Parser.Parse(reader);
+
+        // Se materializa el contenido para poder inspeccionar la cabecera y después reparsear
+        // desde el principio con el parser elegido (los archivos están limitados a 10 MB en la UI).
+        string content;
+        using (var reader = new StreamReader(csvStream, leaveOpen: true))
+        {
+            content = await reader.ReadToEndAsync(ct);
+        }
+
+        var (parseResult, sourceLabel) = ParseAutodetecting(content);
 
         await using var db = await dbFactory.CreateDbContextAsync(ct);
 
@@ -60,10 +75,12 @@ public class CsvTradeImportService(IDbContextFactory<TrackRecordDbContext> dbFac
                 row.Commission,
                 riskedAmount: null,
                 tags: null,
-                notes: "Importado de CSV (NinjaTrader 8)",
+                notes: $"Importado de CSV ({sourceLabel})",
                 TradeSourceType.CsvImport,
                 entryExternalId,
-                $"csv-{rowKey}-exit");
+                $"csv-{rowKey}-exit",
+                row.MaxAdverseExcursion,
+                row.MaxFavorableExcursion);
 
             db.Trades.Add(trade);
             imported++;
@@ -73,6 +90,29 @@ public class CsvTradeImportService(IDbContextFactory<TrackRecordDbContext> dbFac
 
         var errors = parseResult.Errors.Select(e => $"Línea {e.LineNumber}: {e.Reason}").ToList();
         return new CsvImportSummary(imported, skipped, errors);
+    }
+
+    private static (CsvParseResult Result, string SourceLabel) ParseAutodetecting(string content)
+    {
+        using var headerReader = new StringReader(content);
+        var headerLine = headerReader.ReadLine();
+        List<string> headers = headerLine is null ? [] : CsvLineSplitter.Split(headerLine);
+
+        if (TradovateCsvParser.LooksLikeHeader(headers))
+        {
+            using var reader = new StringReader(content);
+            return (TradovateParser.Parse(reader), "Tradovate");
+        }
+
+        if (NinjaTraderCsvParser.LooksLikeHeader(headers))
+        {
+            using var reader = new StringReader(content);
+            return (NinjaTraderParser.Parse(reader), "NinjaTrader 8");
+        }
+
+        return (new CsvParseResult([], [new CsvParseError(1, headerLine ?? "",
+            "Formato no reconocido: no parece un export de Tradovate (Reports → Performance) ni de NinjaTrader 8 (Trade Performance → Trades). " +
+            "Si el archivo procede de otra plataforma, usa la importación con mapeo de columnas.")]), "desconocido");
     }
 
     private static string ComputeRowKey(CsvTradeRow row)

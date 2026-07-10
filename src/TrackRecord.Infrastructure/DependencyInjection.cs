@@ -10,8 +10,7 @@ using TrackRecord.Domain.Common;
 using TrackRecord.Infrastructure.Ai;
 using TrackRecord.Infrastructure.Email;
 using TrackRecord.Infrastructure.Identity;
-using TrackRecord.Infrastructure.Integrations.NinjaTrader;
-using TrackRecord.Infrastructure.Integrations.Tradovate;
+using TrackRecord.Infrastructure.Integrations.Csv;
 using TrackRecord.Infrastructure.Persistence;
 using TrackRecord.Infrastructure.Services;
 using TrackRecord.Infrastructure.Settings;
@@ -32,9 +31,9 @@ public static class DependencyInjection
         // para crear contextos de vida corta por operación.
         services.AddScoped(sp => sp.GetRequiredService<IDbContextFactory<TrackRecordDbContext>>().CreateDbContext());
 
-        // Key ring persistido en disco: sin esto, los secretos guardados desde /settings
-        // (IntegrationSettings, cifrados con IDataProtector) dejarían de poder descifrarse tras
-        // reiniciar la app si el key ring por defecto no fuera estable en este entorno.
+        // Key ring persistido en disco: sin esto, los valores guardados en IntegrationSettings
+        // (cifrados con IDataProtector — hoy solo preferencias de UI como la divisa) dejarían de
+        // poder descifrarse tras reiniciar la app si el key ring por defecto no fuera estable.
         var keysPath = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "TrackRecord", "keys");
         services.AddDataProtection()
@@ -70,6 +69,7 @@ public static class DependencyInjection
             .AddDefaultTokenProviders();
 
         services.AddScoped<UserBackfillService>();
+        services.AddScoped<DemoDataSeeder>();
 
         services.AddScoped<IPropFirmService, PropFirmService>();
         services.AddScoped<IEvaluationProgramService, EvaluationProgramService>();
@@ -77,13 +77,9 @@ public static class DependencyInjection
         services.AddScoped<IExternalFirmDataProvider, ManualExternalFirmDataProvider>();
         services.AddScoped<ITradingAccountService, TradingAccountService>();
         services.AddScoped<IKpiService, KpiService>();
-        services.AddScoped<ITradeRebuildService, TradeRebuildService>();
-        services.AddScoped<IExecutionIngestService, ExecutionIngestService>();
         services.AddScoped<ICsvTradeImportService, CsvTradeImportService>();
         services.AddScoped<IGenericCsvImportService, Integrations.GenericCsv.GenericCsvImportService>();
-        services.AddScoped<ITradeSyncOrchestrator, TradeSyncOrchestrator>();
         services.AddScoped<IIntegrationSettingsStore, DataProtectedIntegrationSettingsStore>();
-        services.AddScoped<IIntegrationSettingsService, IntegrationSettingsService>();
         services.AddScoped<IRiskAnalysisService, RiskAnalysisService>();
         services.AddScoped<IFirmFitService, FirmFitService>();
         services.AddScoped<ICurrencyPreferenceService, CurrencyPreferenceService>();
@@ -91,10 +87,8 @@ public static class DependencyInjection
         services.AddScoped<IPublicProfileService, PublicProfileService>();
         services.AddScoped<IPsychologyService, PsychologyService>();
         services.AddScoped<IRuleComplianceService, RuleComplianceService>();
-        services.AddHostedService<TradeSyncService>();
 
         AddAi(services, configuration);
-        AddTradovate(services, configuration);
         AddEmail(services, configuration);
 
         return services;
@@ -126,24 +120,6 @@ public static class DependencyInjection
             services.AddScoped<IAppEmailSender, NoOpAppEmailSender>();
             services.AddScoped<IEmailSender<ApplicationUser>, NoOpEmailSender>();
         }
-    }
-
-    private static void AddTradovate(IServiceCollection services, IConfiguration configuration)
-    {
-        var baseUrl = configuration["Tradovate:BaseUrl"] ?? "https://live.tradovateapi.com/v1";
-
-        services.AddScoped<ConfigurationTradovateCredentialStore>();
-        services.AddScoped<DbTradovateCredentialStore>();
-        services.AddScoped<ITradovateCredentialStore, TradovateCredentialStore>();
-        services.AddTransient<TradovateAuthHandler>();
-
-        // Cliente "en crudo" sin el auth handler adjunto: lo usa TradovateAuthHandler para
-        // autenticar/renovar sin recursión sobre el propio pipeline.
-        services.AddHttpClient("TradovateAuthRaw", c => c.BaseAddress = new Uri(baseUrl));
-
-        services.AddHttpClient<ITradovateClient, TradovateClient>(c => c.BaseAddress = new Uri(baseUrl))
-            .AddHttpMessageHandler<TradovateAuthHandler>()
-            .AddStandardResilienceHandler();
     }
 
     private static void AddAi(IServiceCollection services, IConfiguration configuration)

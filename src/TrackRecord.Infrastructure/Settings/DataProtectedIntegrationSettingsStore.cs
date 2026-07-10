@@ -56,41 +56,4 @@ public class DataProtectedIntegrationSettingsStore(
 
         await db.SaveChangesAsync(ct);
     }
-
-    public async Task<string?> FindKeyPrefixByValueAsync(string keySuffix, string value, CancellationToken ct = default)
-    {
-        await using var db = await dbFactory.CreateDbContextAsync(ct);
-        var candidates = await db.IntegrationSettings.AsNoTracking()
-            .Where(s => s.Key.EndsWith(keySuffix))
-            .ToListAsync(ct);
-
-        foreach (var row in candidates)
-        {
-            string decrypted;
-            try
-            {
-                decrypted = _protector.Unprotect(row.ProtectedValue);
-            }
-            catch (CryptographicException)
-            {
-                continue;
-            }
-
-            if (FixedTimeEquals(decrypted, value))
-            {
-                return row.Key[..^keySuffix.Length];
-            }
-        }
-
-        return null;
-    }
-
-    /// <summary>Comparación en tiempo constante para evitar timing attacks sobre el valor comparado.</summary>
-    private static bool FixedTimeEquals(string a, string b)
-    {
-        var bytesA = System.Text.Encoding.UTF8.GetBytes(a);
-        var bytesB = System.Text.Encoding.UTF8.GetBytes(b);
-        if (bytesA.Length != bytesB.Length) return false;
-        return CryptographicOperations.FixedTimeEquals(bytesA, bytesB);
-    }
 }

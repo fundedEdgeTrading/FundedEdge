@@ -31,7 +31,6 @@ else
             </div>
             <p class="small text-muted mt-2 mb-0">
                 @L["Cuentas activas:"] @_activeAccounts / @(_limits!.MaxActiveAccounts?.ToString() ?? "∞") ·
-                @L["Sincronización automática:"] @(_limits.AutoSyncEnabled ? L["incluida"] : L["no incluida"]) ·
                 @L["Informes IA: {0} cada {1} día(s)", _limits.AiReportsPerWindow, _limits.AiReportWindowDays] ·
                 @L["Preguntas IA/mes:"] @(_limits.AiQuestionsPerMonth?.ToString() ?? L["ilimitadas"].Value)
             </p>

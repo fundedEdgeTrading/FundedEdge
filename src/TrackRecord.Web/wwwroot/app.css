@@ -1012,6 +1012,26 @@ input[type="file"] {
     gap: 0.6rem;
 }
 
+/* Variante ancha del panel para el tutorial de importación de CSV (contenido largo, scrollable) */
+.tutorial-panel {
+    max-width: 720px;
+}
+
+    .tutorial-panel .tutorial-body {
+        max-height: 60vh;
+        overflow-y: auto;
+        margin-bottom: 1rem;
+    }
+
+        .tutorial-panel .tutorial-body h6 {
+            color: var(--text-1);
+            margin-top: 0.4rem;
+        }
+
+        .tutorial-panel .tutorial-body ol li {
+            margin-bottom: 0.35rem;
+        }
+
 /* ============================================================
    Autenticación (Login/Register/ExternalLogin) — páginas estáticas,
    fuera del layout principal. Layout partido: panel visual animado
