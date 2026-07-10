@@ -400,69 +400,71 @@ else
     }
     else
     {
-        <table class="table table-sm">
-            <thead>
-                <tr>
-                    <th>@L["Fecha"]</th>
-                    <th>@L["Símbolo"]</th>
-                    <th>Dir.</th>
-                    <th>@L["Cant."]</th>
-                    <th>@L["Setup"]</th>
-                    <th class="text-end">Net P&amp;L</th>
-                    <th class="text-end">@L["Riesgo"]</th>
-                    <th class="text-end">R</th>
-                    <th class="text-end">MAE</th>
-                    <th class="text-end">MFE</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var t in _account.Trades)
-                {
+        <div class="table-responsive">
+            <table class="table table-sm">
+                <thead>
                     <tr>
-                        <td>@t.ClosedAt.ToString("d")</td>
-                        <td>@t.Symbol</td>
-                        <td>@t.Direction</td>
-                        <td>@t.Quantity</td>
-                        <td>
-                            <select class="form-select form-select-sm" style="min-width:9rem"
-                                    @onchange="@(e => UpdateTradeSetupAsync(t, e.Value?.ToString()))">
-                                <option value="" selected="@string.IsNullOrEmpty(t.Tags)">—</option>
-                                @foreach (var s in _setups ?? [])
-                                {
-                                    <option value="@s.Name" selected="@(s.Name == t.Tags)">@s.Name</option>
-                                }
-                                @if (!string.IsNullOrEmpty(t.Tags) && _setups?.Any(s => s.Name == t.Tags) != true)
-                                {
-                                    <option value="@t.Tags" selected>@t.Tags</option>
-                                }
-                            </select>
-                        </td>
-                        <td class="text-end @(t.NetPnL >= 0 ? "text-success" : "text-danger")">@Currency.Format(t.NetPnL)</td>
-                        <td class="text-end" style="width:100px">
-                            <input type="number" step="0.01" class="form-control form-control-sm text-end" value="@t.RiskedAmount"
-                                   @onchange="@(e => UpdateTradeRiskAsync(t, decimal.TryParse(e.Value?.ToString(), System.Globalization.NumberStyles.Number, System.Globalization.CultureInfo.InvariantCulture, out var v) ? v : (decimal?)null))" />
-                        </td>
-                        <td class="text-end">@(t.RMultiple?.ToString("0.00") ?? "—")</td>
-                        <td class="text-end text-danger">
-                            @(t.MaxAdverseExcursion is { } mae ? Currency.Format(-mae) : "—")
-                            @if (t.MaeR is { } maeR)
-                            {
-                                <small class="text-muted">(@maeR.ToString("0.00")R)</small>
-                            }
-                        </td>
-                        <td class="text-end text-success">
-                            @(t.MaxFavorableExcursion is { } mfe ? Currency.Format(mfe) : "—")
-                            @if (t.MfeR is { } mfeR)
-                            {
-                                <small class="text-muted">(@mfeR.ToString("0.00")R)</small>
-                            }
-                        </td>
-                        <td><button class="btn btn-sm btn-link text-danger" @onclick="() => DeleteTradeAsync(t.Id)">✕</button></td>
+                        <th>@L["Fecha"]</th>
+                        <th>@L["Símbolo"]</th>
+                        <th>Dir.</th>
+                        <th>@L["Cant."]</th>
+                        <th>@L["Setup"]</th>
+                        <th class="text-end">Net P&amp;L</th>
+                        <th class="text-end">@L["Riesgo"]</th>
+                        <th class="text-end">R</th>
+                        <th class="text-end">MAE</th>
+                        <th class="text-end">MFE</th>
+                        <th></th>
                     </tr>
-                }
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @foreach (var t in _account.Trades)
+                    {
+                        <tr>
+                            <td>@t.ClosedAt.ToString("d")</td>
+                            <td>@t.Symbol</td>
+                            <td>@t.Direction</td>
+                            <td>@t.Quantity</td>
+                            <td>
+                                <select class="form-select form-select-sm" style="min-width:9rem"
+                                        @onchange="@(e => UpdateTradeSetupAsync(t, e.Value?.ToString()))">
+                                    <option value="" selected="@string.IsNullOrEmpty(t.Tags)">—</option>
+                                    @foreach (var s in _setups ?? [])
+                                    {
+                                        <option value="@s.Name" selected="@(s.Name == t.Tags)">@s.Name</option>
+                                    }
+                                    @if (!string.IsNullOrEmpty(t.Tags) && _setups?.Any(s => s.Name == t.Tags) != true)
+                                    {
+                                        <option value="@t.Tags" selected>@t.Tags</option>
+                                    }
+                                </select>
+                            </td>
+                            <td class="text-end @(t.NetPnL >= 0 ? "text-success" : "text-danger")">@Currency.Format(t.NetPnL)</td>
+                            <td class="text-end" style="width:100px">
+                                <input type="number" step="0.01" class="form-control form-control-sm text-end" value="@t.RiskedAmount"
+                                       @onchange="@(e => UpdateTradeRiskAsync(t, decimal.TryParse(e.Value?.ToString(), System.Globalization.NumberStyles.Number, System.Globalization.CultureInfo.InvariantCulture, out var v) ? v : (decimal?)null))" />
+                            </td>
+                            <td class="text-end">@(t.RMultiple?.ToString("0.00") ?? "—")</td>
+                            <td class="text-end text-danger">
+                                @(t.MaxAdverseExcursion is { } mae ? Currency.Format(-mae) : "—")
+                                @if (t.MaeR is { } maeR)
+                                {
+                                    <small class="text-muted">(@maeR.ToString("0.00")R)</small>
+                                }
+                            </td>
+                            <td class="text-end text-success">
+                                @(t.MaxFavorableExcursion is { } mfe ? Currency.Format(mfe) : "—")
+                                @if (t.MfeR is { } mfeR)
+                                {
+                                    <small class="text-muted">(@mfeR.ToString("0.00")R)</small>
+                                }
+                            </td>
+                            <td><button class="btn btn-sm btn-link text-danger" @onclick="() => DeleteTradeAsync(t.Id)">✕</button></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
     }
 }
 

@@ -277,35 +277,37 @@ else if (_cardView)
 }
 else
 {
-    <table class="table table-hover align-middle">
-        <thead>
-            <tr>
-                <th>@L["Cuenta"]</th>
-                <th>@L["Etapa"]</th>
-                <th>@L["Tamaño"]</th>
-                <th>@L["Comprada"]</th>
-                <th class="text-end">Net P&amp;L</th>
-                <th class="text-end">@L["Costes"]</th>
-                <th class="text-end">Payouts</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var a in _accounts)
-            {
-                <tr style="cursor:pointer" @onclick="() => GoToDetail(a.Id)">
-                    <td class="row-title"><b>@a.DisplayName</b><span>@a.PropFirmName</span></td>
-                    <td><span class="stage @StageBadgeClass(a.Stage)">@a.Stage</span></td>
-                    <td>@Currency.Format(a.AccountSize, 0)</td>
-                    <td class="num-muted">@a.PurchasedOn.ToString("d")</td>
-                    <td class="text-end @(a.NetPnL >= 0 ? "text-success" : "text-danger")">@Currency.Format(a.NetPnL)</td>
-                    <td class="text-end @(a.TotalCosts == 0 ? "num-muted" : null)">@Currency.Format(a.TotalCosts)</td>
-                    <td class="text-end @(a.TotalPayoutsReceived == 0 ? "num-muted" : null)">@Currency.Format(a.TotalPayoutsReceived)</td>
-                    <td class="chev">›</td>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead>
+                <tr>
+                    <th>@L["Cuenta"]</th>
+                    <th>@L["Etapa"]</th>
+                    <th>@L["Tamaño"]</th>
+                    <th>@L["Comprada"]</th>
+                    <th class="text-end">Net P&amp;L</th>
+                    <th class="text-end">@L["Costes"]</th>
+                    <th class="text-end">Payouts</th>
+                    <th></th>
                 </tr>
-            }
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @foreach (var a in _accounts)
+                {
+                    <tr style="cursor:pointer" @onclick="() => GoToDetail(a.Id)">
+                        <td class="row-title"><b>@a.DisplayName</b><span>@a.PropFirmName</span></td>
+                        <td><span class="stage @StageBadgeClass(a.Stage)">@a.Stage</span></td>
+                        <td>@Currency.Format(a.AccountSize, 0)</td>
+                        <td class="num-muted">@a.PurchasedOn.ToString("d")</td>
+                        <td class="text-end @(a.NetPnL >= 0 ? "text-success" : "text-danger")">@Currency.Format(a.NetPnL)</td>
+                        <td class="text-end @(a.TotalCosts == 0 ? "num-muted" : null)">@Currency.Format(a.TotalCosts)</td>
+                        <td class="text-end @(a.TotalPayoutsReceived == 0 ? "num-muted" : null)">@Currency.Format(a.TotalPayoutsReceived)</td>
+                        <td class="chev">›</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
 }
 
 @if (_toastMessage is not null)

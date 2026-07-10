@@ -39,25 +39,27 @@ else if (_setups.Count == 0)
 }
 else
 {
-    <table class="table table-hover align-middle">
-        <thead>
-            <tr>
-                <th>@L["Nombre"]</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var setup in _setups)
-            {
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead>
                 <tr>
-                    <td>@setup.Name</td>
-                    <td class="text-end">
-                        <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteAsync(setup.Id)">@L["Eliminar"]</button>
-                    </td>
+                    <th>@L["Nombre"]</th>
+                    <th></th>
                 </tr>
-            }
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @foreach (var setup in _setups)
+                {
+                    <tr>
+                        <td>@setup.Name</td>
+                        <td class="text-end">
+                            <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteAsync(setup.Id)">@L["Eliminar"]</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
 }
 
 @code {
