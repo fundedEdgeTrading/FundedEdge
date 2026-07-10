@@ -55,6 +55,47 @@ public class NinjaTraderCsvParserTests
     }
 
     [Fact]
+    public void Parse_EuropeanDecimalCommaFormat_DoesNotInflateAmountsBy100()
+    {
+        // Export en formato europeo (coma decimal, ; como delimitador) — el bug reportado
+        // interpretaba "-102,40" como -10240 al tratar la coma como separador de miles.
+        const string csv =
+            "Instrument;Market pos.;Qty;Entry price;Exit price;Entry time;Exit time;Profit;Commission;MAE;MFE\n" +
+            "ESH6;Long;1;5000,00;5010,00;2026-01-05 14:00:00;2026-01-05 14:05:00;-102,40;2,50;($15,00);$32,50\n";
+
+        var parser = new NinjaTraderCsvParser();
+        using var reader = new StringReader(csv);
+
+        var result = parser.Parse(reader, CultureInfo.InvariantCulture);
+
+        Assert.Empty(result.Errors);
+        var row = Assert.Single(result.Rows);
+        Assert.Equal(5000.00m, row.EntryPrice);
+        Assert.Equal(5010.00m, row.ExitPrice);
+        Assert.Equal(2.50m, row.Commission);
+        Assert.Equal(-99.90m, row.GrossPnL); // Profit (-102.40) + Commission (2.50)
+        Assert.Equal(15.00m, row.MaxAdverseExcursion);
+        Assert.Equal(32.50m, row.MaxFavorableExcursion);
+    }
+
+    [Fact]
+    public void Parse_UsThousandsSeparatorProfit_IsParsedCorrectly()
+    {
+        const string csv =
+            "Instrument,Market pos.,Qty,Entry price,Exit price,Entry time,Exit time,Profit,Commission\n" +
+            "ESH6,Long,10,5000.00,5010.00,2026-01-05 14:00:00,2026-01-05 14:05:00,\"1,000.00\",2.50\n";
+
+        var parser = new NinjaTraderCsvParser();
+        using var reader = new StringReader(csv);
+
+        var result = parser.Parse(reader, CultureInfo.InvariantCulture);
+
+        Assert.Empty(result.Errors);
+        var row = Assert.Single(result.Rows);
+        Assert.Equal(1002.50m, row.GrossPnL); // Profit (1,000.00) + Commission (2.50)
+    }
+
+    [Fact]
     public void Parse_MissingRequiredColumn_ReturnsError()
     {
         var parser = new NinjaTraderCsvParser();

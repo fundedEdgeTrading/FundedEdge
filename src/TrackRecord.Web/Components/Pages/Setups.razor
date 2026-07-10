@@ -1,0 +1,103 @@
+@page "/setups"
+@rendermode InteractiveServer
+@inject ITradeSetupService SetupService
+@inject IStringLocalizer<SharedResources> L
+
+<PageTitle>@L["Setups"] — @Brand.Name</PageTitle>
+
+<h1>@L["Setups de entrada"]</h1>
+<p class="text-muted">@L["Define los tipos de entrada que utilizas (breakout, pullback, reversión…) para poder etiquetar tus trades y comparar el rendimiento entre ellos."]</p>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <EditForm Model="_form" OnValidSubmit="SaveAsync">
+            <DataAnnotationsValidator />
+            <div class="row g-2 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label">@L["Nombre del setup"]</label>
+                    <InputText class="form-control" @bind-Value="_form.Name" placeholder="@L["p.ej. Breakout apertura"]" />
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary">@L["Añadir"]</button>
+                </div>
+            </div>
+        </EditForm>
+        @if (_error is not null)
+        {
+            <div class="alert alert-danger mt-2 mb-0">@_error</div>
+        }
+    </div>
+</div>
+
+@if (_setups is null)
+{
+    <p><em>@L["Cargando…"]</em></p>
+}
+else if (_setups.Count == 0)
+{
+    <p class="text-muted">@L["Todavía no has definido ningún setup."]</p>
+}
+else
+{
+    <table class="table table-hover align-middle">
+        <thead>
+            <tr>
+                <th>@L["Nombre"]</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var setup in _setups)
+            {
+                <tr>
+                    <td>@setup.Name</td>
+                    <td class="text-end">
+                        <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteAsync(setup.Id)">@L["Eliminar"]</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<TradeSetupDto>? _setups;
+    private SetupFormModel _form = new();
+    private string? _error;
+
+    protected override async Task OnInitializedAsync() => await LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        _setups = (await SetupService.GetAllAsync()).ToList();
+    }
+
+    private async Task SaveAsync()
+    {
+        _error = null;
+        try
+        {
+            await SetupService.CreateAsync(_form.Name);
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+            return;
+        }
+
+        _form = new SetupFormModel();
+        await LoadAsync();
+    }
+
+    private async Task DeleteAsync(Guid id)
+    {
+        await SetupService.DeleteAsync(id);
+        await LoadAsync();
+    }
+
+    private class SetupFormModel
+    {
+        [System.ComponentModel.DataAnnotations.Required]
+        public string Name { get; set; } = "";
+    }
+}

@@ -76,6 +76,7 @@ public static class DependencyInjection
         services.AddScoped<IAccountProgressService, AccountProgressService>();
         services.AddScoped<IExternalFirmDataProvider, ManualExternalFirmDataProvider>();
         services.AddScoped<ITradingAccountService, TradingAccountService>();
+        services.AddScoped<ITradeSetupService, TradeSetupService>();
         services.AddScoped<IKpiService, KpiService>();
         services.AddScoped<ICsvTradeImportService, CsvTradeImportService>();
         services.AddScoped<IGenericCsvImportService, Integrations.GenericCsv.GenericCsvImportService>();

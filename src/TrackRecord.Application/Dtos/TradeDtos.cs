@@ -17,7 +17,12 @@ public record TradeListItemDto(
     decimal? RMultiple,
     string? Tags,
     decimal? MaeR = null,
-    decimal? MfeR = null);
+    decimal? MfeR = null,
+    decimal? RiskedAmount = null);
+
+public record TradeSetupDto(Guid Id, string Name);
+
+public record UpdateTradeSetupTagRequest(Guid TradeId, string? Tags, decimal? RiskedAmount);
 
 public record CreateTradeRequest(
     Guid AccountId,

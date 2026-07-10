@@ -116,6 +116,38 @@ public class TradingAccountServiceTests
     }
 
     [Fact]
+    public async Task UpdateTradeSetupTagAsync_SetsTagsAndRiskedAmount_EnablingRMultiple()
+    {
+        var (factory, accountId) = await SeedAccountAsync();
+        var sut = BuildService(factory);
+
+        var tradeId = await sut.AddTradeAsync(new CreateTradeRequest(
+            accountId, "MES", TradeDirection.Long, 1,
+            5000m, 5010m,
+            new DateTimeOffset(2026, 1, 5, 14, 0, 0, TimeSpan.Zero),
+            new DateTimeOffset(2026, 1, 5, 14, 30, 0, TimeSpan.Zero),
+            250m, 0m, null, null, "Importado de CSV")); // sin setup ni riesgo, como llega de un import
+
+        await sut.UpdateTradeSetupTagAsync(new UpdateTradeSetupTagRequest(tradeId, "Breakout apertura", 100m));
+
+        var account = await sut.GetByIdAsync(accountId);
+        var trade = Assert.Single(account!.Trades);
+        Assert.Equal("Breakout apertura", trade.Tags);
+        Assert.Equal(100m, trade.RiskedAmount);
+        Assert.Equal(2.5m, trade.RMultiple); // 250 NetPnL / 100 riesgo
+    }
+
+    [Fact]
+    public async Task UpdateTradeSetupTagAsync_UnknownTrade_ThrowsKeyNotFound()
+    {
+        var factory = new InMemoryDbContextFactory(Guid.NewGuid().ToString());
+        var sut = BuildService(factory);
+
+        await Assert.ThrowsAsync<KeyNotFoundException>(() =>
+            sut.UpdateTradeSetupTagAsync(new UpdateTradeSetupTagRequest(Guid.NewGuid(), "Breakout", 100m)));
+    }
+
+    [Fact]
     public async Task DeleteAsync_RemovesAccountAndAllAssociatedData()
     {
         var (factory, accountId) = await SeedAccountAsync();

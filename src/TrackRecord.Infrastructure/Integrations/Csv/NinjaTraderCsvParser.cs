@@ -143,8 +143,11 @@ public class NinjaTraderCsvParser
     private static decimal ParseDecimal(string raw, CultureInfo culture)
     {
         var trimmed = raw.Trim();
-        if (decimal.TryParse(trimmed, NumberStyles.Number, culture, out var value)) return value;
-        if (decimal.TryParse(trimmed, NumberStyles.Number, CultureInfo.InvariantCulture, out value)) return value;
+        if (TryNormalizeNumber(trimmed, out var normalized) &&
+            decimal.TryParse(normalized, NumberStyles.Number, CultureInfo.InvariantCulture, out var value))
+        {
+            return value;
+        }
         throw new FormatException($"No se pudo interpretar '{raw}' como número.");
     }
 
@@ -152,11 +155,53 @@ public class NinjaTraderCsvParser
     private static decimal ParseCurrency(string raw, CultureInfo culture)
     {
         var trimmed = raw.Trim();
-        const NumberStyles styles = NumberStyles.Currency;
-        if (decimal.TryParse(trimmed, styles, culture, out var value)) return value;
-        if (decimal.TryParse(trimmed, styles, CultureInfo.InvariantCulture, out value)) return value;
-        if (decimal.TryParse(trimmed.Replace("$", ""), styles, CultureInfo.InvariantCulture, out value)) return value;
-        throw new FormatException($"No se pudo interpretar '{raw}' como importe.");
+        var negative = trimmed.StartsWith('(') && trimmed.EndsWith(')');
+        if (negative) trimmed = trimmed[1..^1].Trim();
+
+        // Se descartan símbolos de divisa/espacios, dejando solo dígitos, separadores y signo —
+        // así el número se interpreta igual venga con "$", "€" o sin símbolo.
+        var digitsOnly = new string(trimmed.Where(c => char.IsDigit(c) || c is ',' or '.' or '-').ToArray());
+
+        if (!TryNormalizeNumber(digitsOnly, out var normalized) ||
+            !decimal.TryParse(normalized, NumberStyles.Number, CultureInfo.InvariantCulture, out var value))
+        {
+            throw new FormatException($"No se pudo interpretar '{raw}' como importe.");
+        }
+
+        return negative ? -Math.Abs(value) : value;
+    }
+
+    /// <summary>
+    /// Normaliza un número a InvariantCulture (punto decimal) detectando el separador decimal por
+    /// posición en el propio texto, en vez de asumir una cultura fija. NT8 exporta en formato US
+    /// ("1,234.56") o europeo ("1.234,56" / "-102,40") según el sistema operativo del usuario;
+    /// interpretar siempre la coma como separador de miles (lo que hacía el código anterior al caer
+    /// a InvariantCulture) convertía "-102,40" en -10240 — el bug de los importes x100.
+    /// </summary>
+    private static bool TryNormalizeNumber(string raw, out string normalized)
+    {
+        normalized = raw;
+        if (raw.Length == 0) return false;
+
+        var lastComma = raw.LastIndexOf(',');
+        var lastDot = raw.LastIndexOf('.');
+        if (lastComma < 0 && lastDot < 0) return true; // entero sin separadores
+
+        var decimalSepIndex = Math.Max(lastComma, lastDot);
+        var decimalChar = raw[decimalSepIndex];
+        var digitsAfter = raw.Length - decimalSepIndex - 1;
+        var isSingleOccurrence = raw.IndexOf(decimalChar) == raw.LastIndexOf(decimalChar);
+
+        if (digitsAfter == 3 && isSingleOccurrence)
+        {
+            // Único separador seguido de 3 dígitos: es de miles, no decimal (p.ej. "1.234" = 1234).
+            normalized = raw.Remove(decimalSepIndex, 1);
+            return true;
+        }
+
+        var thousandsChar = decimalChar == ',' ? '.' : ',';
+        normalized = raw.Replace(thousandsChar.ToString(), "").Replace(decimalChar, '.');
+        return true;
     }
 
     private static decimal? TryParseOptionalCurrency(string raw, CultureInfo culture)
