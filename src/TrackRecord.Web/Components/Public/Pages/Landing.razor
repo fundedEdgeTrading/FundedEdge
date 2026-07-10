@@ -3,78 +3,214 @@
 
 <SeoHead Title="@SeoTitle" Description="@SeoDescription" JsonLd="@JsonLd" />
 
-<section class="public-hero">
-    <span class="auth-visual-tag">@L["Funded trading · todo en un sitio"]</span>
-    <h1>@L[Brand.Tagline]</h1>
-    <p class="public-lead">
-        @L["Cuentas, evaluaciones, payouts y métricas de riesgo de todas tus firmas de fondeo, en un único dashboard. Sabrás si tu negocio de evaluaciones es rentable — no lo intuirás."]
-    </p>
-    <div class="public-hero-actions">
-        <a class="btn btn-primary btn-lg" href="Account/Register">@L["Empieza gratis"]</a>
-        <a class="btn btn-outline-secondary btn-lg" href="precios">@L["Ver precios"]</a>
-        <a class="btn btn-outline-secondary btn-lg" href="calculadora">@L["Calcula tu EV gratis"]</a>
+<section class="lp-hero">
+    <div class="lp-hero-copy">
+        <span class="lp-chip lp-fade-up lp-delay-0">@L["Funded trading · todo en un sitio"]</span>
+        <h1 class="lp-fade-up lp-delay-1">
+            @L["Sabrás si tu negocio de evaluaciones es rentable —"] <span class="lp-accent-text">@L["no lo intuirás."]</span>
+        </h1>
+        <p class="lp-lead lp-fade-up lp-delay-2">
+            @L["Cuentas, evaluaciones, payouts y métricas de riesgo de todas tus firmas de fondeo, en un único dashboard. Contabilidad y estadística honesta sobre tu operativa real."]
+        </p>
+        <div class="lp-hero-actions lp-fade-up lp-delay-3">
+            <a class="btn btn-primary btn-lg" href="Account/Register">@L["Empieza gratis"]</a>
+            <a class="btn btn-outline-secondary btn-lg" href="#precios">@L["Ver precios"]</a>
+        </div>
+    </div>
+
+    <div class="lp-hero-visual lp-fade-up lp-delay-4">
+        <div class="lp-chart-card">
+            <div class="lp-chart-head">
+                <div>
+                    <div class="lp-chart-title">@L["Simulación Monte Carlo"]</div>
+                    <div class="lp-chart-sub">@L["Bankroll · 500 trayectorias"]</div>
+                </div>
+                <span class="lp-badge-good"><span class="lp-pulse-dot"></span>@L["P(ruina) 3.2%"]</span>
+            </div>
+            <svg viewBox="0 0 640 300" class="lp-chart-svg" aria-hidden="true">
+                <line x1="0" y1="60" x2="640" y2="60" class="lp-grid-line" />
+                <line x1="0" y1="150" x2="640" y2="150" class="lp-grid-line" />
+                <line x1="0" y1="240" x2="640" y2="240" class="lp-grid-line" />
+                <path class="lp-band" d="M0,210 C120,190 180,150 320,140 C460,130 560,90 640,70
+                                          L640,220 C560,240 460,260 320,255 C180,250 120,235 0,250 Z" />
+                <path class="lp-median" d="M0,230 C120,205 180,175 320,150 C460,125 560,95 640,60" />
+                <circle cx="640" cy="60" r="5" class="lp-median-dot" />
+            </svg>
+            <div class="lp-chart-legend">
+                <span><i class="lp-legend-line"></i>@L["Mediana"]</span>
+                <span><i class="lp-legend-swatch"></i>@L["P5–P95"]</span>
+            </div>
+        </div>
+        <div class="lp-float-chip lp-float-a">@L["EV / evaluación +$412"]</div>
+        <div class="lp-float-chip lp-float-b">@L["Kelly recomendado ½ Kelly · 6.4%"]</div>
     </div>
 </section>
 
-<section class="public-section">
-    <h2>@L["Por qué {0}", Brand.Name]</h2>
-    <div class="row g-3">
-        <div class="col-md-6 col-lg-3">
-            <div class="card h-100 border-primary">
-                <div class="card-body">
-                    <h5 class="card-title">Firm Fit</h5>
-                    <p class="text-muted small mb-0">
-                        @L["Simulamos tu operativa real contra las reglas de cada firma y te decimos qué evaluación comprar — ranking por valor esperado, no por precio. Con tus datos, no con promesas."]
-                    </p>
-                </div>
+<section id="features" class="lp-section lp-reveal">
+    <span class="lp-eyebrow">@L["Por qué FundedEdge"]</span>
+    <h2 class="lp-h2">@L["Cada firma promete rentabilidad. Nosotros medimos la tuya."]</h2>
+    <div class="lp-grid lp-grid-4">
+        @foreach (var f in Features)
+        {
+            <div class="lp-card">
+                <div class="lp-icon-badge">@f.Icon</div>
+                <h3 class="lp-card-title">@f.Title</h3>
+                <p class="lp-card-text">@f.Text</p>
             </div>
-        </div>
-        <div class="col-md-6 col-lg-3">
-            <div class="card h-100">
-                <div class="card-body">
-                    <h5 class="card-title">@L["KPIs de negocio de fondeo"]</h5>
-                    <p class="text-muted small mb-0">
-                        @L["Pass rate, coste por cuenta fondeada, payout medio, ROI y cashflow neto — como ciudadanos de primera clase, no una hoja de cálculo aparte."]
-                    </p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-6 col-lg-3">
-            <div class="card h-100">
-                <div class="card-body">
-                    <h5 class="card-title">@L["Riesgo cuantitativo"]</h5>
-                    <p class="text-muted small mb-0">
-                        @L["Monte Carlo de ruina del bankroll, EV por evaluación con intervalo de confianza y fracción de Kelly — nivel institucional aplicado a tu operativa."]
-                    </p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-6 col-lg-3">
-            <div class="card h-100">
-                <div class="card-body">
-                    <h5 class="card-title">@L["Analista de IA"]</h5>
-                    <p class="text-muted small mb-0">
-                        @L["Informes que citan tus métricas exactas y la viabilidad real de tu negocio de evaluaciones — no un chatbot genérico."]
-                    </p>
-                </div>
-            </div>
-        </div>
+        }
     </div>
 </section>
 
-<section class="public-section public-anti">
-    <p class="mb-0">
-        @((MarkupString)L["No somos una prop firm ni vendemos evaluaciones. No somos señales ni promesas de rentabilidad. Somos contabilidad y estadística honesta — a veces la respuesta es que tu negocio de evaluaciones <strong>todavía</strong> no es rentable, y es mejor saberlo hoy."].Value)
-    </p>
+<section id="como-funciona" class="lp-section lp-reveal">
+    <span class="lp-eyebrow">@L["Cómo funciona"]</span>
+    <h2 class="lp-h2">@L["De tus datos crudos a una decisión clara"]</h2>
+    <div class="lp-grid lp-grid-4">
+        @foreach (var s in Steps)
+        {
+            <div class="lp-step">
+                <div class="lp-step-badge">@s.Number</div>
+                <h3 class="lp-card-title">@s.Title</h3>
+                <p class="lp-card-text">@s.Text</p>
+            </div>
+        }
+    </div>
 </section>
 
-<section class="public-section text-center">
-    <a class="btn btn-primary btn-lg" href="Account/Register">@L["Empieza gratis — 14 días de Pro incluidos"]</a>
+<section class="lp-section lp-reveal">
+    <div class="lp-disclaimer">
+        <p class="mb-0">
+            @((MarkupString)L["No somos una prop firm ni vendemos evaluaciones. No somos señales ni promesas de rentabilidad. Somos contabilidad y estadística honesta — a veces la respuesta es que tu negocio de evaluaciones <strong>todavía</strong> no es rentable, y es mejor saberlo hoy."].Value)
+        </p>
+    </div>
 </section>
+
+<section class="lp-section">
+    <div class="lp-cta-band">
+        <h2 class="lp-h2">@L["Empieza gratis — 14 días de Pro incluidos"]</h2>
+        <p class="lp-lead">@L["Sin tarjeta. Cancela cuando quieras."]</p>
+        <a class="btn btn-light btn-lg" href="Account/Register">@L["Crear cuenta"]</a>
+    </div>
+</section>
+
+<section id="precios" class="lp-section lp-reveal">
+    <span class="lp-eyebrow">@L["Precios"]</span>
+    <h2 class="lp-h2">@L["Precios simples, sin sorpresas"]</h2>
+    <p class="lp-lead lp-center">@L["14 días de Pro gratis al registrarte, sin tarjeta. Cancela cuando quieras."]</p>
+    <div class="lp-grid lp-grid-3">
+        @foreach (var plan in Catalog)
+        {
+            <div class="lp-plan @(plan.Highlight ? "lp-plan-highlight" : "")">
+                @if (plan.Highlight)
+                {
+                    <span class="lp-plan-tag">@L["Más elegido"]</span>
+                }
+                <h3 class="lp-card-title">@plan.Name</h3>
+                <div class="lp-plan-price">@plan.Price</div>
+                @if (plan.YearlyPrice is not null)
+                {
+                    <p class="lp-plan-yearly">@L["o {0} €/año (ahorra ~17 %)", plan.YearlyPrice]</p>
+                }
+                <p class="lp-card-text">@plan.Subtitle</p>
+                <ul class="lp-plan-features">
+                    @foreach (var feature in plan.Features)
+                    {
+                        <li><svg viewBox="0 0 15 15" class="lp-check" aria-hidden="true"><polyline points="2 8 6 12 13 3" /></svg>@feature</li>
+                    }
+                </ul>
+                <a class="btn @(plan.Highlight ? "btn-primary" : "btn-outline-secondary") w-100" href="Account/Register">
+                    @L["Empezar con {0}", plan.Name]
+                </a>
+            </div>
+        }
+    </div>
+</section>
+
+<section class="lp-section lp-reveal">
+    <h2 class="lp-h2 lp-center">@L["Preguntas frecuentes"]</h2>
+    <div class="lp-faq">
+        @for (var i = 0; i < Faqs.Length; i++)
+        {
+            var index = i;
+            var faq = Faqs[index];
+            <div class="lp-faq-row @(OpenFaq == index ? "lp-open" : "")">
+                <button type="button" class="lp-faq-question" @onclick="() => ToggleFaq(index)">
+                    <span>@faq.Question</span>
+                    <span class="lp-faq-plus" aria-hidden="true"></span>
+                </button>
+                <div class="lp-faq-answer">
+                    <p class="text-muted small mb-0">@faq.Answer</p>
+                </div>
+            </div>
+        }
+    </div>
+</section>
+
+<script src="js/landing-reveal.js"></script>
 
 @code {
     private string SeoTitle => $"{Brand.Name} — {L[Brand.Tagline]}";
     private string SeoDescription => L[Brand.Description];
+
+    private int OpenFaq = -1;
+    private void ToggleFaq(int index) => OpenFaq = OpenFaq == index ? -1 : index;
+
+    private sealed record FeatureItem(string Icon, string Title, string Text);
+    private sealed record StepItem(string Number, string Title, string Text);
+    private sealed record PublicPlan(string Name, string Price, decimal? YearlyPrice, string Subtitle, string[] Features, bool Highlight);
+    private sealed record FaqItem(string Question, string Answer);
+
+    private FeatureItem[] Features => [
+        new("◆", "Firm Fit", L["Simulamos tu operativa real contra las reglas de cada firma y te decimos qué evaluación comprar — ranking por valor esperado, no por precio."]),
+        new("▤", L["KPIs de negocio de fondeo"], L["Pass rate, coste por cuenta fondeada, payout medio, ROI y cashflow neto — como ciudadanos de primera clase, no una hoja de cálculo aparte."]),
+        new("△", L["Riesgo cuantitativo"], L["Monte Carlo de ruina del bankroll, EV por evaluación con intervalo de confianza y fracción de Kelly — nivel institucional aplicado a tu operativa."]),
+        new("✦", L["Analista de IA"], L["Informes que citan tus métricas exactas y la viabilidad real de tu negocio de evaluaciones — no un chatbot genérico."]),
+    ];
+
+    private StepItem[] Steps => [
+        new("01", L["Conecta tus cuentas"], L["Añade cada cuenta de fondeo — Lucid, Tradeify, Apex u otras — con su tamaño, reglas y coste."]),
+        new("02", L["Registra o sincroniza"], L["Journal manual, importa CSV, o sincroniza Tradovate/NinjaTrader automáticamente."]),
+        new("03", L["Revisa KPIs y riesgo"], L["Dashboard de negocio y trading, EV, Monte Carlo de bankroll y fracción de Kelly."]),
+        new("04", L["Decide con datos"], L["Sabe qué evaluación comprar después y si tu operativa es, de verdad, rentable."]),
+    ];
+
+    // Precios anuales = 149 €/299 € (GUIA_MONETIZACION_Y_MARKETING.md §3), coherentes con los
+    // Price Id de Stripe (Stripe:Prices:*Yearly) y el toggle real de /plan.
+    private PublicPlan[] Catalog =>
+    [
+        new("Starter", L["Gratis"], null, L["Para probar la app"],
+        [
+            L["{0} cuentas activas", PlanLimits.For(PlanTier.Starter).MaxActiveAccounts!],
+            L["Firm Fit: tu mejor programa"],
+            L["Semáforo EV básico"],
+            L["{0} informe IA cada {1} días", PlanLimits.For(PlanTier.Starter).AiReportsPerWindow, PlanLimits.For(PlanTier.Starter).AiReportWindowDays],
+            L["{0} preguntas IA al mes", PlanLimits.For(PlanTier.Starter).AiQuestionsPerMonth!],
+        ], false),
+        new("Pro", "14,99 €/mes", 149m, L["Para el trader con varias cuentas"],
+        [
+            L["{0} cuentas activas", PlanLimits.For(PlanTier.Pro).MaxActiveAccounts!],
+            L["Sincronización automática (Tradovate / NinjaTrader)"],
+            L["Firm Fit completo: ranking, reglas y plan de compra"],
+            L["Módulo de riesgo completo (Monte Carlo, EV, Kelly)"],
+            L["{0} informe IA cada {1} días", PlanLimits.For(PlanTier.Pro).AiReportsPerWindow, PlanLimits.For(PlanTier.Pro).AiReportWindowDays],
+            L["{0} preguntas IA al mes", PlanLimits.For(PlanTier.Pro).AiQuestionsPerMonth!],
+        ], true),
+        new("Elite", "29,99 €/mes", 299m, L["Para el operador serio"],
+        [
+            L["Cuentas activas ilimitadas"],
+            L["Firm Fit completo: ranking, reglas y plan de compra"],
+            L["{0} informe IA cada {1} día (modelo avanzado)", PlanLimits.For(PlanTier.Elite).AiReportsPerWindow, PlanLimits.For(PlanTier.Elite).AiReportWindowDays],
+            L["Preguntas IA ilimitadas"],
+            L["Track record público"],
+        ], false),
+    ];
+
+    private FaqItem[] Faqs => [
+        new(L["¿Qué pasa si bajo de plan y tengo más cuentas de las permitidas?"], L["No se borra nada. Las cuentas por encima del límite pasan a solo lectura hasta que archives el exceso o vuelvas a subir de plan."]),
+        new(L["¿Qué cuenta como \"cuenta activa\"?"], L["Cualquier cuenta en evaluación o fondeada. Las cuentas fallidas, retiradas o expiradas no cuentan para tu límite."]),
+        new(L["¿Cómo funciona el trial?"], L["Al registrarte tienes 14 días con las funcionalidades de Pro, sin necesidad de tarjeta. Al terminar, tu cuenta pasa a Starter automáticamente si no has mejorado de plan."]),
+        new(L["¿Qué modelo de IA usa cada plan?"], L["Starter y Pro usan un modelo rápido y económico (Haiku); Elite usa el modelo más avanzado disponible (Opus) para análisis más profundos."]),
+        new(L["¿Cómo cancelo?"], L["Desde /plan, en cualquier momento. Mantienes el acceso hasta el final del periodo ya pagado."]),
+    ];
 
     // Datos estructurados: producto SaaS financiero con plan gratuito. Se serializa con
     // System.Text.Json para garantizar JSON válido y escapado (incluye < > & como \u..., seguro

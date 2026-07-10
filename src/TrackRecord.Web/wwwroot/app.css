@@ -1433,6 +1433,553 @@ input[type="file"] {
 }
 
 /* ============================================================
+   Landing page rediseño — /bienvenida (fusiona hero + precios)
+   Ver README de handoff de diseño para el detalle de cada sección.
+   ============================================================ */
+
+.lp-section {
+    padding: clamp(3rem, 7vw, 6rem) 0;
+}
+
+.lp-eyebrow {
+    display: block;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--accent-strong);
+    margin-bottom: 0.6rem;
+}
+
+.lp-h2 {
+    font-family: var(--font-display);
+    text-align: center;
+    max-width: 38rem;
+    margin: 0 auto 2.4rem;
+    font-size: clamp(1.6rem, 3vw, 2.2rem);
+}
+
+.lp-h2.lp-center {
+    max-width: 900px;
+}
+
+.lp-center {
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.lp-chip {
+    display: inline-block;
+    padding: 0.4rem 0.9rem;
+    border-radius: 999px;
+    background: rgba(47, 214, 163, 0.12);
+    border: 1px solid rgba(47, 214, 163, 0.3);
+    color: #5ce6ba;
+    text-transform: uppercase;
+    font-size: 0.76rem;
+    letter-spacing: 0.08em;
+    font-weight: 600;
+    margin-bottom: 1.2rem;
+}
+
+.lp-hero {
+    display: grid;
+    grid-template-columns: 1.05fr 1fr;
+    gap: 2.5rem;
+    align-items: center;
+    padding: clamp(2.5rem, 6vw, 4rem) 0;
+}
+
+@media (max-width: 900px) {
+    .lp-hero {
+        grid-template-columns: 1fr;
+    }
+}
+
+.lp-hero-copy h1 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(2.2rem, 5vw, 3.6rem);
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    margin: 0 0 1.1rem;
+}
+
+.lp-accent-text {
+    color: #5ce6ba;
+}
+
+.lp-hero-copy .lp-lead {
+    max-width: 34rem;
+}
+
+.lp-hero-actions {
+    display: flex;
+    gap: 0.9rem;
+    margin-top: 1.6rem;
+    flex-wrap: wrap;
+}
+
+.lp-lead {
+    font-size: clamp(1.02rem, 1.3vw, 1.2rem);
+    color: var(--text-2);
+    line-height: 1.6;
+}
+
+.lp-hero-visual {
+    position: relative;
+}
+
+.lp-chart-card {
+    background: #0f141f;
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 20px;
+    padding: 1.6rem;
+}
+
+.lp-chart-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+
+.lp-chart-title {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.lp-chart-sub {
+    font-size: 0.78rem;
+    color: var(--text-3);
+}
+
+.lp-badge-good {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--good-text);
+    background: var(--good-soft);
+    border: 1px solid rgba(63, 185, 80, 0.3);
+    border-radius: 999px;
+    padding: 3px 9px;
+    white-space: nowrap;
+}
+
+.lp-pulse-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: currentColor;
+    animation: lp-pulse 1.8s ease-in-out infinite;
+}
+
+.lp-chart-svg {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.lp-grid-line {
+    stroke: rgba(255, 255, 255, 0.07);
+    stroke-width: 1;
+}
+
+.lp-band {
+    fill: var(--accent);
+    fill-opacity: 0.14;
+    stroke: none;
+    transform-origin: center;
+    animation: lp-band-in 0.9s var(--ease) 0.4s both;
+}
+
+.lp-median {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 3;
+    stroke-linecap: round;
+    filter: drop-shadow(0 0 6px rgba(47, 214, 163, 0.5));
+    stroke-dasharray: 1500;
+    stroke-dashoffset: 1500;
+    animation: lp-draw 1.6s var(--ease) 0.5s forwards;
+}
+
+.lp-median-dot {
+    fill: var(--accent-strong);
+}
+
+.lp-chart-legend {
+    display: flex;
+    gap: 1.2rem;
+    margin-top: 0.9rem;
+    font-size: 0.78rem;
+    color: var(--text-2);
+}
+
+.lp-chart-legend span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.lp-legend-line {
+    width: 14px;
+    height: 3px;
+    background: var(--accent);
+    border-radius: 2px;
+}
+
+.lp-legend-swatch {
+    width: 12px;
+    height: 12px;
+    background: var(--accent);
+    opacity: 0.3;
+    border-radius: 3px;
+}
+
+.lp-float-chip {
+    position: absolute;
+    background: #0f141f;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 12px;
+    padding: 0.55rem 0.9rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    box-shadow: 0 20px 40px -20px rgba(0, 0, 0, 0.7);
+    animation: lp-float 6.5s ease-in-out infinite;
+}
+
+.lp-float-a {
+    top: -1rem;
+    right: 1rem;
+    color: var(--good-text);
+    animation-delay: 0s;
+}
+
+.lp-float-b {
+    bottom: -1rem;
+    left: 1rem;
+    color: var(--text-1);
+    animation-delay: 0.8s;
+}
+
+.lp-grid {
+    display: grid;
+    gap: 1.4rem;
+}
+
+.lp-grid-4 {
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.lp-grid-3 {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.lp-card {
+    background: #0f141f;
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 18px;
+    padding: 1.9rem 1.7rem;
+    transition: border-color 0.15s var(--ease), transform 0.15s var(--ease), box-shadow 0.15s var(--ease);
+}
+
+.lp-card:hover {
+    border-color: rgba(47, 214, 163, 0.4);
+    transform: translateY(-4px);
+    box-shadow: 0 22px 50px -26px rgba(0, 0, 0, 0.7);
+}
+
+.lp-icon-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.6rem;
+    height: 2.6rem;
+    border-radius: 12px;
+    background: rgba(47, 214, 163, 0.12);
+    border: 1px solid rgba(47, 214, 163, 0.28);
+    color: #5ce6ba;
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+}
+
+.lp-card-title {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin-bottom: 0.4rem;
+}
+
+.lp-card-text {
+    color: var(--text-2);
+    font-size: 0.92rem;
+    line-height: 1.55;
+    margin: 0;
+}
+
+.lp-step-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.7rem;
+    height: 2.7rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color: #05231b;
+    font-family: var(--font-mono);
+    font-weight: 650;
+    margin-bottom: 1rem;
+}
+
+.lp-step .lp-card-text {
+    font-size: 0.88rem;
+}
+
+.lp-disclaimer {
+    max-width: 46rem;
+    margin: 0 auto;
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.015);
+    padding: 1.8rem 2rem;
+    text-align: center;
+    color: var(--text-2);
+    font-size: 0.95rem;
+}
+
+.lp-cta-band {
+    border-radius: 28px;
+    padding: clamp(2.5rem, 5vw, 3.5rem) 2rem;
+    text-align: center;
+    background: linear-gradient(135deg, #1a4d3f, #0f2e3a),
+                radial-gradient(circle at 15% 20%, rgba(47, 214, 163, 0.18), transparent 55%),
+                radial-gradient(circle at 85% 80%, rgba(217, 165, 33, 0.18), transparent 55%);
+    background-blend-mode: normal;
+}
+
+.lp-cta-band .lp-h2 {
+    color: var(--text-1);
+}
+
+.lp-cta-band .lp-lead {
+    max-width: 30rem;
+    margin: 0 auto 1.6rem;
+}
+
+.lp-plan {
+    position: relative;
+    background: #0f141f;
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 20px;
+    padding: 1.9rem 1.7rem;
+    display: flex;
+    flex-direction: column;
+    transition: border-color 0.15s var(--ease), transform 0.15s var(--ease), box-shadow 0.15s var(--ease);
+}
+
+.lp-plan:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 22px 50px -26px rgba(0, 0, 0, 0.7);
+}
+
+.lp-plan-highlight {
+    border-color: rgba(47, 214, 163, 0.45);
+}
+
+.lp-plan-tag {
+    position: absolute;
+    top: -0.8rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--accent);
+    color: #05231b;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 0.25rem 0.8rem;
+    border-radius: 999px;
+}
+
+.lp-plan-price {
+    font-family: var(--font-mono);
+    font-weight: 650;
+    font-size: 2rem;
+}
+
+.lp-plan-yearly {
+    color: var(--text-3);
+    font-size: 0.82rem;
+    margin-bottom: 0.6rem;
+}
+
+.lp-plan-features {
+    list-style: none;
+    margin: 1rem 0 1.4rem;
+    padding: 0;
+    flex-grow: 1;
+    display: grid;
+    gap: 0.6rem;
+    font-size: 0.88rem;
+    color: var(--text-2);
+}
+
+.lp-plan-features li {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.lp-check {
+    width: 15px;
+    height: 15px;
+    flex: none;
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.lp-faq {
+    display: grid;
+    gap: 0.9rem;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.lp-faq-row {
+    background: #0f141f;
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 14px;
+    overflow: hidden;
+}
+
+.lp-faq-question {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    background: none;
+    border: none;
+    color: var(--text-1);
+    font-weight: 600;
+    text-align: left;
+    padding: 1rem 1.2rem;
+    cursor: pointer;
+}
+
+.lp-faq-plus {
+    position: relative;
+    width: 14px;
+    height: 14px;
+    flex: none;
+    transition: transform 0.2s var(--ease);
+}
+
+.lp-faq-plus::before,
+.lp-faq-plus::after {
+    content: "";
+    position: absolute;
+    background: var(--accent-strong);
+}
+
+.lp-faq-plus::before {
+    top: 50%;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    transform: translateY(-50%);
+}
+
+.lp-faq-plus::after {
+    left: 50%;
+    top: 0;
+    width: 2px;
+    height: 100%;
+    transform: translateX(-50%);
+}
+
+.lp-faq-row.lp-open .lp-faq-plus {
+    transform: rotate(45deg);
+}
+
+.lp-faq-answer {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.28s ease;
+    padding: 0 1.2rem;
+}
+
+.lp-faq-row.lp-open .lp-faq-answer {
+    max-height: 220px;
+    padding: 0 1.2rem 1.1rem;
+}
+
+/* Scroll-reveal (features, cómo funciona, disclaimer, precios, FAQ) */
+.lp-reveal {
+    opacity: 0;
+    transform: translateY(28px);
+    transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.lp-reveal.lp-in {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Hero on-load fade-up */
+.lp-fade-up {
+    opacity: 0;
+    transform: translateY(22px);
+    animation: lp-fade-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.lp-delay-0 { animation-delay: 0s; }
+.lp-delay-1 { animation-delay: 0.06s; }
+.lp-delay-2 { animation-delay: 0.12s; }
+.lp-delay-3 { animation-delay: 0.18s; }
+.lp-delay-4 { animation-delay: 0.15s; }
+
+@keyframes lp-fade-up {
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes lp-band-in {
+    from { transform: scaleY(0.7); }
+    to { transform: scaleY(1); }
+}
+
+@keyframes lp-draw {
+    to { stroke-dashoffset: 0; }
+}
+
+@keyframes lp-float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+}
+
+@keyframes lp-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.35; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .lp-reveal, .lp-fade-up, .lp-band, .lp-median, .lp-float-chip, .lp-pulse-dot {
+        animation: none !important;
+        transition: none !important;
+        opacity: 1 !important;
+        transform: none !important;
+        stroke-dashoffset: 0 !important;
+    }
+}
+
+/* ============================================================
    Export del track record (/export) e impresión
    ============================================================ */
 
