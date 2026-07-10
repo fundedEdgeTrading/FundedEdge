@@ -8,6 +8,7 @@ public record TradingAccountListItemDto(
     Guid PropFirmId,
     string PropFirmName,
     decimal AccountSize,
+    decimal ProfitTarget,
     AccountStage Stage,
     DataFeedType Feed,
     string? ExternalAccountId,

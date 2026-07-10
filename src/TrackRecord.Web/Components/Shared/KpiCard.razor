@@ -1,10 +1,29 @@
 <div class="stat-tile">
-    <div class="stat-label">@Title</div>
+    @if (Delta is not null)
+    {
+        <div class="stat-top">
+            <div class="stat-label">@Title</div>
+            <span class="delta @(DeltaGood ? "up" : "down")">@(DeltaGood ? "▲" : "▼") @Delta</span>
+        </div>
+    }
+    else
+    {
+        <div class="stat-label">@Title</div>
+    }
     <div class="stat-value @Emphasis">@Value</div>
+    @if (!string.IsNullOrWhiteSpace(Sub))
+    {
+        <div class="stat-sub">@Sub</div>
+    }
 </div>
 
 @code {
     [Parameter, EditorRequired] public string Title { get; set; } = "";
     [Parameter, EditorRequired] public string Value { get; set; } = "";
     [Parameter] public string Emphasis { get; set; } = "";
+    /// <summary>Variación vs. periodo anterior, ya formateada ("12.4%", "$249").</summary>
+    [Parameter] public string? Delta { get; set; }
+    /// <summary>Semántica del delta para el trader: true = favorable (verde).</summary>
+    [Parameter] public bool DeltaGood { get; set; }
+    [Parameter] public string? Sub { get; set; }
 }

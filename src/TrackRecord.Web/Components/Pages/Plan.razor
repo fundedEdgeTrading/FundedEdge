@@ -15,14 +15,19 @@
 
 @if (_tier is null)
 {
-    <p class="text-muted">@L["Cargando…"]</p>
+    <div class="card" aria-label="@L["Cargando…"]">
+        <div class="card-body">
+            <div class="skeleton skeleton-label mb-2" style="width:35%"></div>
+            <div class="skeleton skeleton-label" style="width:75%"></div>
+        </div>
+    </div>
 }
 else
 {
     <div class="card mb-4">
         <div class="card-body">
             <div class="d-flex justify-content-between align-items-center">
-                <h5 class="card-title mb-0">@L["Plan actual:"] <span class="badge text-bg-primary">@_tier</span></h5>
+                <h5 class="card-title mb-0">@L["Plan actual:"] <span class="stage stage-accent">@_tier</span></h5>
             </div>
             <p class="small text-muted mt-2 mb-0">
                 @L["Cuentas activas:"] @_activeAccounts / @(_limits!.MaxActiveAccounts?.ToString() ?? "∞") ·
@@ -51,15 +56,21 @@ else
         @foreach (var plan in PlanCatalog)
         {
             <div class="col-md-4">
-                <div class="card h-100 @(plan.Tier == _tier ? "border-primary" : "")">
+                <div class="card h-100 plan-card @(plan.Tier == _tier ? "plan-current" : "")">
                     <div class="card-body d-flex flex-column">
-                        <h5 class="card-title">@plan.Tier</h5>
-                        <p class="fw-bold mb-0">@PriceLabel(plan)</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="card-title mb-0">@plan.Tier</h5>
+                            @if (plan.Tier == _tier)
+                            {
+                                <span class="stage stage-accent">@L["Tu plan actual"]</span>
+                            }
+                        </div>
+                        <p class="plan-price">@PriceLabel(plan)</p>
                         @if (_yearly && plan.MonthlyPrice is not null)
                         {
-                            <p class="text-muted small">@L["equivale a {0}", MonthlyEquivalent(plan)]</p>
+                            <p class="text-muted small mb-0">@L["equivale a {0}", MonthlyEquivalent(plan)]</p>
                         }
-                        <ul class="small text-muted flex-grow-1">
+                        <ul class="plan-features flex-grow-1">
                             @foreach (var feature in plan.Features)
                             {
                                 <li>@L[feature]</li>

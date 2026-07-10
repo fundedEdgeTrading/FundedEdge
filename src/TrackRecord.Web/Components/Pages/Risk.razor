@@ -15,7 +15,15 @@
 
 @if (_defaults is null)
 {
-    <p><em>@L["Cargando…"]</em></p>
+    <div class="kpi-grid" aria-label="@L["Cargando…"]">
+        @for (var i = 0; i < 4; i++)
+        {
+            <div class="stat-tile">
+                <div class="skeleton skeleton-label"></div>
+                <div class="skeleton skeleton-value"></div>
+            </div>
+        }
+    </div>
 }
 else
 {
@@ -25,7 +33,7 @@ else
                 <h5 class="card-title">@L["EV por evaluación (observado)"]</h5>
                 @if (_defaults.Ev is not null)
                 {
-                    <span class="badge @EvBadgeClass()">@EvBadgeText()</span>
+                    <span class="stage @EvBadgeClass()">@EvBadgeText()</span>
                 }
             </div>
             @if (_defaults.Ev is null)
@@ -61,8 +69,11 @@ else
             </p>
             <EditForm Model="_plannerForm" OnValidSubmit="RunPlannerAsync" class="row g-2 align-items-end">
                 <div class="col-md-2">
-                    <label class="form-label">Bankroll (@Currency.Symbol)</label>
-                    <InputNumber class="form-control" @bind-Value="_plannerForm.Bankroll" />
+                    <label class="form-label">Bankroll</label>
+                    <div class="igroup">
+                        <span class="prefix">@Currency.Symbol</span>
+                        <InputNumber class="form-control" @bind-Value="_plannerForm.Bankroll" />
+                    </div>
                 </div>
                 <div class="col-md-2">
                     <label class="form-label">@L["Evaluaciones/mes"]</label>
@@ -258,9 +269,9 @@ else
 
     private string EvBadgeClass() => _defaults!.Ev switch
     {
-        { EvPerEvaluation: > 0, SampleSize: >= 20 } => "text-bg-success",
-        { EvPerEvaluation: > 0 } => "text-bg-warning",
-        _ => "text-bg-danger",
+        { EvPerEvaluation: > 0, SampleSize: >= 20 } => "stage-funded",
+        { EvPerEvaluation: > 0 } => "stage-warn",
+        _ => "stage-failed",
     };
 
     private string EvBadgeText() => _defaults!.Ev switch

@@ -1,0 +1,71 @@
+@* Tarjeta de cuenta para listados: P&L grande, progreso a profit target y
+   costes/payouts en el pie. Toda la tarjeta es clicable. *@
+@inject CurrencyState Currency
+@inject IStringLocalizer<SharedResources> L
+
+<div class="account-card" tabindex="0" role="link"
+     @onclick="() => OnOpen.InvokeAsync(Account.Id)"
+     @onkeydown="OnKeyDown">
+    <div class="ac-head">
+        <div class="firm-mark">@FirmInitials</div>
+        <div class="ac-title">
+            <b>@Account.DisplayName</b>
+            <span>@Account.PropFirmName · @Currency.Format(Account.AccountSize, 0)</span>
+        </div>
+        <span class="stage @StageClass">@Account.Stage</span>
+    </div>
+    <div class="ac-pnl">
+        <span class="val @(Account.NetPnL >= 0 ? "text-success" : "text-danger")">@Currency.Format(Account.NetPnL)</span>
+        <span class="lbl">Net P&amp;L</span>
+    </div>
+    @if (Account.Stage == AccountStage.Evaluation && Account.ProfitTarget > 0)
+    {
+        <div class="meters">
+            <div>
+                <div class="meter-cap">
+                    <span>Profit target</span>
+                    <span class="mono">@Currency.Format(Math.Max(Account.NetPnL, 0), 0) / @Currency.Format(Account.ProfitTarget, 0) · @TargetPct%</span>
+                </div>
+                <div class="track"><div class="fill fill-target" style="width:@(TargetPct)%"></div></div>
+            </div>
+        </div>
+    }
+    <div class="ac-foot">
+        <span class="kv">@L["Costes"] <b>@Currency.Format(Account.TotalCosts, 0)</b> · Payouts <b>@Currency.Format(Account.TotalPayoutsReceived, 0)</b></span>
+        <span class="go">@L["Ver detalle"] →</span>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public TradingAccountListItemDto Account { get; set; } = default!;
+    [Parameter] public EventCallback<Guid> OnOpen { get; set; }
+
+    private int TargetPct => Account.ProfitTarget <= 0 ? 0
+        : (int)Math.Clamp(Math.Round(Account.NetPnL / Account.ProfitTarget * 100), 0, 100);
+
+    private string FirmInitials
+    {
+        get
+        {
+            var words = Account.PropFirmName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            return words.Length switch
+            {
+                0 => "?",
+                1 => words[0][..Math.Min(2, words[0].Length)].ToUpperInvariant(),
+                _ => $"{char.ToUpperInvariant(words[0][0])}{char.ToUpperInvariant(words[1][0])}",
+            };
+        }
+    }
+
+    private string StageClass => Account.Stage switch
+    {
+        AccountStage.Funded => "stage-funded",
+        AccountStage.Failed => "stage-failed",
+        AccountStage.Expired => "stage-warn",
+        AccountStage.Withdrawn => "stage-muted",
+        _ => "stage-eval",
+    };
+
+    private Task OnKeyDown(KeyboardEventArgs e)
+        => e.Key is "Enter" or " " ? OnOpen.InvokeAsync(Account.Id) : Task.CompletedTask;
+}

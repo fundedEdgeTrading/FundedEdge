@@ -22,15 +22,21 @@
 
 @if (_showCreateForm)
 {
-    <div class="card mb-4">
-        <div class="card-body">
-            <h5 class="card-title">@L["Nueva cuenta"]</h5>
-            <EditForm Model="_form" OnValidSubmit="CreateAsync">
-                <DataAnnotationsValidator />
-                <ValidationSummary />
-                <div class="row g-2">
-                    <div class="col-md-3">
-                        <label class="form-label">@L["Firma"]</label>
+    <div class="form-card mb-4 mt-3">
+        <EditForm Model="_form" OnValidSubmit="CreateAsync">
+            <DataAnnotationsValidator />
+
+            <div class="form-head">
+                <h3 class="form-title">@L["Nueva cuenta"]</h3>
+                <p>@L["Elige la firma y el programa: las reglas se rellenan solas. El modo manual pide las reglas a mano."]</p>
+            </div>
+
+            <fieldset class="fgroup">
+                <legend>1 · @L["Identificación"]</legend>
+                <p class="gdesc">@L["Qué cuenta es y de quién."]</p>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">@L["Firma"] <span class="req">*</span></label>
                         <InputSelect class="form-select" @bind-Value="_form.PropFirmId" @bind-Value:after="OnFirmChangedAsync">
                             <option value="">@L["Selecciona…"]</option>
                             @if (_firms is not null)
@@ -41,8 +47,9 @@
                                 }
                             }
                         </InputSelect>
+                        <ValidationMessage For="() => _form.PropFirmId" />
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-4">
                         <label class="form-label">@L["Programa"]</label>
                         <InputSelect class="form-select" @bind-Value="_form.EvaluationProgramId" @bind-Value:after="OnProgramChangedAsync"
                                      disabled="@(_programs is null || _programs.Count == 0)">
@@ -55,12 +62,141 @@
                                 }
                             }
                         </InputSelect>
+                        <div class="form-hint">@L["Rellena las reglas automáticamente"]</div>
                     </div>
-                    <div class="col-md-3">
-                        <label class="form-label">@L["Nombre / alias"]</label>
+                    <div class="col-md-4">
+                        <label class="form-label">@L["Nombre / alias"] <span class="req">*</span></label>
                         <InputText class="form-control" @bind-Value="_form.DisplayName" placeholder="Apex 50K #3" />
+                        <div class="form-hint">@L["Como quieras verla en tus listados"]</div>
+                        <ValidationMessage For="() => _form.DisplayName" />
                     </div>
-                    <div class="col-md-2">
+                </div>
+            </fieldset>
+
+            <fieldset class="fgroup">
+                <legend>2 · @L["Reglas del programa"]</legend>
+                @if (_selectedProgram is not null)
+                {
+                    <p class="gdesc">@L["Autocompletadas desde"] <b>@_selectedProgram.Name</b>. @L["Ficha técnica de referencia:"]</p>
+                    <div class="spec">
+                        <div class="spec-head">
+                            <b>@_selectedProgram.Name — @(_firms?.FirstOrDefault(f => f.Id == _form.PropFirmId)?.Name)</b>
+                            <span class="stage stage-eval">@L["Ficha del programa"]</span>
+                        </div>
+                        <div class="spec-cols">
+                            <div class="spec-col">
+                                <h4>@L["Evaluación"]</h4>
+                                <dl>
+                                    <div class="kv2"><dt>@L["Tamaño"]</dt><dd>@Currency.Format(_selectedProgram.AccountSize, 0)</dd></div>
+                                    <div class="kv2"><dt>Profit target</dt><dd>@Currency.Format(_selectedProgram.ProfitTarget)</dd></div>
+                                    <div class="kv2"><dt>Max drawdown</dt><dd>@Currency.Format(_selectedProgram.MaxDrawdown) · @_selectedProgram.DrawdownType</dd></div>
+                                    @if (_selectedProgram.DailyLossLimit.HasValue)
+                                    {
+                                        <div class="kv2"><dt>@L["Daily loss limit"]</dt><dd>@Currency.Format(_selectedProgram.DailyLossLimit.Value)</dd></div>
+                                    }
+                                    @if (_selectedProgram.MinTradingDays.HasValue)
+                                    {
+                                        <div class="kv2"><dt>@L["Días mínimos"]</dt><dd>@_selectedProgram.MinTradingDays</dd></div>
+                                    }
+                                    @if (_selectedProgram.ConsistencyMaxDayFraction.HasValue)
+                                    {
+                                        <div class="kv2"><dt>@L["Consistencia máx."]</dt><dd>@_selectedProgram.ConsistencyMaxDayFraction.Value.ToString("P0")</dd></div>
+                                    }
+                                    <div class="kv2"><dt>@L["Coste eval."]</dt><dd>@Currency.Format(_selectedProgram.EvaluationCost)</dd></div>
+                                    @if (_selectedProgram.ActivationCost > 0)
+                                    {
+                                        <div class="kv2"><dt>@L["Coste activación"]</dt><dd>@Currency.Format(_selectedProgram.ActivationCost)</dd></div>
+                                    }
+                                </dl>
+                            </div>
+                            <div class="spec-col">
+                                <h4>@L["Fase fondeada"]</h4>
+                                <dl>
+                                    <div class="kv2"><dt>Drawdown</dt><dd>@(_selectedProgram.FundedDrawdownType?.ToString() ?? _selectedProgram.DrawdownType.ToString())</dd></div>
+                                    <div class="kv2"><dt>Max drawdown</dt><dd>@Currency.Format(_selectedProgram.FundedMaxDrawdown ?? _selectedProgram.MaxDrawdown)</dd></div>
+                                    @if ((_selectedProgram.FundedDailyLossLimit ?? _selectedProgram.DailyLossLimit).HasValue)
+                                    {
+                                        <div class="kv2"><dt>Daily loss</dt><dd>@Currency.Format((_selectedProgram.FundedDailyLossLimit ?? _selectedProgram.DailyLossLimit)!.Value)</dd></div>
+                                    }
+                                    @if (_selectedProgram.FundedMinTradingDays.HasValue)
+                                    {
+                                        <div class="kv2"><dt>@L["Días mínimos"]</dt><dd>@_selectedProgram.FundedMinTradingDays</dd></div>
+                                    }
+                                </dl>
+                            </div>
+                            <div class="spec-col">
+                                <h4>Payout</h4>
+                                <dl>
+                                    <div class="kv2"><dt>Split trader</dt><dd>@_selectedProgram.PayoutSplitTraderPct.ToString("P0")</dd></div>
+                                    @if (_selectedProgram.PayoutMaxProfitPct.HasValue)
+                                    {
+                                        <div class="kv2"><dt>@L["Cap retiro"]</dt><dd>@_selectedProgram.PayoutMaxProfitPct.Value.ToString("P0") @L["del profit"]</dd></div>
+                                    }
+                                    @if (_selectedProgram.PayoutMinDaysBetween.HasValue)
+                                    {
+                                        <div class="kv2"><dt>@L["Días entre payouts"]</dt><dd>@_selectedProgram.PayoutMinDaysBetween</dd></div>
+                                    }
+                                </dl>
+                            </div>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <p class="gdesc">@L["Sin programa seleccionado: define las reglas a mano."]</p>
+                    <div class="row g-3">
+                        <div class="col-md-3 col-6">
+                            <label class="form-label">@L["Tamaño cuenta"]</label>
+                            <div class="igroup">
+                                <span class="prefix">@Currency.Symbol</span>
+                                <InputNumber class="form-control" @bind-Value="_form.AccountSize" />
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <label class="form-label">Profit target</label>
+                            <div class="igroup">
+                                <span class="prefix">@Currency.Symbol</span>
+                                <InputNumber class="form-control" @bind-Value="_form.ProfitTarget" />
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <label class="form-label">Max drawdown</label>
+                            <div class="igroup">
+                                <span class="prefix">@Currency.Symbol</span>
+                                <InputNumber class="form-control" @bind-Value="_form.MaxDrawdown" />
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <label class="form-label">@L["Tipo de drawdown"]</label>
+                            <div class="currency-toggle seg-block" role="group" aria-label="@L["Tipo de drawdown"]">
+                                @foreach (var v in Enum.GetValues<DrawdownType>())
+                                {
+                                    <button type="button"
+                                            class="currency-option @(_form.DrawdownType == v ? "active" : null)"
+                                            @onclick="() => _form.DrawdownType = v">@v</button>
+                                }
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <label class="form-label">@L["Coste evaluación"]</label>
+                            <div class="igroup">
+                                <span class="prefix">@Currency.Symbol</span>
+                                <InputNumber class="form-control" @bind-Value="_form.EvaluationCost" />
+                            </div>
+                        </div>
+                    </div>
+                }
+            </fieldset>
+
+            <fieldset class="fgroup">
+                <legend>3 · @L["Compra y conexión"]</legend>
+                <p class="gdesc">@L["Cuándo la compraste y de dónde llegan los datos."]</p>
+                <div class="row g-3">
+                    <div class="col-md-3 col-6">
+                        <label class="form-label">@L["Fecha de compra"]</label>
+                        <InputDate class="form-control" @bind-Value="_form.PurchasedOn" />
+                    </div>
+                    <div class="col-md-3 col-6">
                         <label class="form-label">@L["Feed / plataforma"]</label>
                         <InputSelect class="form-select" @bind-Value="_form.Feed">
                             @foreach (var v in Enum.GetValues<DataFeedType>())
@@ -69,109 +205,27 @@
                             }
                         </InputSelect>
                     </div>
-                    <div class="col-md-2">
-                        <label class="form-label">@L["Fecha de compra"]</label>
-                        <InputDate class="form-control" @bind-Value="_form.PurchasedOn" />
-                    </div>
-
-                    @if (_form.EvaluationProgramId is null)
-                    {
-                        @* Modo manual: campos editables *@
-                        <div class="col-md-2">
-                            <label class="form-label">@L["Tamaño cuenta"]</label>
-                            <InputNumber class="form-control" @bind-Value="_form.AccountSize" />
-                        </div>
-                        <div class="col-md-2">
-                            <label class="form-label">Profit target</label>
-                            <InputNumber class="form-control" @bind-Value="_form.ProfitTarget" />
-                        </div>
-                        <div class="col-md-2">
-                            <label class="form-label">Max drawdown</label>
-                            <InputNumber class="form-control" @bind-Value="_form.MaxDrawdown" />
-                        </div>
-                        <div class="col-md-2">
-                            <label class="form-label">@L["Tipo de drawdown"]</label>
-                            <InputSelect class="form-select" @bind-Value="_form.DrawdownType">
-                                @foreach (var v in Enum.GetValues<DrawdownType>())
-                                {
-                                    <option value="@v">@v</option>
-                                }
-                            </InputSelect>
-                        </div>
-                        <div class="col-md-2">
-                            <label class="form-label">@L["Coste evaluación"]</label>
-                            <InputNumber class="form-control" @bind-Value="_form.EvaluationCost" />
-                        </div>
-                    }
-
-                    <div class="col-md-4">
+                    <div class="col-md-6">
                         <label class="form-label">@L["ID externo (Tradovate/NT8)"]</label>
-                        <InputText class="form-control" @bind-Value="_form.ExternalAccountId" />
+                        <InputText class="form-control" @bind-Value="_form.ExternalAccountId" placeholder="APEX-000000" />
+                        <div class="form-hint">@L["Opcional · para sincronizar operaciones"]</div>
                     </div>
                 </div>
+            </fieldset>
 
-                @if (_selectedProgram is not null)
-                {
-                    <details class="mt-3">
-                        <summary class="fw-semibold" style="cursor:pointer">@L["Reglas del programa"] — @_selectedProgram.Name</summary>
-                        <div class="row g-2 mt-2">
-                            <div class="col-12"><strong>@L["Evaluación"]</strong></div>
-                            <div class="col-md-2"><small class="text-muted">@L["Tamaño"]</small><br/>@Currency.Format(_selectedProgram.AccountSize, 0)</div>
-                            <div class="col-md-2"><small class="text-muted">Profit target</small><br/>@Currency.Format(_selectedProgram.ProfitTarget)</div>
-                            <div class="col-md-2"><small class="text-muted">Max drawdown</small><br/>@Currency.Format(_selectedProgram.MaxDrawdown)</div>
-                            <div class="col-md-2"><small class="text-muted">Drawdown</small><br/>@_selectedProgram.DrawdownType</div>
-                            @if (_selectedProgram.DailyLossLimit.HasValue)
-                            {
-                                <div class="col-md-2"><small class="text-muted">@L["Daily loss limit"]</small><br/>@Currency.Format(_selectedProgram.DailyLossLimit.Value)</div>
-                            }
-                            @if (_selectedProgram.MinTradingDays.HasValue)
-                            {
-                                <div class="col-md-2"><small class="text-muted">@L["Días mínimos"]</small><br/>@_selectedProgram.MinTradingDays</div>
-                            }
-                            @if (_selectedProgram.ConsistencyMaxDayFraction.HasValue)
-                            {
-                                <div class="col-md-2"><small class="text-muted">@L["Consistencia máx."]</small><br/>@(_selectedProgram.ConsistencyMaxDayFraction.Value.ToString("P0"))</div>
-                            }
-                            <div class="col-md-2"><small class="text-muted">@L["Coste eval."]</small><br/>@Currency.Format(_selectedProgram.EvaluationCost)</div>
-                            @if (_selectedProgram.ActivationCost > 0)
-                            {
-                                <div class="col-md-2"><small class="text-muted">@L["Coste activación"]</small><br/>@Currency.Format(_selectedProgram.ActivationCost)</div>
-                            }
-
-                            <div class="col-12 mt-2"><strong>@L["Fase fondeada"]</strong></div>
-                            <div class="col-md-2"><small class="text-muted">Drawdown</small><br/>@(_selectedProgram.FundedDrawdownType?.ToString() ?? _selectedProgram.DrawdownType.ToString())</div>
-                            <div class="col-md-2"><small class="text-muted">Max drawdown</small><br/>@Currency.Format(_selectedProgram.FundedMaxDrawdown ?? _selectedProgram.MaxDrawdown)</div>
-                            @if ((_selectedProgram.FundedDailyLossLimit ?? _selectedProgram.DailyLossLimit).HasValue)
-                            {
-                                <div class="col-md-2"><small class="text-muted">Daily loss</small><br/>@Currency.Format((_selectedProgram.FundedDailyLossLimit ?? _selectedProgram.DailyLossLimit)!.Value)</div>
-                            }
-                            @if (_selectedProgram.FundedMinTradingDays.HasValue)
-                            {
-                                <div class="col-md-2"><small class="text-muted">@L["Días mínimos"]</small><br/>@_selectedProgram.FundedMinTradingDays</div>
-                            }
-
-                            <div class="col-12 mt-2"><strong>Payout</strong></div>
-                            <div class="col-md-2"><small class="text-muted">Split trader</small><br/>@_selectedProgram.PayoutSplitTraderPct.ToString("P0")</div>
-                            @if (_selectedProgram.PayoutMaxProfitPct.HasValue)
-                            {
-                                <div class="col-md-2"><small class="text-muted">Cap retiro</small><br/>@_selectedProgram.PayoutMaxProfitPct.Value.ToString("P0") @L["del profit"]</div>
-                            }
-                            @if (_selectedProgram.PayoutMinDaysBetween.HasValue)
-                            {
-                                <div class="col-md-2"><small class="text-muted">@L["Días entre payouts"]</small><br/>@_selectedProgram.PayoutMinDaysBetween</div>
-                            }
-                        </div>
-                    </details>
-                }
-
-                <button type="submit" class="btn btn-success mt-3">@L["Guardar cuenta"]</button>
-            </EditForm>
-        </div>
+            <div class="form-foot">
+                <span class="status">@L["Los campos marcados con"] <span class="req">*</span> @L["son obligatorios"]</span>
+                <div class="actions">
+                    <button type="button" class="btn btn-outline-secondary" @onclick="ToggleCreateForm">@L["Cancelar"]</button>
+                    <button type="submit" class="btn btn-primary">@L["Guardar cuenta"]</button>
+                </div>
+            </div>
+        </EditForm>
     </div>
 }
 
-<div class="row g-2 mb-3">
-    <div class="col-md-3">
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+    <div style="min-width: 220px">
         <select class="form-select" @bind="_stageFilter" @bind:after="LoadAsync">
             <option value="">@L["Todas las etapas"]</option>
             @foreach (var v in Enum.GetValues<AccountStage>())
@@ -180,16 +234,41 @@
             }
         </select>
     </div>
+    <div class="currency-toggle view-toggle" role="group" aria-label="@L["Vista"]">
+        <button type="button" class="currency-option @(_cardView ? "active" : null)" @onclick="() => _cardView = true">@L["Tarjetas"]</button>
+        <button type="button" class="currency-option @(!_cardView ? "active" : null)" @onclick="() => _cardView = false">@L["Tabla"]</button>
+    </div>
 </div>
 
 @if (_accounts is null)
 {
-    <p><em>@L["Cargando…"]</em></p>
+    <div class="account-grid" aria-label="@L["Cargando…"]">
+        @for (var i = 0; i < 3; i++)
+        {
+            <div class="card"><div class="card-body">
+                <div class="skeleton skeleton-label"></div>
+                <div class="skeleton skeleton-value mb-3"></div>
+                <div class="skeleton skeleton-label" style="width:85%"></div>
+                <div class="skeleton skeleton-label" style="width:70%"></div>
+            </div></div>
+        }
+    </div>
 }
 else if (_accounts.Count == 0)
 {
     <EmptyState Title="@L["No hay cuentas que coincidan con el filtro"]"
-                Text="@L["Crea tu primera cuenta con el botón «+ Nueva cuenta» o cambia el filtro de etapa."]" />
+                Text="@L["Crea tu primera cuenta de fondeo y empieza a trackear objetivos, drawdown y payouts."]">
+        <button class="btn btn-primary" @onclick="ToggleCreateForm">@L["+ Nueva cuenta"]</button>
+    </EmptyState>
+}
+else if (_cardView)
+{
+    <div class="account-grid">
+        @foreach (var a in _accounts)
+        {
+            <AccountCard Account="a" OnOpen="GoToDetail" />
+        }
+    </div>
 }
 else
 {
@@ -197,9 +276,8 @@ else
         <thead>
             <tr>
                 <th>@L["Cuenta"]</th>
-                <th>@L["Firma"]</th>
-                <th>@L["Tamaño"]</th>
                 <th>@L["Etapa"]</th>
+                <th>@L["Tamaño"]</th>
                 <th>@L["Comprada"]</th>
                 <th class="text-end">Net P&amp;L</th>
                 <th class="text-end">@L["Costes"]</th>
@@ -211,19 +289,29 @@ else
             @foreach (var a in _accounts)
             {
                 <tr style="cursor:pointer" @onclick="() => GoToDetail(a.Id)">
-                    <td>@a.DisplayName</td>
-                    <td>@a.PropFirmName</td>
+                    <td class="row-title"><b>@a.DisplayName</b><span>@a.PropFirmName</span></td>
+                    <td><span class="stage @StageBadgeClass(a.Stage)">@a.Stage</span></td>
                     <td>@Currency.Format(a.AccountSize, 0)</td>
-                    <td><span class="badge @StageBadgeClass(a.Stage)">@a.Stage</span></td>
-                    <td>@a.PurchasedOn.ToString("d")</td>
+                    <td class="num-muted">@a.PurchasedOn.ToString("d")</td>
                     <td class="text-end @(a.NetPnL >= 0 ? "text-success" : "text-danger")">@Currency.Format(a.NetPnL)</td>
-                    <td class="text-end">@Currency.Format(a.TotalCosts)</td>
-                    <td class="text-end">@Currency.Format(a.TotalPayoutsReceived)</td>
-                    <td><a href="@($"/accounts/{a.Id}")">@L["Ver"] →</a></td>
+                    <td class="text-end @(a.TotalCosts == 0 ? "num-muted" : null)">@Currency.Format(a.TotalCosts)</td>
+                    <td class="text-end @(a.TotalPayoutsReceived == 0 ? "num-muted" : null)">@Currency.Format(a.TotalPayoutsReceived)</td>
+                    <td class="chev">›</td>
                 </tr>
             }
         </tbody>
     </table>
+}
+
+@if (_toastMessage is not null)
+{
+    <div class="app-toast" role="status">
+        <div class="tick">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
+                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
+        </div>
+        <div><b>@L["Cuenta creada"]</b><span>@_toastMessage</span></div>
+    </div>
 }
 
 @code {
@@ -232,9 +320,11 @@ else
     private List<EvaluationProgramDto>? _programs;
     private EvaluationProgramDto? _selectedProgram;
     private bool _showCreateForm;
+    private bool _cardView = true;
     private string _stageFilter = "";
     private CreateAccountFormModel _form = new();
     private string? _errorMessage;
+    private string? _toastMessage;
 
     protected override async Task OnInitializedAsync()
     {
@@ -314,21 +404,32 @@ else
         }
 
         _errorMessage = null;
+        var createdName = _form.DisplayName;
         _form = new CreateAccountFormModel();
         _programs = null;
         _selectedProgram = null;
         _showCreateForm = false;
         await LoadAsync();
+        await ShowToastAsync($"«{createdName}» {L["ya aparece en tu listado."]}");
+    }
+
+    private async Task ShowToastAsync(string message)
+    {
+        _toastMessage = message;
+        StateHasChanged();
+        await Task.Delay(4000);
+        _toastMessage = null;
+        StateHasChanged();
     }
 
     private static string StageBadgeClass(AccountStage stage) => stage switch
     {
-        AccountStage.Evaluation => "text-bg-secondary",
-        AccountStage.Funded => "text-bg-success",
-        AccountStage.Failed => "text-bg-danger",
-        AccountStage.Withdrawn => "text-bg-dark",
-        AccountStage.Expired => "text-bg-warning",
-        _ => "text-bg-light",
+        AccountStage.Evaluation => "stage-eval",
+        AccountStage.Funded => "stage-funded",
+        AccountStage.Failed => "stage-failed",
+        AccountStage.Withdrawn => "stage-muted",
+        AccountStage.Expired => "stage-warn",
+        _ => "stage-eval",
     };
 
     private class CreateAccountFormModel
