@@ -2,6 +2,7 @@
 @rendermode InteractiveServer
 @implements IDisposable
 @inject ITradingAccountService AccountService
+@inject ITradeSetupService SetupService
 @inject ICsvTradeImportService CsvImportService
 @inject IGenericCsvImportService GenericCsvImportService
 @inject IKpiService KpiService
@@ -406,8 +407,9 @@ else
                     <th>@L["Símbolo"]</th>
                     <th>Dir.</th>
                     <th>@L["Cant."]</th>
-                    <th>Tags</th>
+                    <th>@L["Setup"]</th>
                     <th class="text-end">Net P&amp;L</th>
+                    <th class="text-end">@L["Riesgo"]</th>
                     <th class="text-end">R</th>
                     <th class="text-end">MAE</th>
                     <th class="text-end">MFE</th>
@@ -423,12 +425,24 @@ else
                         <td>@t.Direction</td>
                         <td>@t.Quantity</td>
                         <td>
-                            @foreach (var tag in ParseTags(t.Tags))
-                            {
-                                <span class="badge text-bg-secondary me-1">@tag</span>
-                            }
+                            <select class="form-select form-select-sm" style="min-width:9rem"
+                                    @onchange="@(e => UpdateTradeSetupAsync(t, e.Value?.ToString()))">
+                                <option value="" selected="@string.IsNullOrEmpty(t.Tags)">—</option>
+                                @foreach (var s in _setups ?? [])
+                                {
+                                    <option value="@s.Name" selected="@(s.Name == t.Tags)">@s.Name</option>
+                                }
+                                @if (!string.IsNullOrEmpty(t.Tags) && _setups?.Any(s => s.Name == t.Tags) != true)
+                                {
+                                    <option value="@t.Tags" selected>@t.Tags</option>
+                                }
+                            </select>
                         </td>
                         <td class="text-end @(t.NetPnL >= 0 ? "text-success" : "text-danger")">@Currency.Format(t.NetPnL)</td>
+                        <td class="text-end" style="width:100px">
+                            <input type="number" step="0.01" class="form-control form-control-sm text-end" value="@t.RiskedAmount"
+                                   @onchange="@(e => UpdateTradeRiskAsync(t, decimal.TryParse(e.Value?.ToString(), System.Globalization.NumberStyles.Number, System.Globalization.CultureInfo.InvariantCulture, out var v) ? v : (decimal?)null))" />
+                        </td>
                         <td class="text-end">@(t.RMultiple?.ToString("0.00") ?? "—")</td>
                         <td class="text-end text-danger">@(t.MaeR?.ToString("0.00") ?? "—")</td>
                         <td class="text-end text-success">@(t.MfeR?.ToString("0.00") ?? "—")</td>
@@ -472,9 +486,12 @@ else
     private string? _genericCsvError;
     private CsvImportSummary? _genericCsvSummary;
 
+    private List<TradeSetupDto>? _setups;
+
     protected override async Task OnInitializedAsync()
     {
         Currency.Changed += OnCurrencyChanged;
+        _setups = (await SetupService.GetAllAsync()).ToList();
         await LoadAsync();
     }
 
@@ -595,6 +612,21 @@ else
 
     private static string[] ParseTags(string? tags) =>
         tags?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries) ?? [];
+
+    /// <summary>Asigna el setup elegido en el desplegable como Tags del trade — pensado para completar trades importados de CSV, que llegan sin esta información.</summary>
+    private async Task UpdateTradeSetupAsync(TradeListItemDto trade, string? setupName)
+    {
+        await AccountService.UpdateTradeSetupTagAsync(new UpdateTradeSetupTagRequest(
+            trade.Id, string.IsNullOrEmpty(setupName) ? null : setupName, trade.RiskedAmount));
+        await LoadAsync();
+    }
+
+    /// <summary>Guarda el riesgo asumido en el trade — habilita R-múltiplo, MAE-en-R y MFE-en-R, que CSV no puede reportar por sí solo.</summary>
+    private async Task UpdateTradeRiskAsync(TradeListItemDto trade, decimal? riskedAmount)
+    {
+        await AccountService.UpdateTradeSetupTagAsync(new UpdateTradeSetupTagRequest(trade.Id, trade.Tags, riskedAmount));
+        await LoadAsync();
+    }
 
     private async Task DeleteTradeAsync(Guid tradeId)
     {

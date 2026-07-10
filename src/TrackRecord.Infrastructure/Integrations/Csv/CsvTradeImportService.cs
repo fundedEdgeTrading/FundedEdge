@@ -96,7 +96,12 @@ public class CsvTradeImportService(IDbContextFactory<TrackRecordDbContext> dbFac
     {
         using var headerReader = new StringReader(content);
         var headerLine = headerReader.ReadLine();
-        List<string> headers = headerLine is null ? [] : CsvLineSplitter.Split(headerLine);
+        List<string> headers = [];
+        if (headerLine is not null)
+        {
+            CsvLineSplitter.DetectDelimiter(headerLine);
+            headers = CsvLineSplitter.Split(headerLine);
+        }
 
         if (TradovateCsvParser.LooksLikeHeader(headers))
         {

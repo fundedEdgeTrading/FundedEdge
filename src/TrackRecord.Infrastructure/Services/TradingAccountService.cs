@@ -105,7 +105,8 @@ public class TradingAccountService(
                     t.GrossPnL - t.Commissions, t.RiskedAmount is > 0 ? (t.GrossPnL - t.Commissions) / t.RiskedAmount.Value : null,
                     t.Tags,
                     t.RiskedAmount is > 0 && t.MaxAdverseExcursion != null ? t.MaxAdverseExcursion / t.RiskedAmount.Value : null,
-                    t.RiskedAmount is > 0 && t.MaxFavorableExcursion != null ? t.MaxFavorableExcursion / t.RiskedAmount.Value : null))
+                    t.RiskedAmount is > 0 && t.MaxFavorableExcursion != null ? t.MaxFavorableExcursion / t.RiskedAmount.Value : null,
+                    t.RiskedAmount))
                 .ToList(),
             nextPayoutEligibleOn,
             account.EvaluationProgramId);
@@ -372,6 +373,21 @@ public class TradingAccountService(
         db.Executions.RemoveRange(manualExecutions);
 
         db.Trades.Remove(trade);
+        await db.SaveChangesAsync(ct);
+    }
+
+    public async Task UpdateTradeSetupTagAsync(UpdateTradeSetupTagRequest request, CancellationToken ct = default)
+    {
+        var userId = await currentUser.RequireUserIdAsync();
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
+        var trade = await db.Trades.SingleOrDefaultAsync(t => t.Id == request.TradeId && t.Account!.UserId == userId, ct);
+        if (trade is null)
+        {
+            throw new KeyNotFoundException($"Trade {request.TradeId} no encontrado.");
+        }
+
+        trade.Tags = request.Tags;
+        trade.RiskedAmount = request.RiskedAmount;
         await db.SaveChangesAsync(ct);
     }
 

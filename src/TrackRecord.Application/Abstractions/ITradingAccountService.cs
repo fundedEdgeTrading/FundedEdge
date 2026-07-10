@@ -26,4 +26,11 @@ public interface ITradingAccountService
 
     Task<Guid> AddTradeAsync(CreateTradeRequest request, CancellationToken ct = default);
     Task DeleteTradeAsync(Guid tradeId, CancellationToken ct = default);
+
+    /// <summary>
+    /// Actualiza el setup (Tags) y/o el riesgo asumido de un trade ya existente — pensado para
+    /// completar trades importados de CSV, que llegan sin esos datos (la plataforma de origen no
+    /// los reporta). RiskedAmount habilita a su vez R-múltiplo, MAE-en-R y MFE-en-R.
+    /// </summary>
+    Task UpdateTradeSetupTagAsync(UpdateTradeSetupTagRequest request, CancellationToken ct = default);
 }

@@ -23,6 +23,7 @@ public class TrackRecordDbContext(DbContextOptions<TrackRecordDbContext> options
     public DbSet<ProcessedWebhookEvent> ProcessedWebhookEvents => Set<ProcessedWebhookEvent>();
     public DbSet<TradeEmotionLog> TradeEmotionLogs => Set<TradeEmotionLog>();
     public DbSet<DailyMindsetCheckIn> DailyMindsetCheckIns => Set<DailyMindsetCheckIn>();
+    public DbSet<TradeSetup> TradeSetups => Set<TradeSetup>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
