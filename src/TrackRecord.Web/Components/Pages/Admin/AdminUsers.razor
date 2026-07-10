@@ -1,0 +1,111 @@
+@page "/admin"
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@attribute [Authorize(Roles = "Administrator,Support")]
+@rendermode InteractiveServer
+@inject IAdminUserService AdminService
+@inject IStringLocalizer<SharedResources> L
+
+<PageTitle>@L["Administración"] — @Brand.Name</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="mb-0">@L["Administración de usuarios"]</h1>
+    <a class="btn btn-outline-primary" href="admin/kpis">@L["KPIs por usuario"]</a>
+</div>
+
+@if (_error is not null)
+{
+    <div class="alert alert-danger">@_error</div>
+}
+
+@if (_users is null)
+{
+    <p><em>@L["Cargando..."]</em></p>
+}
+else
+{
+    <div class="card">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Email</th>
+                        <th>@L["Nombre"]</th>
+                        <th>Plan</th>
+                        <th>@L["Roles"]</th>
+                        <th class="text-end">@L["Cuentas"]</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var user in _users)
+                    {
+                        <tr>
+                            <td>
+                                @user.Email
+                                @if (!user.EmailConfirmed)
+                                {
+                                    <span class="badge text-bg-warning ms-1">@L["Sin confirmar"]</span>
+                                }
+                            </td>
+                            <td>@user.DisplayName</td>
+                            <td><span class="badge text-bg-secondary">@user.PlanTier</span></td>
+                            <td>@string.Join(", ", user.Roles)</td>
+                            <td class="text-end">@user.AccountCount</td>
+                            <td class="text-end">
+                                <AuthorizeView Roles="Administrator">
+                                    @if (!user.Roles.Contains("Administrator"))
+                                    {
+                                        <form class="d-inline" method="post" action="admin/impersonate" data-enhance="false">
+                                            <AntiforgeryToken />
+                                            <input type="hidden" name="userId" value="@user.Id" />
+                                            <button type="submit" class="btn btn-sm btn-outline-primary">@L["Entrar como"]</button>
+                                        </form>
+                                        @if (_confirmDeleteId == user.Id)
+                                        {
+                                            <button class="btn btn-sm btn-danger ms-1" @onclick="() => DeleteAsync(user.Id)">@L["Confirmar eliminación"]</button>
+                                            <button class="btn btn-sm btn-outline-secondary ms-1" @onclick="() => _confirmDeleteId = null">@L["Cancelar"]</button>
+                                        }
+                                        else
+                                        {
+                                            <button class="btn btn-sm btn-outline-danger ms-1" @onclick="() => _confirmDeleteId = user.Id">@L["Eliminar"]</button>
+                                        }
+                                    }
+                                </AuthorizeView>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <p class="text-muted small mt-2">
+        @L["Eliminar un usuario borra de forma irreversible todas sus cuentas, trades, costes, payouts, informes y ajustes."]
+    </p>
+}
+
+@code {
+    private IReadOnlyList<AdminUserSummary>? _users;
+    private string? _confirmDeleteId;
+    private string? _error;
+
+    protected override async Task OnInitializedAsync() => _users = await AdminService.GetUsersAsync();
+
+    private async Task DeleteAsync(string userId)
+    {
+        _error = null;
+        try
+        {
+            await AdminService.DeleteUserAndDataAsync(userId);
+            _users = await AdminService.GetUsersAsync();
+        }
+        catch (InvalidOperationException ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _confirmDeleteId = null;
+        }
+    }
+}

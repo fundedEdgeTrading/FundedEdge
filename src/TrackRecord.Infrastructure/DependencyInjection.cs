@@ -40,8 +40,9 @@ public static class DependencyInjection
             .SetApplicationName("TrackRecord")
             .PersistKeysToFileSystem(new DirectoryInfo(keysPath));
 
-        // Sin roles (AddIdentityCore, no AddIdentity): cada usuario ve exclusivamente sus propios
-        // datos, no hay jerarquía de permisos. RequireConfirmedAccount=true: nadie inicia sesión
+        // Roles habilitados (AddRoles): solo para jerarquía operativa (Administrator/Support,
+        // ver AppRoles) — cada usuario sigue viendo exclusivamente sus propios datos.
+        // RequireConfirmedAccount=true: nadie inicia sesión
         // sin confirmar su email (frena registros de bots). El envío real depende de EmailOptions
         // (ver AddEmail); sin SMTP configurado el enlace se muestra en pantalla (solo desarrollo).
         services.AddIdentityCore<ApplicationUser>(options =>
@@ -63,12 +64,15 @@ public static class DependencyInjection
                 options.Password.RequireNonAlphanumeric = false; // frases largas > símbolos obligatorios
                 options.Password.RequiredUniqueChars = 4;
             })
+            .AddRoles<IdentityRole>()
             .AddEntityFrameworkStores<TrackRecordDbContext>()
             .AddSignInManager()
             .AddClaimsPrincipalFactory<ApplicationUserClaimsPrincipalFactory>()
             .AddDefaultTokenProviders();
 
         services.AddScoped<UserBackfillService>();
+        services.AddScoped<IdentityDataSeeder>();
+        services.AddScoped<IAdminUserService, AdminUserService>();
         services.AddScoped<DemoDataSeeder>();
 
         services.AddScoped<IPropFirmService, PropFirmService>();
