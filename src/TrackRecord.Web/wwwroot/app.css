@@ -183,7 +183,7 @@ h6.card-title {
    finas entre tiles sin que cada uno necesite su propio borde/caja. */
 .kpi-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 1px;
     background: var(--border);
     border: 1px solid var(--border);

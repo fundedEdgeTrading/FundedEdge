@@ -100,9 +100,6 @@ else
         <KpiCard Title="Pass rate" Value="@FormatPercent(_business.PassRate)" />
         <KpiCard Title="@L["Cuentas compradas"]" Value="@_business.AccountsPurchased.ToString()"
                  Sub="@($"{_business.AccountsInEvaluation} {L["En evaluación"].Value.ToLowerInvariant()} · {_business.AccountsFunded} {L["fondeadas"]} · {_business.AccountsFailed + _business.AccountsExpired} {L["quemadas"]}")" />
-    </div>
-
-    <div class="kpi-grid mt-3">
         <KpiCard Title="@L["Coste por cuenta fondeada"]" Value="@FormatMoney(_business.CostPerFundedAccount)" />
         <KpiCard Title="@L["Payout medio por fondeada"]" Value="@FormatMoney(_business.AvgPayoutPerFundedAccount)" />
     </div>
@@ -157,8 +154,6 @@ else
                      Sub="@L["{0} trades cerrados", _trading.TotalTrades]" />
             <KpiCard Title="Profit factor" Value="@FormatRatio(_trading.ProfitFactor)" />
             <KpiCard Title="@L["Expectancy / trade"]" Value="@FormatMoney(_trading.Expectancy)" />
-        </div>
-        <div class="kpi-grid mt-3">
             <KpiCard Title="Payoff ratio" Value="@FormatRatio(_trading.PayoffRatio)" />
             <KpiCard Title="@L["R-múltiplo medio"]" Value="@(_trading.AvgRMultiple?.ToString("0.00") ?? "—")" />
             <KpiCard Title="@L["Máx. drawdown"]" Value="@Currency.Format(_trading.MaxDrawdown)" Emphasis="text-danger" />
