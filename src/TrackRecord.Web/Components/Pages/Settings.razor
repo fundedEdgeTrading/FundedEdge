@@ -14,6 +14,16 @@
 
 <div class="card mb-4 mt-3">
     <div class="card-body">
+        <h5 class="card-title">@L["Perfil"]</h5>
+        <p class="small text-muted mb-2">
+            @L["Edita tu nombre y tu avatar, o pide un email para restablecer tu contraseña."]
+        </p>
+        <a class="btn btn-outline-primary btn-sm" href="/settings/profile">@L["Editar perfil"] →</a>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
         <div class="d-flex justify-content-between align-items-start">
             <h5 class="card-title">@L["Análisis con IA (Claude)"]</h5>
             @if (AiOptions.IsApiKeyConfigured)
