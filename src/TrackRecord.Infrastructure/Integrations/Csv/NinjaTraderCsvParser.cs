@@ -1,33 +1,20 @@
 using System.Globalization;
 
-namespace TrackRecord.Infrastructure.Integrations.NinjaTrader;
-
-/// <summary>Una fila ya parseada del export "Trade Performance" de NinjaTrader 8 (un round-turn por fila).</summary>
-public record CsvTradeRow(
-    string Symbol,
-    string MarketPosition, // "Long" | "Short"
-    int Quantity,
-    decimal EntryPrice,
-    decimal ExitPrice,
-    DateTimeOffset EntryTime,
-    DateTimeOffset ExitTime,
-    decimal GrossPnL,
-    decimal Commission);
-
-public record CsvParseError(int LineNumber, string RawLine, string Reason);
-
-public record CsvParseResult(IReadOnlyList<CsvTradeRow> Rows, IReadOnlyList<CsvParseError> Errors);
+namespace TrackRecord.Infrastructure.Integrations.Csv;
 
 /// <summary>
-/// Parsea el CSV exportado desde NinjaTrader 8 (Control Center → Trade Performance → grid →
-/// Export), que reporta round-turns YA agregados (no fills sueltos) — ver
-/// GUIA_IMPLEMENTACION.md §6, Opción B.
+/// Parsea el CSV exportado desde NinjaTrader 8 (Control Center → Trade Performance → pestaña
+/// Trades → clic derecho sobre el grid → Export), que reporta round-turns YA agregados (no fills
+/// sueltos).
+///
+/// Columnas típicas del export: Trade number, Instrument, Account, Strategy, Market pos., Qty,
+/// Entry price, Exit price, Entry time, Exit time, Entry name, Exit name, Profit,
+/// Cum. net profit, Commission, MAE, MFE, ETD, Bars. Solo un subconjunto es obligatorio.
 ///
 /// NOTA: los nombres de columna y el formato exacto dependen de qué columnas tenga visibles el
 /// grid en NT8 y de la cultura del sistema operativo del usuario (decimales/fechas). Este parser
 /// busca las columnas por nombre (no por posición) entre una lista de alias tolerantes, y hace un
-/// segundo intento con InvariantCulture si el parseo con la cultura indicada falla — pero debe
-/// validarse contra un export real antes de confiar en él en producción (Apéndice A de la guía).
+/// segundo intento con InvariantCulture si el parseo con la cultura indicada falla.
 /// </summary>
 public class NinjaTraderCsvParser
 {
@@ -40,6 +27,15 @@ public class NinjaTraderCsvParser
     private static readonly string[] ExitTimeHeaders = ["Exit time", "Exit Time"];
     private static readonly string[] ProfitHeaders = ["Profit", "P/L", "Net Profit"];
     private static readonly string[] CommissionHeaders = ["Commission"];
+    private static readonly string[] MaeHeaders = ["MAE", "Max. adverse excursion"];
+    private static readonly string[] MfeHeaders = ["MFE", "Max. favorable excursion"];
+
+    /// <summary>Heurística de detección: cabeceras características del export de NT8.</summary>
+    public static bool LooksLikeHeader(IReadOnlyList<string> headers)
+    {
+        bool Has(string[] aliases) => headers.Any(h => aliases.Contains(h.Trim(), StringComparer.OrdinalIgnoreCase));
+        return Has(EntryPriceHeaders) && Has(EntryTimeHeaders) && Has(MarketPosHeaders);
+    }
 
     public CsvParseResult Parse(TextReader reader, CultureInfo? culture = null)
     {
@@ -51,7 +47,7 @@ public class NinjaTraderCsvParser
             return new CsvParseResult([], [new CsvParseError(1, "", "El archivo está vacío.")]);
         }
 
-        var headers = SplitCsvLine(headerLine);
+        var headers = CsvLineSplitter.Split(headerLine);
         var columnIndex = BuildColumnIndex(headers);
 
         var missing = new List<string>();
@@ -71,6 +67,8 @@ public class NinjaTraderCsvParser
         var exitTimeCol = Require(ExitTimeHeaders, "Exit time");
         var profitCol = ResolveColumn(columnIndex, ProfitHeaders); // opcional
         var commissionCol = ResolveColumn(columnIndex, CommissionHeaders); // opcional
+        var maeCol = ResolveColumn(columnIndex, MaeHeaders); // opcional
+        var mfeCol = ResolveColumn(columnIndex, MfeHeaders); // opcional
 
         if (missing.Count > 0)
         {
@@ -87,7 +85,7 @@ public class NinjaTraderCsvParser
             lineNumber++;
             if (string.IsNullOrWhiteSpace(line)) continue;
 
-            var fields = SplitCsvLine(line);
+            var fields = CsvLineSplitter.Split(line);
             try
             {
                 var symbol = Field(fields, instrumentCol).Trim();
@@ -97,15 +95,19 @@ public class NinjaTraderCsvParser
                 var exitPrice = ParseDecimal(Field(fields, exitPriceCol), culture);
                 var entryTime = ParseDate(Field(fields, entryTimeCol), culture);
                 var exitTime = ParseDate(Field(fields, exitTimeCol), culture);
-                var commission = commissionCol >= 0 ? ParseDecimal(Field(fields, commissionCol), culture) : 0m;
-                var profit = profitCol >= 0 ? ParseDecimal(Field(fields, profitCol), culture) : ComputeFallbackGrossPnl(marketPos, entryPrice, exitPrice, qty);
+                var commission = commissionCol >= 0 ? ParseCurrency(Field(fields, commissionCol), culture) : 0m;
+                var profit = profitCol >= 0 ? ParseCurrency(Field(fields, profitCol), culture) : ComputeFallbackGrossPnl(marketPos, entryPrice, exitPrice, qty);
+                var mae = maeCol >= 0 ? TryParseOptionalCurrency(Field(fields, maeCol), culture) : null;
+                var mfe = mfeCol >= 0 ? TryParseOptionalCurrency(Field(fields, mfeCol), culture) : null;
 
                 // Si "Profit" viene ya neto de comisión (convención habitual de NT8), el bruto es
                 // Profit + Commission — así Trade.NetPnL (GrossPnL - Commissions) reproduce el
                 // Profit original que reportó NT8.
                 var grossPnL = profitCol >= 0 ? profit + commission : profit;
 
-                rows.Add(new CsvTradeRow(symbol, marketPos, qty, entryPrice, exitPrice, entryTime, exitTime, grossPnL, commission));
+                // MAE se guarda como magnitud positiva de la pérdida flotante máxima.
+                rows.Add(new CsvTradeRow(symbol, marketPos, qty, entryPrice, exitPrice, entryTime, exitTime, grossPnL, commission,
+                    mae is { } m ? Math.Abs(m) : null, mfe));
             }
             catch (Exception ex) when (ex is FormatException or IndexOutOfRangeException or OverflowException)
             {
@@ -140,6 +142,24 @@ public class NinjaTraderCsvParser
         throw new FormatException($"No se pudo interpretar '{raw}' como número.");
     }
 
+    /// <summary>Como ParseDecimal pero tolera símbolo de divisa y paréntesis para negativos ("($12.50)"), formatos que NT8 usa según configuración.</summary>
+    private static decimal ParseCurrency(string raw, CultureInfo culture)
+    {
+        var trimmed = raw.Trim();
+        const NumberStyles styles = NumberStyles.Currency;
+        if (decimal.TryParse(trimmed, styles, culture, out var value)) return value;
+        if (decimal.TryParse(trimmed, styles, CultureInfo.InvariantCulture, out value)) return value;
+        if (decimal.TryParse(trimmed.Replace("$", ""), styles, CultureInfo.InvariantCulture, out value)) return value;
+        throw new FormatException($"No se pudo interpretar '{raw}' como importe.");
+    }
+
+    private static decimal? TryParseOptionalCurrency(string raw, CultureInfo culture)
+    {
+        if (string.IsNullOrWhiteSpace(raw)) return null;
+        try { return ParseCurrency(raw, culture); }
+        catch (FormatException) { return null; } // MAE/MFE son un extra: una celda rara no debe tumbar la fila
+    }
+
     private static DateTimeOffset ParseDate(string raw, CultureInfo culture)
     {
         var trimmed = raw.Trim();
@@ -168,54 +188,5 @@ public class NinjaTraderCsvParser
             if (columnIndex.TryGetValue(alias, out var idx)) return idx;
         }
         return -1;
-    }
-
-    /// <summary>Split RFC4180 simplificado: soporta campos entre comillas con comas/comillas escapadas.</summary>
-    private static List<string> SplitCsvLine(string line)
-    {
-        var fields = new List<string>();
-        var current = new System.Text.StringBuilder();
-        var inQuotes = false;
-
-        for (var i = 0; i < line.Length; i++)
-        {
-            var c = line[i];
-
-            if (inQuotes)
-            {
-                if (c == '"')
-                {
-                    if (i + 1 < line.Length && line[i + 1] == '"')
-                    {
-                        current.Append('"');
-                        i++;
-                    }
-                    else
-                    {
-                        inQuotes = false;
-                    }
-                }
-                else
-                {
-                    current.Append(c);
-                }
-            }
-            else if (c == '"')
-            {
-                inQuotes = true;
-            }
-            else if (c == ',')
-            {
-                fields.Add(current.ToString());
-                current.Clear();
-            }
-            else
-            {
-                current.Append(c);
-            }
-        }
-
-        fields.Add(current.ToString());
-        return fields;
     }
 }

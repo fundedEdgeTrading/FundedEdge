@@ -168,7 +168,7 @@
 
     private StepItem[] Steps => [
         new("01", L["Conecta tus cuentas"], L["Añade cada cuenta de fondeo — Lucid, Tradeify, Apex u otras — con su tamaño, reglas y coste."]),
-        new("02", L["Registra o sincroniza"], L["Journal manual, importa CSV, o sincroniza Tradovate/NinjaTrader automáticamente."]),
+        new("02", L["Registra o sincroniza"], L["Journal manual o importación del CSV que exportan Tradovate y NinjaTrader 8."]),
         new("03", L["Revisa KPIs y riesgo"], L["Dashboard de negocio y trading, EV, Monte Carlo de bankroll y fracción de Kelly."]),
         new("04", L["Decide con datos"], L["Sabe qué evaluación comprar después y si tu operativa es, de verdad, rentable."]),
     ];
@@ -188,7 +188,7 @@
         new("Pro", "14,99 €/mes", 149m, L["Para el trader con varias cuentas"],
         [
             L["{0} cuentas activas", PlanLimits.For(PlanTier.Pro).MaxActiveAccounts!],
-            L["Sincronización automática (Tradovate / NinjaTrader)"],
+            L["Importación de CSV (Tradovate / NinjaTrader 8)"],
             L["Firm Fit completo: ranking, reglas y plan de compra"],
             L["Módulo de riesgo completo (Monte Carlo, EV, Kelly)"],
             L["{0} informe IA cada {1} días", PlanLimits.For(PlanTier.Pro).AiReportsPerWindow, PlanLimits.For(PlanTier.Pro).AiReportWindowDays],

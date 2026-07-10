@@ -4,7 +4,6 @@
 @inject ITradingAccountService AccountService
 @inject ICsvTradeImportService CsvImportService
 @inject IGenericCsvImportService GenericCsvImportService
-@inject ITradeSyncOrchestrator SyncOrchestrator
 @inject IKpiService KpiService
 @inject CurrencyState Currency
 @inject NavigationManager Nav
@@ -13,6 +12,7 @@
 <PageTitle>@(_account?.DisplayName ?? L["Cuenta"].Value) — @Brand.Name</PageTitle>
 
 <ConfirmDialog @ref="_confirmDialog" />
+<ImportTutorialModal @ref="_tutorialModal" />
 
 @if (_account is null)
 {
@@ -203,54 +203,30 @@ else
         </div>
     </div>
 
-    <h2 class="mt-4">@L["Conexión"]</h2>
+    <h2 class="mt-4">@L["Journal de trades"]</h2>
+
     <div class="card mb-3">
         <div class="card-body">
-            <EditForm Model="_connectionForm" OnValidSubmit="SaveConnectionAsync" class="row g-2 align-items-end">
+            <div class="d-flex justify-content-between align-items-start gap-2">
+                <h6 class="card-title">@L["Importar operaciones (CSV de Tradovate o NinjaTrader 8)"]</h6>
+                <button type="button" class="btn btn-sm btn-outline-primary" @onclick="ShowTutorial">
+                    📖 @L["¿Cómo exporto e importo mi CSV?"]
+                </button>
+            </div>
+            <p class="text-muted small mb-2">
+                @L["Sube el CSV exportado desde la app de Tradovate (Reports → Performance) o desde NinjaTrader 8 (Trade Performance → Trades → Export). El formato se detecta automáticamente y reimportar el mismo archivo no duplica trades."]
+            </p>
+            <div class="row g-2 align-items-end mb-2">
                 <div class="col-md-3">
-                    <label class="form-label">@L["Feed / plataforma"]</label>
-                    <InputSelect class="form-select" @bind-Value="_connectionForm.Feed">
+                    <label class="form-label small">@L["Plataforma de esta cuenta"]</label>
+                    <InputSelect class="form-select form-select-sm" Value="_platform" ValueExpression="() => _platform" TValue="DataFeedType" ValueChanged="OnPlatformChangedAsync">
                         @foreach (var v in Enum.GetValues<DataFeedType>())
                         {
-                            <option value="@v">@v</option>
+                            <option value="@v">@PlatformLabel(v)</option>
                         }
                     </InputSelect>
                 </div>
-                <div class="col-md-4">
-                    <label class="form-label">@L["ID externo (nombre de cuenta en Tradovate/NT8)"]</label>
-                    <InputText class="form-control" @bind-Value="_connectionForm.ExternalAccountId" />
-                </div>
-                <div class="col-md-2">
-                    <button type="submit" class="btn btn-primary w-100">@L["Guardar"]</button>
-                </div>
-                @if (_connectionForm.Feed == DataFeedType.Tradovate)
-                {
-                    <div class="col-md-3">
-                        <button type="button" class="btn btn-outline-secondary w-100" disabled="@_syncing" @onclick="SyncNowAsync">
-                            @(_syncing ? L["Sincronizando…"] : L["Sincronizar ahora"])
-                        </button>
-                    </div>
-                }
-            </EditForm>
-            @if (_syncMessage is not null)
-            {
-                <p class="small text-muted mt-2 mb-0">@_syncMessage</p>
-            }
-            <p class="text-muted small mt-2 mb-0">
-                @L["Las credenciales de Tradovate y la API key de ingesta de NinjaTrader se configuran en"]
-                <a href="/settings">/settings</a>.
-            </p>
-        </div>
-    </div>
-
-    <h2 class="mt-2">@L["Journal de trades"]</h2>
-
-    <div class="card mb-3">
-        <div class="card-body">
-            <h6 class="card-title">@L["Importar CSV de NinjaTrader 8"]</h6>
-            <p class="text-muted small mb-2">
-                @((MarkupString)L["Export de «Control Center → Trade Performance → grid → Export». Reimportar el mismo archivo no duplica trades (ver <code>integrations/ninjatrader/README.md</code>)."].Value)
-            </p>
+            </div>
             <InputFile OnChange="OnCsvFileSelectedAsync" accept=".csv" disabled="@_csvImporting" />
             @if (_csvImporting)
             {
@@ -479,7 +455,8 @@ else
     private CostFormModel _costForm = new();
     private PayoutFormModel _payoutForm = new();
     private TradeFormModel _tradeForm = new();
-    private ConnectionFormModel _connectionForm = new();
+    private DataFeedType _platform = DataFeedType.Manual;
+    private ImportTutorialModal? _tutorialModal;
 
     private bool _editingName;
     private RenameFormModel _renameForm = new();
@@ -494,9 +471,6 @@ else
     private bool _genericCsvImporting;
     private string? _genericCsvError;
     private CsvImportSummary? _genericCsvSummary;
-
-    private bool _syncing;
-    private string? _syncMessage;
 
     protected override async Task OnInitializedAsync()
     {
@@ -521,7 +495,7 @@ else
             return;
         }
 
-        _connectionForm = new ConnectionFormModel { Feed = _account.Feed, ExternalAccountId = _account.ExternalAccountId };
+        _platform = _account.Feed;
         _equity = (await KpiService.GetEquityCurveAsync(AccountId)).ToList();
     }
 
@@ -554,33 +528,22 @@ else
         }
     }
 
-    private async Task SaveConnectionAsync()
+    /// <summary>Guarda la plataforma de la cuenta al cambiarla; solo condiciona la pestaña inicial del tutorial.</summary>
+    private async Task OnPlatformChangedAsync(DataFeedType platform)
     {
+        _platform = platform;
         await AccountService.UpdateConnectionAsync(new UpdateAccountConnectionRequest(
-            AccountId, _connectionForm.Feed, _connectionForm.ExternalAccountId));
-        await LoadAsync();
+            AccountId, platform, _account?.ExternalAccountId));
     }
 
-    private async Task SyncNowAsync()
+    private void ShowTutorial() => _tutorialModal?.Show(_platform);
+
+    private static string PlatformLabel(DataFeedType feed) => feed switch
     {
-        _syncing = true;
-        _syncMessage = null;
-        StateHasChanged();
-
-        try
-        {
-            var ingested = await SyncOrchestrator.SyncAccountAsync(AccountId);
-            _syncMessage = ingested == 0
-                ? L["Sincronizado: sin fills nuevos."]
-                : L["Sincronizado: {0} fill(s) nuevo(s) ingestado(s).", ingested];
-        }
-        finally
-        {
-            _syncing = false;
-        }
-
-        await LoadAsync();
-    }
+        DataFeedType.Tradovate => "Tradovate",
+        DataFeedType.NinjaTrader => "NinjaTrader 8",
+        _ => "Manual / otra",
+    };
 
     private async Task TransitionAsync()
     {
@@ -835,12 +798,6 @@ else
         public string? Tags { get; set; }
         public decimal? MaxAdverseExcursion { get; set; }
         public decimal? MaxFavorableExcursion { get; set; }
-    }
-
-    private class ConnectionFormModel
-    {
-        public DataFeedType Feed { get; set; } = DataFeedType.Manual;
-        public string? ExternalAccountId { get; set; }
     }
 
     private class GenericCsvMappingFormModel

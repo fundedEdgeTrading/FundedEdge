@@ -50,20 +50,14 @@ builder.Services.AddAuthorization(options =>
             (ctx.Resource is HttpContext httpContext && httpContext.Request.Path.StartsWithSegments("/_blazor")))
         .Build());
 
-// Rate limiting [SEC-02, SEC-08, SEC-11]. Se limita solo el tráfico sensible (login/registro,
-// ingesta push por API key y perfiles públicos) mediante el GlobalLimiter, que devuelve
-// NoLimiter para el resto — así NO se estrangula el transporte SignalR de Blazor (/_blazor) ni
-// la carga de estáticos. Tras un proxy inverso, habilita UseForwardedHeaders para que
-// RemoteIpAddress sea la IP real del cliente y no la del proxy.
+// Rate limiting [SEC-02, SEC-08, SEC-11]. Se limita solo el tráfico sensible (login/registro
+// y perfiles públicos) mediante el GlobalLimiter, que devuelve NoLimiter para el resto — así NO
+// se estrangula el transporte SignalR de Blazor (/_blazor) ni la carga de estáticos. Tras un
+// proxy inverso, habilita UseForwardedHeaders para que RemoteIpAddress sea la IP real del
+// cliente y no la del proxy.
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
-
-    // Ingesta del AddOn de NinjaTrader: por IP, tolerante a ráfagas legítimas de fills.
-    options.AddPolicy("ingest", ctx =>
-        RateLimitPartition.GetFixedWindowLimiter(
-            ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-            _ => new FixedWindowRateLimiterOptions { PermitLimit = 120, Window = TimeSpan.FromMinutes(1) }));
 
     options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(ctx =>
     {
@@ -178,6 +172,14 @@ else
     app.Logger.LogInformation("Migración automática desactivada (Database:AutoMigrate=false). Aplica las migraciones como paso de despliegue.");
 }
 
+// Datos de demostración (opt-in, ver DemoDataSeeder): usuario demo con 6 cuentas, trades,
+// transiciones, resets, payouts y psicología. Solo con Database:SeedDemo=true (Development).
+if (string.Equals(app.Configuration["Database:SeedDemo"], "true", StringComparison.OrdinalIgnoreCase))
+{
+    using var scope = app.Services.CreateScope();
+    await scope.ServiceProvider.GetRequiredService<DemoDataSeeder>().SeedAsync();
+}
+
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
@@ -229,7 +231,6 @@ app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
 app.MapAdditionalIdentityEndpoints();
-app.MapNinjaTraderIngestEndpoints();
 app.MapBillingEndpoints();
 app.MapSeoEndpoints();
 

@@ -1425,4 +1425,109 @@
   <data name="{0} etapas seleccionadas" xml:space="preserve">
     <value>{0} stages selected</value>
   </data>
+  <data name="Los trades se importan desde el CSV que exportan Tradovate o NinjaTrader 8 — sin credenciales ni API keys. La importación (y su tutorial paso a paso) está en la página de detalle de cada cuenta." xml:space="preserve">
+    <value>Trades are imported from the CSV exported by Tradovate or NinjaTrader 8 — no credentials or API keys. The import (and its step-by-step tutorial) lives on each account's detail page.</value>
+  </data>
+  <data name="Cuentas y su plataforma" xml:space="preserve">
+    <value>Accounts and their platform</value>
+  </data>
+  <data name="La plataforma de cada cuenta se edita desde su propia página de detalle, donde también está la importación de CSV." xml:space="preserve">
+    <value>Each account's platform is edited from its own detail page, where the CSV import also lives.</value>
+  </data>
+  <data name="Plataforma" xml:space="preserve">
+    <value>Platform</value>
+  </data>
+  <data name="Compra y plataforma" xml:space="preserve">
+    <value>Purchase &amp; platform</value>
+  </data>
+  <data name="Cuándo la compraste y en qué plataforma operas — los trades se importan por CSV desde la ficha de la cuenta." xml:space="preserve">
+    <value>When you bought it and which platform you trade on — trades are imported via CSV from the account page.</value>
+  </data>
+  <data name="Importar operaciones (CSV de Tradovate o NinjaTrader 8)" xml:space="preserve">
+    <value>Import trades (Tradovate or NinjaTrader 8 CSV)</value>
+  </data>
+  <data name="¿Cómo exporto e importo mi CSV?" xml:space="preserve">
+    <value>How do I export &amp; import my CSV?</value>
+  </data>
+  <data name="Sube el CSV exportado desde la app de Tradovate (Reports → Performance) o desde NinjaTrader 8 (Trade Performance → Trades → Export). El formato se detecta automáticamente y reimportar el mismo archivo no duplica trades." xml:space="preserve">
+    <value>Upload the CSV exported from the Tradovate app (Reports → Performance) or from NinjaTrader 8 (Trade Performance → Trades → Export). The format is detected automatically and re-importing the same file never duplicates trades.</value>
+  </data>
+  <data name="Plataforma de esta cuenta" xml:space="preserve">
+    <value>This account's platform</value>
+  </data>
+  <data name="Cómo importar tus operaciones" xml:space="preserve">
+    <value>How to import your trades</value>
+  </data>
+  <data name="Cerrar" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="1. Exportar el CSV desde Tradovate" xml:space="preserve">
+    <value>1. Export the CSV from Tradovate</value>
+  </data>
+  <data name="Inicia sesión en Tradovate (trader web o aplicación de escritorio) con la cuenta de tu prop firm." xml:space="preserve">
+    <value>Sign in to Tradovate (web trader or desktop app) with your prop firm account.</value>
+  </data>
+  <data name="Abre el menú de la aplicación y entra en &lt;strong&gt;Reports&lt;/strong&gt; (Informes)." xml:space="preserve">
+    <value>Open the application menu and go to &lt;strong&gt;Reports&lt;/strong&gt;.</value>
+  </data>
+  <data name="Selecciona la pestaña &lt;strong&gt;Performance&lt;/strong&gt;: verás la lista de operaciones cerradas (round-turns)." xml:space="preserve">
+    <value>Select the &lt;strong&gt;Performance&lt;/strong&gt; tab: you'll see the list of closed trades (round-turns).</value>
+  </data>
+  <data name="Elige arriba la cuenta correcta y el rango de fechas que quieras exportar." xml:space="preserve">
+    <value>Pick the right account at the top and the date range you want to export.</value>
+  </data>
+  <data name="Pulsa el icono de &lt;strong&gt;descarga&lt;/strong&gt; del informe: se guardará un archivo &lt;code&gt;Performance.csv&lt;/code&gt;." xml:space="preserve">
+    <value>Click the report's &lt;strong&gt;download&lt;/strong&gt; icon: a &lt;code&gt;Performance.csv&lt;/code&gt; file will be saved.</value>
+  </data>
+  <data name="Nota: este export no incluye comisiones por operación (Tradovate las liquida a nivel de cuenta). Si quieres contabilizarlas, regístralas como coste de la cuenta (tipo «Other»)." xml:space="preserve">
+    <value>Note: this export doesn't include per-trade commissions (Tradovate settles them at account level). To account for them, log them as an account cost (kind "Other").</value>
+  </data>
+  <data name="1. Exportar el CSV desde NinjaTrader 8" xml:space="preserve">
+    <value>1. Export the CSV from NinjaTrader 8</value>
+  </data>
+  <data name="Abre el &lt;strong&gt;Control Center&lt;/strong&gt; de NinjaTrader 8 y ve a &lt;strong&gt;New → Trade Performance&lt;/strong&gt;." xml:space="preserve">
+    <value>Open the NinjaTrader 8 &lt;strong&gt;Control Center&lt;/strong&gt; and go to &lt;strong&gt;New → Trade Performance&lt;/strong&gt;.</value>
+  </data>
+  <data name="Selecciona tu cuenta en &lt;strong&gt;Account&lt;/strong&gt;, el rango de fechas, y pulsa &lt;strong&gt;Generate&lt;/strong&gt;." xml:space="preserve">
+    <value>Select your account under &lt;strong&gt;Account&lt;/strong&gt;, choose the date range, and click &lt;strong&gt;Generate&lt;/strong&gt;.</value>
+  </data>
+  <data name="Entra en la pestaña &lt;strong&gt;Trades&lt;/strong&gt; (la rejilla de operaciones)." xml:space="preserve">
+    <value>Open the &lt;strong&gt;Trades&lt;/strong&gt; tab (the trades grid).</value>
+  </data>
+  <data name="Recomendado: en &lt;strong&gt;Properties&lt;/strong&gt; del informe, usa &lt;strong&gt;Display unit = Currency&lt;/strong&gt; y deja visibles las columnas &lt;strong&gt;Profit&lt;/strong&gt;, &lt;strong&gt;Commission&lt;/strong&gt;, &lt;strong&gt;MAE&lt;/strong&gt; y &lt;strong&gt;MFE&lt;/strong&gt; — así FundedEdge importa también comisiones y calidad de ejecución." xml:space="preserve">
+    <value>Recommended: in the report's &lt;strong&gt;Properties&lt;/strong&gt;, use &lt;strong&gt;Display unit = Currency&lt;/strong&gt; and keep the &lt;strong&gt;Profit&lt;/strong&gt;, &lt;strong&gt;Commission&lt;/strong&gt;, &lt;strong&gt;MAE&lt;/strong&gt; and &lt;strong&gt;MFE&lt;/strong&gt; columns visible — that way FundedEdge also imports commissions and execution quality.</value>
+  </data>
+  <data name="Haz clic derecho sobre la rejilla → &lt;strong&gt;Export…&lt;/strong&gt; → elige formato &lt;strong&gt;CSV&lt;/strong&gt; y guarda el archivo." xml:space="preserve">
+    <value>Right-click the grid → &lt;strong&gt;Export…&lt;/strong&gt; → choose &lt;strong&gt;CSV&lt;/strong&gt; format and save the file.</value>
+  </data>
+  <data name="2. Importar el archivo en FundedEdge" xml:space="preserve">
+    <value>2. Import the file into FundedEdge</value>
+  </data>
+  <data name="En esta misma página de la cuenta, ve a la sección &lt;strong&gt;«Importar operaciones»&lt;/strong&gt; y selecciona el archivo CSV descargado." xml:space="preserve">
+    <value>On this same account page, go to the &lt;strong&gt;"Import trades"&lt;/strong&gt; section and select the downloaded CSV file.</value>
+  </data>
+  <data name="El formato (Tradovate o NinjaTrader 8) se detecta automáticamente por las cabeceras del archivo — no hay que configurar nada." xml:space="preserve">
+    <value>The format (Tradovate or NinjaTrader 8) is detected automatically from the file headers — nothing to configure.</value>
+  </data>
+  <data name="Cada fila se convierte en un trade con su símbolo, dirección, precios, fechas, P&amp;L y comisiones; con ellos se calculan el resto de métricas (curva de equity, drawdown, KPIs, cumplimiento de reglas, MAE/MFE…)." xml:space="preserve">
+    <value>Each row becomes a trade with its symbol, direction, prices, timestamps, P&amp;L and commissions; everything else (equity curve, drawdown, KPIs, rule compliance, MAE/MFE…) is computed from them.</value>
+  </data>
+  <data name="Reimportar el mismo archivo (o uno que solape fechas) no duplica operaciones: las filas ya importadas se omiten." xml:space="preserve">
+    <value>Re-importing the same file (or one with overlapping dates) never duplicates trades: already-imported rows are skipped.</value>
+  </data>
+  <data name="Entendido" xml:space="preserve">
+    <value>Got it</value>
+  </data>
+  <data name="Importa el CSV de Tradovate o NinjaTrader 8, o añade trades manualmente desde la ficha de una cuenta." xml:space="preserve">
+    <value>Import the Tradovate or NinjaTrader 8 CSV, or add trades manually from an account's page.</value>
+  </data>
+  <data name="Journal manual o importación del CSV que exportan Tradovate y NinjaTrader 8." xml:space="preserve">
+    <value>Manual journal or import of the CSV exported by Tradovate and NinjaTrader 8.</value>
+  </data>
+  <data name="Importación de CSV (Tradovate / NinjaTrader 8)" xml:space="preserve">
+    <value>CSV import (Tradovate / NinjaTrader 8)</value>
+  </data>
+  <data name="La mayoría de los trades proceden del export oficial de la plataforma (Tradovate/NinjaTrader 8), no se han introducido a mano." xml:space="preserve">
+    <value>Most trades come from the platform's official export (Tradovate/NinjaTrader 8), not entered by hand.</value>
+  </data>
 </root>

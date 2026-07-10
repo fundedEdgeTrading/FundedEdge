@@ -12,7 +12,7 @@ public interface ITradingAccountService
     Task TransitionStageAsync(TransitionAccountStageRequest request, CancellationToken ct = default);
     Task DeleteAsync(Guid id, CancellationToken ct = default);
 
-    /// <summary>Actualiza el feed/ID externo de una cuenta ya creada (p.ej. desde /settings al conectar Tradovate/NT8).</summary>
+    /// <summary>Actualiza la plataforma/ID externo de una cuenta ya creada (condiciona el tutorial de importación de CSV).</summary>
     Task UpdateConnectionAsync(UpdateAccountConnectionRequest request, CancellationToken ct = default);
 
     /// <summary>Renombra una cuenta (su DisplayName). Solo el dueño de la cuenta puede hacerlo.</summary>
