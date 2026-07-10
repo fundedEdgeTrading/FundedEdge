@@ -4,13 +4,14 @@
 @inject ITradingAccountService AccountService
 @inject IPropFirmService PropFirmService
 @inject IEvaluationProgramService ProgramService
+@inject IRuleComplianceService ComplianceService
 @inject CurrencyState Currency
 @inject NavigationManager Nav
 @inject IStringLocalizer<SharedResources> L
 
 <PageTitle>@L["Cuentas"] — @Brand.Name</PageTitle>
 
-<div class="d-flex justify-content-between align-items-center">
+<div class="d-flex justify-content-between align-items-center mb-4">
     <h1>@L["Cuentas de fondeo"]</h1>
     <button class="btn btn-primary" @onclick="ToggleCreateForm">@(_showCreateForm ? L["Cancelar"] : L["+ Nueva cuenta"])</button>
 </div>
@@ -225,14 +226,23 @@
 }
 
 <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
-    <div style="min-width: 220px">
-        <select class="form-select" @bind="_stageFilter" @bind:after="LoadAsync">
-            <option value="">@L["Todas las etapas"]</option>
-            @foreach (var v in Enum.GetValues<AccountStage>())
-            {
-                <option value="@v">@v</option>
-            }
-        </select>
+    <div class="stage-filter">
+        <button type="button" class="form-select stage-filter-btn" @onclick="() => _filterOpen = !_filterOpen">
+            @StageFilterLabel
+        </button>
+        @if (_filterOpen)
+        {
+            <div class="stage-filter-panel">
+                @foreach (var v in Enum.GetValues<AccountStage>())
+                {
+                    <label class="stage-filter-option">
+                        <input type="checkbox" checked="@_stageFilters.Contains(v)" @onchange="() => ToggleStage(v)" />
+                        <span>@v</span>
+                    </label>
+                }
+                <button type="button" class="stage-filter-clear" @onclick="ClearStageFilters">@L["Todas las etapas"]</button>
+            </div>
+        }
     </div>
     <div class="currency-toggle view-toggle" role="group" aria-label="@L["Vista"]">
         <button type="button" class="currency-option @(_cardView ? "active" : null)" @onclick="() => _cardView = true">@L["Tarjetas"]</button>
@@ -266,7 +276,7 @@ else if (_cardView)
     <div class="account-grid">
         @foreach (var a in _accounts)
         {
-            <AccountCard Account="a" OnOpen="GoToDetail" />
+            <AccountCard Account="a" Compliance="@_compliance.GetValueOrDefault(a.Id)" OnOpen="GoToDetail" />
         }
     </div>
 }
@@ -315,16 +325,36 @@ else
 }
 
 @code {
+    private List<TradingAccountListItemDto>? _allAccounts;
     private List<TradingAccountListItemDto>? _accounts;
     private List<PropFirmDto>? _firms;
     private List<EvaluationProgramDto>? _programs;
     private EvaluationProgramDto? _selectedProgram;
     private bool _showCreateForm;
     private bool _cardView = true;
-    private string _stageFilter = "";
+    private bool _filterOpen;
+    // Por defecto solo se ven las cuentas "activas" (fondeadas o en evaluación) — igual que la
+    // definición de "cuenta activa" del resto de la app (límites de plan, FAQ de precios).
+    private readonly HashSet<AccountStage> _stageFilters = [AccountStage.Funded, AccountStage.Evaluation];
     private CreateAccountFormModel _form = new();
     private string? _errorMessage;
     private string? _toastMessage;
+    private Dictionary<Guid, AccountComplianceStatusDto> _compliance = [];
+
+    private string StageFilterLabel
+    {
+        get
+        {
+            var allStages = Enum.GetValues<AccountStage>();
+            if (_stageFilters.Count == 0 || _stageFilters.Count == allStages.Length)
+            {
+                return L["Todas las etapas"];
+            }
+            return _stageFilters.Count == 1
+                ? _stageFilters.First().ToString()
+                : L["{0} etapas seleccionadas", _stageFilters.Count];
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -339,8 +369,29 @@ else
 
     private async Task LoadAsync()
     {
-        AccountStage? stage = Enum.TryParse<AccountStage>(_stageFilter, out var s) ? s : null;
-        _accounts = (await AccountService.GetAllAsync(stage)).ToList();
+        _allAccounts = (await AccountService.GetAllAsync()).ToList();
+        _compliance = (await ComplianceService.GetComplianceStatusAsync()).ToDictionary(c => c.AccountId);
+        ApplyStageFilter();
+    }
+
+    private void ApplyStageFilter()
+    {
+        _accounts = _stageFilters.Count == 0
+            ? _allAccounts
+            : _allAccounts?.Where(a => _stageFilters.Contains(a.Stage)).ToList();
+    }
+
+    private void ToggleStage(AccountStage stage)
+    {
+        if (!_stageFilters.Remove(stage)) _stageFilters.Add(stage);
+        ApplyStageFilter();
+    }
+
+    private void ClearStageFilters()
+    {
+        _stageFilters.Clear();
+        _filterOpen = false;
+        ApplyStageFilter();
     }
 
     private void ToggleCreateForm() => _showCreateForm = !_showCreateForm;

@@ -27,7 +27,7 @@
 @if (_drawdownAlerts is { Count: > 0 })
 {
     <div class="alert alert-danger">
-        <strong>@L["Aviso de drawdown:"]</strong>
+        <strong><span class="alert-dot" aria-hidden="true"></span>@L["Aviso de drawdown:"]</strong>
         @foreach (var alert in _drawdownAlerts)
         {
             <div>@L["{0} — {1} del colchón de drawdown consumido (quedan {2}).", alert.AccountDisplayName, alert.ConsumedFraction.ToString("P0"), Currency.Format(alert.RemainingBuffer)]</div>
@@ -100,9 +100,6 @@ else
         <KpiCard Title="Pass rate" Value="@FormatPercent(_business.PassRate)" />
         <KpiCard Title="@L["Cuentas compradas"]" Value="@_business.AccountsPurchased.ToString()"
                  Sub="@($"{_business.AccountsInEvaluation} {L["En evaluación"].Value.ToLowerInvariant()} · {_business.AccountsFunded} {L["fondeadas"]} · {_business.AccountsFailed + _business.AccountsExpired} {L["quemadas"]}")" />
-    </div>
-
-    <div class="kpi-grid mt-3">
         <KpiCard Title="@L["Coste por cuenta fondeada"]" Value="@FormatMoney(_business.CostPerFundedAccount)" />
         <KpiCard Title="@L["Payout medio por fondeada"]" Value="@FormatMoney(_business.AvgPayoutPerFundedAccount)" />
     </div>
@@ -157,8 +154,6 @@ else
                      Sub="@L["{0} trades cerrados", _trading.TotalTrades]" />
             <KpiCard Title="Profit factor" Value="@FormatRatio(_trading.ProfitFactor)" />
             <KpiCard Title="@L["Expectancy / trade"]" Value="@FormatMoney(_trading.Expectancy)" />
-        </div>
-        <div class="kpi-grid mt-3">
             <KpiCard Title="Payoff ratio" Value="@FormatRatio(_trading.PayoffRatio)" />
             <KpiCard Title="@L["R-múltiplo medio"]" Value="@(_trading.AvgRMultiple?.ToString("0.00") ?? "—")" />
             <KpiCard Title="@L["Máx. drawdown"]" Value="@Currency.Format(_trading.MaxDrawdown)" Emphasis="text-danger" />
@@ -168,63 +163,60 @@ else
         @if (_tagPerformance is { Count: > 0 })
         {
             <h2 class="mt-4">@L["Rendimiento por tag"]</h2>
-            <div class="table-responsive">
-                <table class="table table-sm">
-                    <thead>
-                        <tr>
-                            <th>Tag</th>
-                            <th class="text-end">@L["Trades cerrados"]</th>
-                            <th class="text-end">Win rate</th>
-                            <th class="text-end">Profit factor</th>
-                            <th class="text-end">Net P&amp;L</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var tag in _tagPerformance)
-                        {
-                            <tr>
-                                <td><span class="badge text-bg-secondary">@tag.Tag</span></td>
-                                <td class="text-end">@tag.TotalTrades</td>
-                                <td class="text-end">@FormatPercent(tag.WinRate)</td>
-                                <td class="text-end">@FormatRatio(tag.ProfitFactor)</td>
-                                <td class="text-end @(tag.NetPnL >= 0 ? "text-success" : "text-danger")">@Currency.Format(tag.NetPnL)</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
+            <div class="tag-panel">
+                <div class="tag-row tag-head">
+                    <span>Tag</span>
+                    <span class="text-end">@L["Trades cerrados"]</span>
+                    <span class="text-end">Win rate</span>
+                    <span class="text-end">Profit factor</span>
+                    <span class="text-end">Net P&amp;L</span>
+                </div>
+                @foreach (var tag in _tagPerformance)
+                {
+                    <div class="tag-row">
+                        <span><span class="tag-pill">@tag.Tag</span></span>
+                        <span class="text-end mono">@tag.TotalTrades</span>
+                        <span class="text-end mono">@FormatPercent(tag.WinRate)</span>
+                        <span class="text-end mono">@FormatRatio(tag.ProfitFactor)</span>
+                        <span class="text-end mono @(tag.NetPnL >= 0 ? "text-success" : "text-danger")">@Currency.Format(tag.NetPnL)</span>
+                    </div>
+                }
             </div>
         }
 
         @if (_bestHours.Count > 0 || _worstHours.Count > 0)
         {
             <h2 class="mt-4">@L["Mejores y peores franjas horarias"]</h2>
-            <div class="row g-3">
-                <div class="col-md-6">
-                    <h6 class="text-success">@L["Mejor expectancy"]</h6>
-                    <ul class="list-unstyled small">
+            <div class="hours-panel">
+                <div class="hours-cols">
+                    <div class="hours-col">
+                        <h4 class="text-success">@L["Mejor expectancy"]</h4>
                         @foreach (var p in _bestHours)
                         {
-                            <li>@HourLabel(p) — <span class="text-success">@Currency.Format(p.Expectancy ?? 0)</span> <span class="text-muted">(n=@p.TradeCount)</span></li>
+                            <div class="hours-row">
+                                <span>@HourLabel(p)</span>
+                                <span class="mono text-success">@Currency.Format(p.Expectancy ?? 0) <span class="hours-n">(n=@p.TradeCount)</span></span>
+                            </div>
                         }
-                    </ul>
-                </div>
-                <div class="col-md-6">
-                    <h6 class="text-danger">@L["Peor expectancy"]</h6>
-                    <ul class="list-unstyled small">
+                    </div>
+                    <div class="hours-col">
+                        <h4 class="text-danger">@L["Peor expectancy"]</h4>
                         @foreach (var p in _worstHours)
                         {
-                            <li>@HourLabel(p) — <span class="text-danger">@Currency.Format(p.Expectancy ?? 0)</span> <span class="text-muted">(n=@p.TradeCount)</span></li>
+                            <div class="hours-row">
+                                <span>@HourLabel(p)</span>
+                                <span class="mono text-danger">@Currency.Format(p.Expectancy ?? 0) <span class="hours-n">(n=@p.TradeCount)</span></span>
+                            </div>
                         }
-                    </ul>
+                    </div>
                 </div>
+                @if (_durationAsymmetry is { AvgWinDurationMinutes: not null, AvgLossDurationMinutes: not null })
+                {
+                    <div class="hours-foot">
+                        @L["Duración media: ganadores {0} min vs perdedores {1} min.", _durationAsymmetry.AvgWinDurationMinutes.Value.ToString("0"), _durationAsymmetry.AvgLossDurationMinutes.Value.ToString("0")]
+                    </div>
+                }
             </div>
-        }
-
-        @if (_durationAsymmetry is { AvgWinDurationMinutes: not null, AvgLossDurationMinutes: not null })
-        {
-            <p class="text-muted small mt-2">
-                @L["Duración media: ganadores {0} min vs perdedores {1} min.", _durationAsymmetry.AvgWinDurationMinutes.Value.ToString("0"), _durationAsymmetry.AvgLossDurationMinutes.Value.ToString("0")]
-            </p>
         }
 
         <h2 class="mt-4">@L["Calidad de ejecución (MAE/MFE)"]</h2>
@@ -247,6 +239,8 @@ else
         }
     }
 }
+
+<script src="js/kpi-countup.js"></script>
 
 @code {
     private BusinessKpis? _business;

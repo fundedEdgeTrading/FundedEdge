@@ -18,16 +18,29 @@
         <span class="val @(Account.NetPnL >= 0 ? "text-success" : "text-danger")">@Currency.Format(Account.NetPnL)</span>
         <span class="lbl">Net P&amp;L</span>
     </div>
-    @if (Account.Stage == AccountStage.Evaluation && Account.ProfitTarget > 0)
+    @if (Account.ProfitTarget > 0 || Compliance is not null)
     {
         <div class="meters">
-            <div>
-                <div class="meter-cap">
-                    <span>Profit target</span>
-                    <span class="mono">@Currency.Format(Math.Max(Account.NetPnL, 0), 0) / @Currency.Format(Account.ProfitTarget, 0) · @TargetPct%</span>
+            @if (Account.ProfitTarget > 0)
+            {
+                <div>
+                    <div class="meter-cap">
+                        <span>@L["Objetivo"]</span>
+                        <span class="mono">@TargetPct%</span>
+                    </div>
+                    <div class="track"><div class="fill fill-target" style="width:@(TargetPct)%"></div></div>
                 </div>
-                <div class="track"><div class="fill fill-target" style="width:@(TargetPct)%"></div></div>
-            </div>
+            }
+            @if (Compliance is not null)
+            {
+                <div>
+                    <div class="meter-cap">
+                        <span>@L["Drawdown consumido"]</span>
+                        <span class="mono">@DrawdownPct%</span>
+                    </div>
+                    <div class="track"><div class="fill @DrawdownFillClass" style="width:@(DrawdownPct)%"></div></div>
+                </div>
+            }
         </div>
     }
     <div class="ac-foot">
@@ -38,10 +51,25 @@
 
 @code {
     [Parameter, EditorRequired] public TradingAccountListItemDto Account { get; set; } = default!;
+    [Parameter] public AccountComplianceStatusDto? Compliance { get; set; }
     [Parameter] public EventCallback<Guid> OnOpen { get; set; }
 
     private int TargetPct => Account.ProfitTarget <= 0 ? 0
         : (int)Math.Clamp(Math.Round(Account.NetPnL / Account.ProfitTarget * 100), 0, 100);
+
+    // Fracción consumida del colchón de drawdown: mismo cálculo que el semáforo de reglas
+    // (RuleComplianceService), aquí solo para el color/ancho del medidor de la tarjeta.
+    private double DrawdownFraction => Compliance is null || Compliance.DrawdownLimit <= 0 ? 0
+        : Math.Clamp(1 - (double)(Compliance.DrawdownRemainingBuffer / Compliance.DrawdownLimit), 0, 1);
+
+    private int DrawdownPct => (int)Math.Round(DrawdownFraction * 100);
+
+    private string DrawdownFillClass => DrawdownFraction switch
+    {
+        >= 0.75 => "fill-hot",
+        >= 0.5 => "fill-warn",
+        _ => "fill-ok",
+    };
 
     private string FirmInitials
     {

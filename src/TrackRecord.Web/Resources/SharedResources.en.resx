@@ -1341,4 +1341,88 @@
   <data name="Atención" xml:space="preserve">
     <value>Warning</value>
   </data>
+  <data name="Simulamos tu operativa real contra las reglas de cada firma y te decimos qué evaluación comprar — ranking por valor esperado, no por precio." xml:space="preserve">
+    <value>We simulate your real trading against each firm's rules and tell you which evaluation to buy — ranked by expected value, not price.</value>
+  </data>
+  <data name="Sabrás si tu negocio de evaluaciones es rentable —" xml:space="preserve">
+    <value>You'll know whether your evaluation business is profitable —</value>
+  </data>
+  <data name="no lo intuirás." xml:space="preserve">
+    <value>not just guess.</value>
+  </data>
+  <data name="Simulación Monte Carlo" xml:space="preserve">
+    <value>Monte Carlo simulation</value>
+  </data>
+  <data name="Bankroll · 500 trayectorias" xml:space="preserve">
+    <value>Bankroll · 500 paths</value>
+  </data>
+  <data name="P(ruina) 3.2%" xml:space="preserve">
+    <value>P(ruin) 3.2%</value>
+  </data>
+  <data name="Mediana" xml:space="preserve">
+    <value>Median</value>
+  </data>
+  <data name="P5–P95" xml:space="preserve">
+    <value>P5–P95</value>
+  </data>
+  <data name="EV / evaluación +$412" xml:space="preserve">
+    <value>EV / evaluation +$412</value>
+  </data>
+  <data name="Kelly recomendado ½ Kelly · 6.4%" xml:space="preserve">
+    <value>Recommended Kelly ½ Kelly · 6.4%</value>
+  </data>
+  <data name="Por qué FundedEdge" xml:space="preserve">
+    <value>Why FundedEdge</value>
+  </data>
+  <data name="Cada firma promete rentabilidad. Nosotros medimos la tuya." xml:space="preserve">
+    <value>Every firm promises profitability. We measure yours.</value>
+  </data>
+  <data name="Cómo funciona" xml:space="preserve">
+    <value>How it works</value>
+  </data>
+  <data name="De tus datos crudos a una decisión clara" xml:space="preserve">
+    <value>From raw data to a clear decision</value>
+  </data>
+  <data name="Conecta tus cuentas" xml:space="preserve">
+    <value>Connect your accounts</value>
+  </data>
+  <data name="Añade cada cuenta de fondeo — Lucid, Tradeify, Apex u otras — con su tamaño, reglas y coste." xml:space="preserve">
+    <value>Add each funded account — Lucid, Tradeify, Apex or others — with its size, rules and cost.</value>
+  </data>
+  <data name="Registra o sincroniza" xml:space="preserve">
+    <value>Log or sync</value>
+  </data>
+  <data name="Journal manual, importa CSV, o sincroniza Tradovate/NinjaTrader automáticamente." xml:space="preserve">
+    <value>Manual journal, import a CSV, or sync Tradovate/NinjaTrader automatically.</value>
+  </data>
+  <data name="Revisa KPIs y riesgo" xml:space="preserve">
+    <value>Review KPIs and risk</value>
+  </data>
+  <data name="Dashboard de negocio y trading, EV, Monte Carlo de bankroll y fracción de Kelly." xml:space="preserve">
+    <value>Business and trading dashboard, EV, bankroll Monte Carlo and Kelly fraction.</value>
+  </data>
+  <data name="Decide con datos" xml:space="preserve">
+    <value>Decide with data</value>
+  </data>
+  <data name="Sabe qué evaluación comprar después y si tu operativa es, de verdad, rentable." xml:space="preserve">
+    <value>Know which evaluation to buy next and whether your trading is truly profitable.</value>
+  </data>
+  <data name="Sin tarjeta. Cancela cuando quieras." xml:space="preserve">
+    <value>No card. Cancel anytime.</value>
+  </data>
+  <data name="Más elegido" xml:space="preserve">
+    <value>Most popular</value>
+  </data>
+  <data name="Producto" xml:space="preserve">
+    <value>Product</value>
+  </data>
+  <data name="Objetivo" xml:space="preserve">
+    <value>Target</value>
+  </data>
+  <data name="Drawdown consumido" xml:space="preserve">
+    <value>Drawdown used</value>
+  </data>
+  <data name="{0} etapas seleccionadas" xml:space="preserve">
+    <value>{0} stages selected</value>
+  </data>
 </root>
