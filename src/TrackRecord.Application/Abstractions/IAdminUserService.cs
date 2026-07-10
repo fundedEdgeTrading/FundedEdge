@@ -35,6 +35,15 @@ public interface IAdminUserService
 {
     Task<IReadOnlyList<AdminUserSummary>> GetUsersAsync(CancellationToken ct = default);
 
+    Task<AdminUserSummary?> GetUserAsync(string userId, CancellationToken ct = default);
+
+    /// <summary>
+    /// Cambia el plan y los roles de un usuario. Los roles deben existir (ver AppRoles); un
+    /// administrador no puede quitarse a sí mismo el rol Administrator. Si los roles cambian se
+    /// rota el security stamp para que la sesión del usuario se refresque con los nuevos permisos.
+    /// </summary>
+    Task UpdateUserAsync(string userId, PlanTier plan, IReadOnlyCollection<string> roles, CancellationToken ct = default);
+
     /// <summary>KPIs por usuario, ordenados de mayor a menor ROI de negocio (los sin ROI al final).</summary>
     Task<IReadOnlyList<AdminUserKpis>> GetUserKpisAsync(CancellationToken ct = default);
 

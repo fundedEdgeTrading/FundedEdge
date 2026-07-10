@@ -1,0 +1,127 @@
+@page "/admin/users/{UserId}"
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "Administrator")]
+@rendermode InteractiveServer
+@inject IAdminUserService AdminService
+@inject NavigationManager Navigation
+@inject IStringLocalizer<SharedResources> L
+
+<PageTitle>@L["Editar usuario"] — @Brand.Name</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="mb-0">@L["Editar usuario"]</h1>
+    <a class="btn btn-outline-secondary" href="admin">@L["Volver a usuarios"]</a>
+</div>
+
+@if (_notFound)
+{
+    <div class="alert alert-warning">@L["Usuario no encontrado."]</div>
+}
+else if (_user is null)
+{
+    <p><em>@L["Cargando..."]</em></p>
+}
+else
+{
+    @if (_error is not null)
+    {
+        <div class="alert alert-danger">@_error</div>
+    }
+    @if (_saved)
+    {
+        <div class="alert alert-success">@L["Cambios guardados."]</div>
+    }
+
+    <div class="card" style="max-width: 640px;">
+        <div class="card-body">
+            <h5 class="card-title">@(_user.DisplayName ?? _user.Email)</h5>
+            <p class="text-muted mb-4">@_user.Email · @_user.AccountCount @L["cuentas"]</p>
+
+            <div class="mb-3">
+                <label class="form-label">Plan</label>
+                <select class="form-select" @bind="_plan">
+                    @foreach (var tier in Enum.GetValues<PlanTier>())
+                    {
+                        <option value="@tier">@tier</option>
+                    }
+                </select>
+                <div class="form-text">
+                    @L["Cambiar el plan aquí no toca la suscripción de Stripe: un próximo webhook de facturación puede volver a sobreescribirlo."]
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label">@L["Roles"]</label>
+                @foreach (var role in _allRoles)
+                {
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="role-@role"
+                               checked="@_roles.Contains(role)"
+                               @onchange="e => ToggleRole(role, (bool)e.Value!)" />
+                        <label class="form-check-label" for="role-@role">@role</label>
+                    </div>
+                }
+                <div class="form-text">
+                    @L["Administrator: acceso total al panel. Support: solo lectura del panel. Sin rol: usuario estándar."]
+                </div>
+            </div>
+
+            <button class="btn btn-primary" @onclick="SaveAsync" disabled="@_saving">@L["Guardar"]</button>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public string UserId { get; set; } = null!;
+
+    // Debe coincidir con AppRoles.All (Infrastructure.Identity no se referencia desde los componentes).
+    private static readonly string[] _allRoles = ["Administrator", "Support"];
+
+    private AdminUserSummary? _user;
+    private PlanTier _plan;
+    private HashSet<string> _roles = [];
+    private bool _notFound;
+    private bool _saving;
+    private bool _saved;
+    private string? _error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _user = await AdminService.GetUserAsync(UserId);
+        if (_user is null)
+        {
+            _notFound = true;
+            return;
+        }
+
+        _plan = _user.PlanTier;
+        _roles = [.. _user.Roles];
+    }
+
+    private void ToggleRole(string role, bool enabled)
+    {
+        if (enabled) _roles.Add(role);
+        else _roles.Remove(role);
+    }
+
+    private async Task SaveAsync()
+    {
+        _saving = true;
+        _saved = false;
+        _error = null;
+        try
+        {
+            await AdminService.UpdateUserAsync(UserId, _plan, _roles);
+            _user = await AdminService.GetUserAsync(UserId);
+            _saved = true;
+        }
+        catch (InvalidOperationException ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+}
