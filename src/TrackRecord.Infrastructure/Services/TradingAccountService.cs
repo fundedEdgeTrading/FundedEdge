@@ -106,7 +106,9 @@ public class TradingAccountService(
                     t.Tags,
                     t.RiskedAmount is > 0 && t.MaxAdverseExcursion != null ? t.MaxAdverseExcursion / t.RiskedAmount.Value : null,
                     t.RiskedAmount is > 0 && t.MaxFavorableExcursion != null ? t.MaxFavorableExcursion / t.RiskedAmount.Value : null,
-                    t.RiskedAmount))
+                    t.RiskedAmount,
+                    t.MaxAdverseExcursion,
+                    t.MaxFavorableExcursion))
                 .ToList(),
             nextPayoutEligibleOn,
             account.EvaluationProgramId);

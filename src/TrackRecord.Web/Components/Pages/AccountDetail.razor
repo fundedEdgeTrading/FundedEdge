@@ -444,8 +444,20 @@ else
                                    @onchange="@(e => UpdateTradeRiskAsync(t, decimal.TryParse(e.Value?.ToString(), System.Globalization.NumberStyles.Number, System.Globalization.CultureInfo.InvariantCulture, out var v) ? v : (decimal?)null))" />
                         </td>
                         <td class="text-end">@(t.RMultiple?.ToString("0.00") ?? "—")</td>
-                        <td class="text-end text-danger">@(t.MaeR?.ToString("0.00") ?? "—")</td>
-                        <td class="text-end text-success">@(t.MfeR?.ToString("0.00") ?? "—")</td>
+                        <td class="text-end text-danger">
+                            @(t.MaxAdverseExcursion is { } mae ? Currency.Format(-mae) : "—")
+                            @if (t.MaeR is { } maeR)
+                            {
+                                <small class="text-muted">(@maeR.ToString("0.00")R)</small>
+                            }
+                        </td>
+                        <td class="text-end text-success">
+                            @(t.MaxFavorableExcursion is { } mfe ? Currency.Format(mfe) : "—")
+                            @if (t.MfeR is { } mfeR)
+                            {
+                                <small class="text-muted">(@mfeR.ToString("0.00")R)</small>
+                            }
+                        </td>
                         <td><button class="btn btn-sm btn-link text-danger" @onclick="() => DeleteTradeAsync(t.Id)">✕</button></td>
                     </tr>
                 }
