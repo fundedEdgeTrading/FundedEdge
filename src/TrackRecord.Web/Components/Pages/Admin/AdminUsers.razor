@@ -54,6 +54,7 @@ else
                             <td class="text-end">@user.AccountCount</td>
                             <td class="text-end">
                                 <AuthorizeView Roles="Administrator">
+                                    <a class="btn btn-sm btn-outline-secondary me-1" href="admin/users/@user.Id">@L["Editar"]</a>
                                     @if (!user.Roles.Contains("Administrator"))
                                     {
                                         <form class="d-inline" method="post" action="admin/impersonate" data-enhance="false">
