@@ -18,15 +18,15 @@ namespace TrackRecord.Infrastructure.Integrations.Csv;
 /// </summary>
 public class NinjaTraderCsvParser
 {
-    private static readonly string[] InstrumentHeaders = ["Instrument", "Symbol"];
-    private static readonly string[] MarketPosHeaders = ["Market pos.", "Market Position", "Direction", "Side"];
-    private static readonly string[] QtyHeaders = ["Qty", "Quantity"];
-    private static readonly string[] EntryPriceHeaders = ["Entry price", "Entry Price"];
-    private static readonly string[] ExitPriceHeaders = ["Exit price", "Exit Price"];
-    private static readonly string[] EntryTimeHeaders = ["Entry time", "Entry Time"];
-    private static readonly string[] ExitTimeHeaders = ["Exit time", "Exit Time"];
-    private static readonly string[] ProfitHeaders = ["Profit", "P/L", "Net Profit"];
-    private static readonly string[] CommissionHeaders = ["Commission"];
+    private static readonly string[] InstrumentHeaders = ["Instrument", "Symbol", "Instrumento"];
+    private static readonly string[] MarketPosHeaders = ["Market pos.", "Market Position", "Direction", "Side", "Mercado pos."];
+    private static readonly string[] QtyHeaders = ["Qty", "Quantity", "Cant."];
+    private static readonly string[] EntryPriceHeaders = ["Entry price", "Entry Price", "Precio de entrada"];
+    private static readonly string[] ExitPriceHeaders = ["Exit price", "Exit Price", "Precio de salida"];
+    private static readonly string[] EntryTimeHeaders = ["Entry time", "Entry Time", "Tiempo de entrada"];
+    private static readonly string[] ExitTimeHeaders = ["Exit time", "Exit Time", "Tiempo de salida"];
+    private static readonly string[] ProfitHeaders = ["Profit", "P/L", "Net Profit", "Ganancias"];
+    private static readonly string[] CommissionHeaders = ["Commission", "Comisión"];
     private static readonly string[] MaeHeaders = ["MAE", "Max. adverse excursion"];
     private static readonly string[] MfeHeaders = ["MFE", "Max. favorable excursion"];
 
@@ -47,6 +47,7 @@ public class NinjaTraderCsvParser
             return new CsvParseResult([], [new CsvParseError(1, "", "El archivo está vacío.")]);
         }
 
+        CsvLineSplitter.DetectDelimiter(headerLine);
         var headers = CsvLineSplitter.Split(headerLine);
         var columnIndex = BuildColumnIndex(headers);
 

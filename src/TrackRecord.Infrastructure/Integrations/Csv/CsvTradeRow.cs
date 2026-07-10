@@ -29,9 +29,11 @@ public record CsvParseError(int LineNumber, string RawLine, string Reason);
 
 public record CsvParseResult(IReadOnlyList<CsvTradeRow> Rows, IReadOnlyList<CsvParseError> Errors);
 
-/// <summary>Split RFC4180 simplificado compartido por los parsers: campos entre comillas con comas/comillas escapadas.</summary>
+/// <summary>Split RFC4180 simplificado compartido por los parsers: detecta automáticamente el delimitador (coma o punto y coma).</summary>
 internal static class CsvLineSplitter
 {
+    private static char _detectedDelimiter = ',';
+
     public static List<string> Split(string line)
     {
         var fields = new List<string>();
@@ -65,7 +67,7 @@ internal static class CsvLineSplitter
             {
                 inQuotes = true;
             }
-            else if (c == ',')
+            else if (c == _detectedDelimiter)
             {
                 fields.Add(current.ToString());
                 current.Clear();
@@ -78,5 +80,24 @@ internal static class CsvLineSplitter
 
         fields.Add(current.ToString());
         return fields;
+    }
+
+    public static void DetectDelimiter(string headerLine)
+    {
+        var commaCount = 0;
+        var semiCount = 0;
+        var inQuotes = false;
+
+        foreach (var c in headerLine)
+        {
+            if (c == '"') inQuotes = !inQuotes;
+            else if (!inQuotes)
+            {
+                if (c == ',') commaCount++;
+                else if (c == ';') semiCount++;
+            }
+        }
+
+        _detectedDelimiter = semiCount > commaCount ? ';' : ',';
     }
 }
