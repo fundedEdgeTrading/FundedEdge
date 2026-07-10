@@ -27,7 +27,7 @@
 @if (_drawdownAlerts is { Count: > 0 })
 {
     <div class="alert alert-danger">
-        <strong>@L["Aviso de drawdown:"]</strong>
+        <strong><span class="alert-dot" aria-hidden="true"></span>@L["Aviso de drawdown:"]</strong>
         @foreach (var alert in _drawdownAlerts)
         {
             <div>@L["{0} — {1} del colchón de drawdown consumido (quedan {2}).", alert.AccountDisplayName, alert.ConsumedFraction.ToString("P0"), Currency.Format(alert.RemainingBuffer)]</div>
@@ -247,6 +247,8 @@ else
         }
     }
 }
+
+<script src="js/kpi-countup.js"></script>
 
 @code {
     private BusinessKpis? _business;
