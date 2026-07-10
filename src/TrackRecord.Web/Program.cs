@@ -172,6 +172,12 @@ else
     app.Logger.LogInformation("Migración automática desactivada (Database:AutoMigrate=false). Aplica las migraciones como paso de despliegue.");
 }
 
+// Roles (Administrator/Support) y asignación del admin inicial vía Admin:Email. Idempotente.
+{
+    using var scope = app.Services.CreateScope();
+    await scope.ServiceProvider.GetRequiredService<IdentityDataSeeder>().SeedAsync();
+}
+
 // Datos de demostración (opt-in, ver DemoDataSeeder): usuario demo con 6 cuentas, trades,
 // transiciones, resets, payouts y psicología. Solo con Database:SeedDemo=true (Development).
 if (string.Equals(app.Configuration["Database:SeedDemo"], "true", StringComparison.OrdinalIgnoreCase))
@@ -231,6 +237,7 @@ app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
 app.MapAdditionalIdentityEndpoints();
+app.MapAdminEndpoints();
 app.MapBillingEndpoints();
 app.MapSeoEndpoints();
 
