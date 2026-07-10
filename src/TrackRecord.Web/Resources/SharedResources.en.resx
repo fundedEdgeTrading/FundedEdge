@@ -1422,4 +1422,7 @@
   <data name="Drawdown consumido" xml:space="preserve">
     <value>Drawdown used</value>
   </data>
+  <data name="{0} etapas seleccionadas" xml:space="preserve">
+    <value>{0} stages selected</value>
+  </data>
 </root>
