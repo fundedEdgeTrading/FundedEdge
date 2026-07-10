@@ -1398,6 +1398,15 @@ input[type="file"] {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    text-decoration: none;
+}
+
+a.nav-user-name:hover {
+    color: var(--accent-strong);
+}
+
+img.nav-user-avatar {
+    object-fit: cover;
 }
 
 /* ============================================================

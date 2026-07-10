@@ -51,6 +51,9 @@
             </EditForm>
 
             <p class="auth-footer">
+                <a href="Account/ForgotPassword">@L["¿Has olvidado tu contraseña?"]</a>
+            </p>
+            <p class="auth-footer">
                 @L["¿No tienes cuenta?"] <a href="@(NavigationManager.GetUriWithQueryParameters("Account/Register", new Dictionary<string, object?> { ["ReturnUrl"] = ReturnUrl }))">@L["Regístrate"]</a>
             </p>
         </ChildContent>

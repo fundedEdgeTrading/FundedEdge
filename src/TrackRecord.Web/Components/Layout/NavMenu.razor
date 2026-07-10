@@ -148,8 +148,15 @@
         <AuthorizeView>
             <Authorized>
                 <div class="nav-user">
-                    <span class="nav-user-avatar">@UserInitial(context.User)</span>
-                    <span class="nav-user-name">@DisplayName(context.User)</span>
+                    @if (AvatarUrl(context.User) is { } avatarUrl)
+                    {
+                        <img class="nav-user-avatar" src="@avatarUrl" alt="" />
+                    }
+                    else
+                    {
+                        <span class="nav-user-avatar">@UserInitial(context.User)</span>
+                    }
+                    <a class="nav-user-name" href="/settings/profile">@DisplayName(context.User)</a>
                 </div>
                 <form action="Account/Logout" method="post">
                     <AntiforgeryToken />
@@ -174,6 +181,12 @@
     {
         var name = user.FindFirst(c => c.Type == "DisplayName")?.Value;
         return !string.IsNullOrWhiteSpace(name) ? name : user.Identity?.Name ?? "Usuario";
+    }
+
+    private static string? AvatarUrl(System.Security.Claims.ClaimsPrincipal user)
+    {
+        var url = user.FindFirst(c => c.Type == "AvatarUrl")?.Value;
+        return string.IsNullOrWhiteSpace(url) ? null : url;
     }
 
     private static string UserInitial(System.Security.Claims.ClaimsPrincipal user) =>

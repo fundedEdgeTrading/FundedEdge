@@ -1530,4 +1530,106 @@
   <data name="La mayoría de los trades proceden del export oficial de la plataforma (Tradovate/NinjaTrader 8), no se han introducido a mano." xml:space="preserve">
     <value>Most trades come from the platform's official export (Tradovate/NinjaTrader 8), not entered by hand.</value>
   </data>
+  <data name="¿Has olvidado tu contraseña?" xml:space="preserve">
+    <value>Forgot your password?</value>
+  </data>
+  <data name="Escribe tu email y te enviaremos un enlace para restablecerla." xml:space="preserve">
+    <value>Enter your email and we'll send you a link to reset it.</value>
+  </data>
+  <data name="El envío de emails no está configurado (Email:SmtpHost / Email:From), así que el enlace de restablecimiento se muestra aquí. En producción, configura SMTP — ver README." xml:space="preserve">
+    <value>Email sending is not configured (Email:SmtpHost / Email:From), so the reset link is shown here. In production, configure SMTP — see README.</value>
+  </data>
+  <data name="Restablecer mi contraseña" xml:space="preserve">
+    <value>Reset my password</value>
+  </data>
+  <data name="Enviar enlace de restablecimiento" xml:space="preserve">
+    <value>Send reset link</value>
+  </data>
+  <data name="Volver a iniciar sesión" xml:space="preserve">
+    <value>Back to sign in</value>
+  </data>
+  <data name="Revisa tu email" xml:space="preserve">
+    <value>Check your email</value>
+  </data>
+  <data name="Si existe una cuenta con ese email, te hemos enviado un enlace para restablecer la contraseña. Revisa tu bandeja de entrada (y la carpeta de spam)." xml:space="preserve">
+    <value>If an account exists for that email, we've sent a link to reset the password. Check your inbox (and the spam folder).</value>
+  </data>
+  <data name="Restablecer contraseña" xml:space="preserve">
+    <value>Reset password</value>
+  </data>
+  <data name="Elige una contraseña nueva para tu cuenta." xml:space="preserve">
+    <value>Choose a new password for your account.</value>
+  </data>
+  <data name="Contraseña nueva" xml:space="preserve">
+    <value>New password</value>
+  </data>
+  <data name="Contraseña restablecida" xml:space="preserve">
+    <value>Password reset</value>
+  </data>
+  <data name="Tu contraseña se ha restablecido correctamente. Ya puedes iniciar sesión con la nueva." xml:space="preserve">
+    <value>Your password has been reset. You can now sign in with the new one.</value>
+  </data>
+  <data name="Perfil" xml:space="preserve">
+    <value>Profile</value>
+  </data>
+  <data name="Tu nombre, tu avatar y el acceso a tu cuenta." xml:space="preserve">
+    <value>Your name, your avatar and access to your account.</value>
+  </data>
+  <data name="Es el nombre que se muestra en la barra lateral y en los emails que te enviamos." xml:space="preserve">
+    <value>This is the name shown in the sidebar and in the emails we send you.</value>
+  </data>
+  <data name="Avatar" xml:space="preserve">
+    <value>Avatar</value>
+  </data>
+  <data name="Sube una foto (PNG, JPG o WebP, máx. 2 MB) o elige uno de los avatares del sistema." xml:space="preserve">
+    <value>Upload a photo (PNG, JPG or WebP, max 2 MB) or pick one of the system avatars.</value>
+  </data>
+  <data name="Elegir este avatar" xml:space="preserve">
+    <value>Choose this avatar</value>
+  </data>
+  <data name="O sube tu propia foto" xml:space="preserve">
+    <value>Or upload your own photo</value>
+  </data>
+  <data name="Guardar avatar" xml:space="preserve">
+    <value>Save avatar</value>
+  </data>
+  <data name="Avatar actual" xml:space="preserve">
+    <value>Current avatar</value>
+  </data>
+  <data name="Quitar avatar" xml:space="preserve">
+    <value>Remove avatar</value>
+  </data>
+  <data name="Por seguridad, la contraseña se cambia mediante un enlace que te enviamos a tu email." xml:space="preserve">
+    <value>For security, the password is changed via a link we send to your email.</value>
+  </data>
+  <data name="Enviarme el enlace de restablecimiento" xml:space="preserve">
+    <value>Email me the reset link</value>
+  </data>
+  <data name="Nombre guardado." xml:space="preserve">
+    <value>Name saved.</value>
+  </data>
+  <data name="Avatar guardado." xml:space="preserve">
+    <value>Avatar saved.</value>
+  </data>
+  <data name="Avatar eliminado." xml:space="preserve">
+    <value>Avatar removed.</value>
+  </data>
+  <data name="Error: la foto no puede superar los 2 MB." xml:space="preserve">
+    <value>Error: the photo cannot exceed 2 MB.</value>
+  </data>
+  <data name="Error: formato no admitido. Usa PNG, JPG o WebP." xml:space="preserve">
+    <value>Error: unsupported format. Use PNG, JPG or WebP.</value>
+  </data>
+  <data name="Error: elige un avatar o sube una foto." xml:space="preserve">
+    <value>Error: choose an avatar or upload a photo.</value>
+  </data>
+  <data name="Te hemos enviado un email con el enlace para restablecer tu contraseña." xml:space="preserve">
+    <value>We've sent you an email with the link to reset your password.</value>
+  </data>
+  <data name="Edita tu nombre y tu avatar, o pide un email para restablecer tu contraseña." xml:space="preserve">
+    <value>Edit your name and avatar, or request an email to reset your password.</value>
+  </data>
+  <data name="Editar perfil" xml:space="preserve">
+    <value>Edit profile</value>
+  </data>
 </root>

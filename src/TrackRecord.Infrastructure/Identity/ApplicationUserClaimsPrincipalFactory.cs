@@ -5,7 +5,7 @@ using Microsoft.Extensions.Options;
 namespace TrackRecord.Infrastructure.Identity;
 
 /// <summary>
-/// Añade el claim "DisplayName" al ClaimsPrincipal, para poder mostrarlo en la sidebar sin ir a BD.
+/// Añade los claims "DisplayName" y "AvatarUrl" al ClaimsPrincipal, para poder mostrarlos en la sidebar sin ir a BD.
 /// La base con TRole incluye además los claims de rol (necesarios para [Authorize(Roles=...)]).
 /// </summary>
 public class ApplicationUserClaimsPrincipalFactory(
@@ -17,9 +17,17 @@ public class ApplicationUserClaimsPrincipalFactory(
     public override async Task<ClaimsPrincipal> CreateAsync(ApplicationUser user)
     {
         var principal = await base.CreateAsync(user);
-        if (!string.IsNullOrWhiteSpace(user.DisplayName) && principal.Identity is ClaimsIdentity identity)
+        if (principal.Identity is ClaimsIdentity identity)
         {
-            identity.AddClaim(new Claim("DisplayName", user.DisplayName));
+            if (!string.IsNullOrWhiteSpace(user.DisplayName))
+            {
+                identity.AddClaim(new Claim("DisplayName", user.DisplayName));
+            }
+
+            if (!string.IsNullOrWhiteSpace(user.AvatarUrl))
+            {
+                identity.AddClaim(new Claim("AvatarUrl", user.AvatarUrl));
+            }
         }
 
         return principal;

@@ -12,6 +12,9 @@ public class ApplicationUser : IdentityUser
 {
     public string? DisplayName { get; set; }
 
+    /// <summary>Ruta relativa del avatar: uno de los predefinidos de /img/avatars o una foto subida a /uploads/avatars. Null = sin avatar (se muestra la inicial).</summary>
+    public string? AvatarUrl { get; set; }
+
     /// <summary>Plan de suscripción persistido. Ver IPlanService para el tier EFECTIVO (tiene en cuenta el trial).</summary>
     public PlanTier PlanTier { get; set; } = PlanTier.Starter;
 
