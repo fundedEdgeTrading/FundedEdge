@@ -4,6 +4,7 @@
 @inject ITradingAccountService AccountService
 @inject IPropFirmService PropFirmService
 @inject IEvaluationProgramService ProgramService
+@inject IRuleComplianceService ComplianceService
 @inject CurrencyState Currency
 @inject NavigationManager Nav
 @inject IStringLocalizer<SharedResources> L
@@ -266,7 +267,7 @@ else if (_cardView)
     <div class="account-grid">
         @foreach (var a in _accounts)
         {
-            <AccountCard Account="a" OnOpen="GoToDetail" />
+            <AccountCard Account="a" Compliance="@_compliance.GetValueOrDefault(a.Id)" OnOpen="GoToDetail" />
         }
     </div>
 }
@@ -325,6 +326,7 @@ else
     private CreateAccountFormModel _form = new();
     private string? _errorMessage;
     private string? _toastMessage;
+    private Dictionary<Guid, AccountComplianceStatusDto> _compliance = [];
 
     protected override async Task OnInitializedAsync()
     {
@@ -341,6 +343,7 @@ else
     {
         AccountStage? stage = Enum.TryParse<AccountStage>(_stageFilter, out var s) ? s : null;
         _accounts = (await AccountService.GetAllAsync(stage)).ToList();
+        _compliance = (await ComplianceService.GetComplianceStatusAsync()).ToDictionary(c => c.AccountId);
     }
 
     private void ToggleCreateForm() => _showCreateForm = !_showCreateForm;

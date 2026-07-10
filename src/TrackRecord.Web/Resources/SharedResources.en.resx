@@ -1416,4 +1416,10 @@
   <data name="Producto" xml:space="preserve">
     <value>Product</value>
   </data>
+  <data name="Objetivo" xml:space="preserve">
+    <value>Target</value>
+  </data>
+  <data name="Drawdown consumido" xml:space="preserve">
+    <value>Drawdown used</value>
+  </data>
 </root>
