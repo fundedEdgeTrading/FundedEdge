@@ -111,6 +111,22 @@
             </svg>
             <span>@L["Ajustes"]</span>
         </NavLink>
+
+        <AuthorizeView Roles="Administrator,Support">
+            <span class="nav-section">@L["Administración"]</span>
+            <NavLink class="nav-link" href="admin" Match="NavLinkMatch.All">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />
+                </svg>
+                <span>@L["Usuarios"]</span>
+            </NavLink>
+            <NavLink class="nav-link" href="admin/kpis">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M3 3v18h18" /><path d="M7 15l4-4 3 3 5-6" />
+                </svg>
+                <span>@L["KPIs por usuario"]</span>
+            </NavLink>
+        </AuthorizeView>
     </nav>
 
     <div class="nav-footer">
