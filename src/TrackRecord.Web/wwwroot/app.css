@@ -105,7 +105,8 @@ code {
 /* ---------- Tipografía ---------- */
 
 h1 {
-    font-size: 1.65rem;
+    font-family: var(--font-display);
+    font-size: 1.7rem;
     font-weight: 700;
     letter-spacing: -0.02em;
     color: var(--text-1);
@@ -127,6 +128,7 @@ h2 {
 }
 
 h5.card-title, .card-title {
+    font-family: var(--font-display);
     font-size: 1rem;
     font-weight: 600;
     color: var(--text-1);
@@ -2240,6 +2242,7 @@ input[type="file"] {
 
     .ac-title b {
         display: block;
+        font-family: var(--font-display);
         font-size: 0.95rem;
         font-weight: 600;
         white-space: nowrap;
@@ -2807,6 +2810,7 @@ ul.plan-features {
 }
 
     .rule-head b {
+        font-family: var(--font-display);
         font-size: 0.9rem;
         font-weight: 600;
         white-space: nowrap;
@@ -2833,6 +2837,117 @@ ul.plan-features {
     font-variant-numeric: tabular-nums;
     color: var(--text-1);
     white-space: nowrap;
+}
+
+/* ============================================================
+   Rediseño v1 — Dashboard: rendimiento por tag (panel, no tabla bootstrap)
+   ============================================================ */
+
+.tag-panel {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+}
+
+.tag-row {
+    display: grid;
+    grid-template-columns: 1fr auto auto auto auto;
+    gap: 1.2rem;
+    align-items: center;
+    padding: 0.65rem 1rem;
+    border-bottom: 1px solid var(--border);
+}
+
+    .tag-row:last-child {
+        border-bottom: none;
+    }
+
+.tag-head {
+    font-size: 0.66rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-3);
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.tag-pill {
+    display: inline-block;
+    padding: 2px 9px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--border-strong);
+    color: var(--text-2);
+    font-size: 0.78rem;
+}
+
+.tag-row .mono {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    min-width: 4.5em;
+}
+
+/* ============================================================
+   Rediseño v1 — Dashboard: franjas horarias (panel de dos columnas)
+   ============================================================ */
+
+.hours-panel {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.1rem 1.3rem;
+}
+
+.hours-cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+
+@media (max-width: 640px) {
+    .hours-cols {
+        grid-template-columns: 1fr;
+    }
+}
+
+.hours-col h4 {
+    font-size: 0.72rem;
+    font-weight: 650;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin: 0 0 0.6rem;
+}
+
+.hours-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.4rem 0;
+    font-size: 0.86rem;
+    color: var(--text-2);
+    border-top: 1px solid var(--border);
+}
+
+    .hours-row:first-of-type {
+        border-top: none;
+    }
+
+.hours-row .mono {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+}
+
+.hours-n {
+    color: var(--text-3);
+    font-family: var(--font-sans);
+}
+
+.hours-foot {
+    margin-top: 0.9rem;
+    padding-top: 0.8rem;
+    border-top: 1px solid var(--border);
+    font-size: 0.8rem;
+    color: var(--text-3);
 }
 
 /* Aviso informativo (diario emocional pendiente) en clave de marca */
