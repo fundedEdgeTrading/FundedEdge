@@ -33,7 +33,12 @@ public class NinjaTraderCsvParser
     /// <summary>Heurística de detección: cabeceras características del export de NT8.</summary>
     public static bool LooksLikeHeader(IReadOnlyList<string> headers)
     {
-        bool Has(string[] aliases) => headers.Any(h => aliases.Contains(h.Trim(), StringComparer.OrdinalIgnoreCase));
+        bool Has(string[] aliases)
+        {
+            return headers.Any(h =>
+                aliases.Any(alias => string.Equals(h.Trim(), alias, StringComparison.OrdinalIgnoreCase)));
+        }
+
         return Has(EntryPriceHeaders) && Has(EntryTimeHeaders) && Has(MarketPosHeaders);
     }
 
