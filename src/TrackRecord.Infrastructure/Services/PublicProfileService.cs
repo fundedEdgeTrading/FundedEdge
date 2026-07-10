@@ -112,8 +112,8 @@ public class PublicProfileService(
 
         var displayName = !string.IsNullOrWhiteSpace(user.DisplayName) ? user.DisplayName : user.UserName ?? "Trader";
 
-        // "Verificado" = la mayoría de los trades vienen de la ingesta automática de un broker
-        // (Tradovate/NinjaTrader), no introducidos a mano — GUIA_FUNCIONALIDADES_PROPUESTAS.md §3.7.
+        // "Verificado" = la mayoría de los trades vienen del export oficial de la plataforma
+        // (CSV de Tradovate/NinjaTrader 8), no introducidos a mano — GUIA_FUNCIONALIDADES_PROPUESTAS.md §3.7.
         bool isVerified = false;
         if (totalTrades > 0)
         {

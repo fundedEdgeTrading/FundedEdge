@@ -190,26 +190,21 @@
             </fieldset>
 
             <fieldset class="fgroup">
-                <legend>3 · @L["Compra y conexión"]</legend>
-                <p class="gdesc">@L["Cuándo la compraste y de dónde llegan los datos."]</p>
+                <legend>3 · @L["Compra y plataforma"]</legend>
+                <p class="gdesc">@L["Cuándo la compraste y en qué plataforma operas — los trades se importan por CSV desde la ficha de la cuenta."]</p>
                 <div class="row g-3">
                     <div class="col-md-3 col-6">
                         <label class="form-label">@L["Fecha de compra"]</label>
                         <InputDate class="form-control" @bind-Value="_form.PurchasedOn" />
                     </div>
                     <div class="col-md-3 col-6">
-                        <label class="form-label">@L["Feed / plataforma"]</label>
+                        <label class="form-label">@L["Plataforma"]</label>
                         <InputSelect class="form-select" @bind-Value="_form.Feed">
                             @foreach (var v in Enum.GetValues<DataFeedType>())
                             {
                                 <option value="@v">@v</option>
                             }
                         </InputSelect>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">@L["ID externo (Tradovate/NT8)"]</label>
-                        <InputText class="form-control" @bind-Value="_form.ExternalAccountId" placeholder="APEX-000000" />
-                        <div class="form-hint">@L["Opcional · para sincronizar operaciones"]</div>
                     </div>
                 </div>
             </fieldset>
