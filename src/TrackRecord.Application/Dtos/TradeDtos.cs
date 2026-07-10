@@ -18,7 +18,10 @@ public record TradeListItemDto(
     string? Tags,
     decimal? MaeR = null,
     decimal? MfeR = null,
-    decimal? RiskedAmount = null);
+    decimal? RiskedAmount = null,
+    // Excursiones en $ tal y como llegan del CSV — visibles aunque no haya RiskedAmount (los *R no).
+    decimal? MaxAdverseExcursion = null,
+    decimal? MaxFavorableExcursion = null);
 
 public record TradeSetupDto(Guid Id, string Name);
 
