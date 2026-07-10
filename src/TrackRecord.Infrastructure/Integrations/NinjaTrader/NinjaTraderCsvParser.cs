@@ -51,7 +51,8 @@ public class NinjaTraderCsvParser
             return new CsvParseResult([], [new CsvParseError(1, "", "El archivo está vacío.")]);
         }
 
-        var headers = SplitCsvLine(headerLine);
+        var delimiter = DetectDelimiter(headerLine);
+        var headers = SplitCsvLine(headerLine, delimiter);
         var columnIndex = BuildColumnIndex(headers);
 
         var missing = new List<string>();
@@ -87,7 +88,7 @@ public class NinjaTraderCsvParser
             lineNumber++;
             if (string.IsNullOrWhiteSpace(line)) continue;
 
-            var fields = SplitCsvLine(line);
+            var fields = SplitCsvLine(line, delimiter);
             try
             {
                 var symbol = Field(fields, instrumentCol).Trim();
@@ -170,8 +171,28 @@ public class NinjaTraderCsvParser
         return -1;
     }
 
-    /// <summary>Split RFC4180 simplificado: soporta campos entre comillas con comas/comillas escapadas.</summary>
-    private static List<string> SplitCsvLine(string line)
+    /// <summary>Detecta automáticamente si el delimitador es ',' o ';' contando ocurrencias fuera de comillas.</summary>
+    private static char DetectDelimiter(string headerLine)
+    {
+        var commaCount = 0;
+        var semiCount = 0;
+        var inQuotes = false;
+
+        foreach (var c in headerLine)
+        {
+            if (c == '"') inQuotes = !inQuotes;
+            else if (!inQuotes)
+            {
+                if (c == ',') commaCount++;
+                else if (c == ';') semiCount++;
+            }
+        }
+
+        return semiCount > commaCount ? ';' : ',';
+    }
+
+    /// <summary>Split RFC4180 simplificado: soporta campos entre comillas con el delimitador especificado.</summary>
+    private static List<string> SplitCsvLine(string line, char delimiter = ',')
     {
         var fields = new List<string>();
         var current = new System.Text.StringBuilder();
@@ -204,7 +225,7 @@ public class NinjaTraderCsvParser
             {
                 inQuotes = true;
             }
-            else if (c == ',')
+            else if (c == delimiter)
             {
                 fields.Add(current.ToString());
                 current.Clear();
