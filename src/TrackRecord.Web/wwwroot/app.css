@@ -2173,3 +2173,70 @@ ul.plan-features {
             color: var(--accent-strong);
             font-weight: 700;
         }
+
+/* ============================================================
+   Rediseño v1 — Dashboard: semáforo de reglas por tarjeta
+   ============================================================ */
+
+.rule-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 12px;
+    margin-bottom: 0.6rem;
+}
+
+.rule-card {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.025), rgba(255, 255, 255, 0)), var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 13px 16px 6px;
+    transition: border-color 0.15s var(--ease);
+}
+
+    .rule-card:hover {
+        border-color: var(--border-strong);
+    }
+
+.rule-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    padding-bottom: 9px;
+}
+
+    .rule-head b {
+        font-size: 0.9rem;
+        font-weight: 600;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+.rule-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 0;
+    border-top: 1px solid var(--border);
+    font-size: 0.8rem;
+    color: var(--text-2);
+}
+
+.rule-val {
+    display: inline-flex;
+    align-items: center;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-1);
+    white-space: nowrap;
+}
+
+/* Aviso informativo (diario emocional pendiente) en clave de marca */
+.alert-info {
+    background: var(--accent-soft);
+    border: 1px solid rgba(47, 214, 163, 0.3);
+    color: var(--accent-strong);
+}

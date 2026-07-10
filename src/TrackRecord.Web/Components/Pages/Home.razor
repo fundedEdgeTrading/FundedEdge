@@ -38,82 +38,41 @@
 @if (_compliance is { Count: > 0 })
 {
     <h2>@L["Semáforo de reglas"]</h2>
-    <div class="table-responsive mb-3">
-        <table class="table table-sm align-middle">
-            <thead>
-                <tr>
-                    <th>@L["Cuenta"]</th>
-                    <th>@L["Pérdida diaria"]</th>
-                    <th>@L["Drawdown"]</th>
-                    <th>@L["Consistencia"]</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var c in _compliance)
-                {
-                    <tr>
-                        <td>@c.AccountDisplayName</td>
-                        <td>
-                            @Dot(c.DailyLossLevel)
-                            @(c.DailyLossLimit is null ? L["N/A"].Value : L["quedan {0}", Currency.Format(c.DailyLossRemaining ?? 0, 0)].Value)
-                        </td>
-                        <td>@Dot(c.DrawdownLevel) @L["colchón {0}", Currency.Format(c.DrawdownRemainingBuffer, 0)]</td>
-                        <td>
-                            @if (c.ConsistencyLevel is null)
-                            {
-                                @L["N/A"]
-                            }
-                            else
-                            {
-                                @Dot(c.ConsistencyLevel.Value)
-                                @($"{c.ConsistencyTopDayFraction:P0} / {c.ConsistencyMaxDayFraction:P0}")
-                            }
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    </div>
-}
-
-@if (_compliance is { Count: > 0 })
-{
-    <h2>@L["Semáforo de reglas"]</h2>
-    <div class="table-responsive mb-3">
-        <table class="table table-sm align-middle">
-            <thead>
-                <tr>
-                    <th>@L["Cuenta"]</th>
-                    <th>@L["Pérdida diaria"]</th>
-                    <th>@L["Drawdown"]</th>
-                    <th>@L["Consistencia"]</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var c in _compliance)
-                {
-                    <tr>
-                        <td>@c.AccountDisplayName</td>
-                        <td>
-                            @Dot(c.DailyLossLevel)
-                            @(c.DailyLossLimit is null ? L["N/A"].Value : L["quedan {0}", Currency.Format(c.DailyLossRemaining ?? 0, 0)].Value)
-                        </td>
-                        <td>@Dot(c.DrawdownLevel) @L["colchón {0}", Currency.Format(c.DrawdownRemainingBuffer, 0)]</td>
-                        <td>
-                            @if (c.ConsistencyLevel is null)
-                            {
-                                @L["N/A"]
-                            }
-                            else
-                            {
-                                @Dot(c.ConsistencyLevel.Value)
-                                @($"{c.ConsistencyTopDayFraction:P0} / {c.ConsistencyMaxDayFraction:P0}")
-                            }
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+    <div class="rule-grid">
+        @foreach (var c in _compliance)
+        {
+            <div class="rule-card">
+                <div class="rule-head">
+                    <b>@c.AccountDisplayName</b>
+                    <span class="stage @OverallStageClass(c)">@OverallStageText(c)</span>
+                </div>
+                <div class="rule-row">
+                    <span>@L["Pérdida diaria"]</span>
+                    <span class="rule-val">
+                        @Dot(c.DailyLossLevel)
+                        @(c.DailyLossLimit is null ? L["N/A"].Value : L["quedan {0}", Currency.Format(c.DailyLossRemaining ?? 0, 0)].Value)
+                    </span>
+                </div>
+                <div class="rule-row">
+                    <span>@L["Drawdown"]</span>
+                    <span class="rule-val">@Dot(c.DrawdownLevel) @L["colchón {0}", Currency.Format(c.DrawdownRemainingBuffer, 0)]</span>
+                </div>
+                <div class="rule-row">
+                    <span>@L["Consistencia"]</span>
+                    <span class="rule-val">
+                        @if (c.ConsistencyLevel is null)
+                        {
+                            @L["N/A"]
+                        }
+                        else
+                        {
+                            @Dot(c.ConsistencyLevel.Value)
+                            @($"{c.ConsistencyTopDayFraction:P0} / {c.ConsistencyMaxDayFraction:P0}")
+                        }
+                    </span>
+                </div>
+            </div>
+        }
     </div>
 }
 
@@ -134,20 +93,18 @@ else
 {
     <h2>@L["Negocio de fondeo"]</h2>
     <div class="kpi-grid">
-        <KpiCard Title="@L["Cuentas compradas"]" Value="@_business.AccountsPurchased.ToString()" />
-        <KpiCard Title="@L["En evaluación"]" Value="@_business.AccountsInEvaluation.ToString()" />
-        <KpiCard Title="@L["Fondeadas (activas)"]" Value="@_business.AccountsFunded.ToString()" />
-        <KpiCard Title="@L["Quemadas / Expiradas"]" Value="@((_business.AccountsFailed + _business.AccountsExpired).ToString())" />
-        <KpiCard Title="Pass rate" Value="@FormatPercent(_business.PassRate)" />
-        <KpiCard Title="@L["Coste por cuenta fondeada"]" Value="@FormatMoney(_business.CostPerFundedAccount)" />
-        <KpiCard Title="@L["Payout medio por fondeada"]" Value="@FormatMoney(_business.AvgPayoutPerFundedAccount)" />
+        <KpiCard Title="@L["Cashflow neto"]" Value="@Currency.Format(_business.NetCashflow)"
+                 Emphasis="@(_business.NetCashflow >= 0 ? "text-success" : "text-danger")"
+                 Sub="@($"{Currency.Format(_business.TotalPayoutsReceived, 0)} payouts − {Currency.Format(_business.TotalCosts, 0)} {L["Costes"].Value.ToLowerInvariant()}")" />
         <KpiCard Title="@L["ROI del negocio"]" Value="@FormatPercent(_business.BusinessRoi)" Emphasis="@RoiEmphasis" />
+        <KpiCard Title="Pass rate" Value="@FormatPercent(_business.PassRate)" />
+        <KpiCard Title="@L["Cuentas compradas"]" Value="@_business.AccountsPurchased.ToString()"
+                 Sub="@($"{_business.AccountsInEvaluation} {L["En evaluación"].Value.ToLowerInvariant()} · {_business.AccountsFunded} {L["fondeadas"]} · {_business.AccountsFailed + _business.AccountsExpired} {L["quemadas"]}")" />
     </div>
 
     <div class="kpi-grid mt-3">
-        <KpiCard Title="@L["Coste total invertido"]" Value="@Currency.Format(_business.TotalCosts)" />
-        <KpiCard Title="@L["Payouts totales recibidos"]" Value="@Currency.Format(_business.TotalPayoutsReceived)" />
-        <KpiCard Title="@L["Cashflow neto"]" Value="@Currency.Format(_business.NetCashflow)" Emphasis="@(_business.NetCashflow >= 0 ? "text-success" : "text-danger")" />
+        <KpiCard Title="@L["Coste por cuenta fondeada"]" Value="@FormatMoney(_business.CostPerFundedAccount)" />
+        <KpiCard Title="@L["Payout medio por fondeada"]" Value="@FormatMoney(_business.AvgPayoutPerFundedAccount)" />
     </div>
 
     <h2>@L["Evolución"]</h2>
@@ -193,19 +150,19 @@ else
     else
     {
         <div class="kpi-grid">
-            <KpiCard Title="@L["Trades cerrados"]" Value="@_trading.TotalTrades.ToString()" />
-            <KpiCard Title="Win rate" Value="@FormatPercent(_trading.WinRate)" />
+            <KpiCard Title="Net P&amp;L" Value="@Currency.Format(_trading.NetPnL)"
+                     Emphasis="@(_trading.NetPnL >= 0 ? "text-success" : "text-danger")"
+                     Sub="@($"{Currency.Format(_trading.GrossProfit, 0)} gross profit · {Currency.Format(_trading.GrossLoss, 0)} gross loss")" />
+            <KpiCard Title="Win rate" Value="@FormatPercent(_trading.WinRate)"
+                     Sub="@L["{0} trades cerrados", _trading.TotalTrades]" />
             <KpiCard Title="Profit factor" Value="@FormatRatio(_trading.ProfitFactor)" />
-            <KpiCard Title="Payoff ratio" Value="@FormatRatio(_trading.PayoffRatio)" />
             <KpiCard Title="@L["Expectancy / trade"]" Value="@FormatMoney(_trading.Expectancy)" />
+        </div>
+        <div class="kpi-grid mt-3">
+            <KpiCard Title="Payoff ratio" Value="@FormatRatio(_trading.PayoffRatio)" />
             <KpiCard Title="@L["R-múltiplo medio"]" Value="@(_trading.AvgRMultiple?.ToString("0.00") ?? "—")" />
             <KpiCard Title="@L["Máx. drawdown"]" Value="@Currency.Format(_trading.MaxDrawdown)" Emphasis="text-danger" />
             <KpiCard Title="@L["Racha máx. pérdidas"]" Value="@_trading.MaxConsecutiveLosses.ToString()" />
-        </div>
-        <div class="kpi-grid mt-3">
-            <KpiCard Title="Net P&amp;L" Value="@Currency.Format(_trading.NetPnL)" Emphasis="@(_trading.NetPnL >= 0 ? "text-success" : "text-danger")" />
-            <KpiCard Title="Gross profit" Value="@Currency.Format(_trading.GrossProfit)" Emphasis="text-success" />
-            <KpiCard Title="Gross loss" Value="@Currency.Format(_trading.GrossLoss)" Emphasis="text-danger" />
         </div>
 
         @if (_tagPerformance is { Count: > 0 })
@@ -374,6 +331,29 @@ else
     private static string FormatPercent(double? value) => value is null ? "—" : $"{value:P1}";
     private static string FormatRatio(double? value) => value is null ? "—" : value.Value.ToString("0.00");
     private string FormatMoney(decimal? value) => Currency.Format(value);
+
+    // El chip de la tarjeta refleja la peor de las tres reglas de la cuenta.
+    private static ComplianceLevel WorstLevel(AccountComplianceStatusDto c)
+    {
+        var worst = c.DailyLossLevel;
+        if (c.DrawdownLevel > worst) worst = c.DrawdownLevel;
+        if (c.ConsistencyLevel is { } cl && cl > worst) worst = cl;
+        return worst;
+    }
+
+    private static string OverallStageClass(AccountComplianceStatusDto c) => WorstLevel(c) switch
+    {
+        ComplianceLevel.Red => "stage-failed",
+        ComplianceLevel.Yellow => "stage-warn",
+        _ => "stage-funded",
+    };
+
+    private string OverallStageText(AccountComplianceStatusDto c) => WorstLevel(c) switch
+    {
+        ComplianceLevel.Red => L["Riesgo"],
+        ComplianceLevel.Yellow => L["Atención"],
+        _ => "OK",
+    };
 
     private static MarkupString Dot(ComplianceLevel level)
     {

@@ -64,7 +64,7 @@ else if (_stage == Stage.CheckIn)
         </div>
     </div>
 }
-else if (_stage == Stage.Trades && _pending.Count > 0)
+else if (_stage == Stage.Trades && _currentIndex < _pending.Count)
 {
     var trade = _pending[_currentIndex];
     var progressPct = (int)Math.Round(_currentIndex * 100.0 / _pending.Count);
@@ -235,10 +235,12 @@ else
 
         if (_currentIndex >= _pending.Count)
         {
+            // Cambiar de etapa ANTES del await: el await repinta y, con el índice ya
+            // fuera de rango, el render de Stage.Trades lanzaría ArgumentOutOfRange.
+            _stage = Stage.Done;
             var today = DateOnly.FromDateTime(DateTime.UtcNow.Date);
             var metrics = await PsychologyService.GetMetricsAsync(today.AddDays(-30), today);
             _streakDays = metrics.JournalStreakDays;
-            _stage = Stage.Done;
         }
     }
 

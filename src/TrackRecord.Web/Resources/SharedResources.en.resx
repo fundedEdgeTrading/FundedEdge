@@ -1329,4 +1329,16 @@
   <data name="Disciplina" xml:space="preserve">
     <value>Discipline</value>
   </data>
+  <data name="fondeadas" xml:space="preserve">
+    <value>funded</value>
+  </data>
+  <data name="quemadas" xml:space="preserve">
+    <value>busted</value>
+  </data>
+  <data name="{0} trades cerrados" xml:space="preserve">
+    <value>{0} closed trades</value>
+  </data>
+  <data name="Atención" xml:space="preserve">
+    <value>Warning</value>
+  </data>
 </root>
