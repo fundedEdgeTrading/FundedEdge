@@ -300,6 +300,11 @@ else
                 <KpiCard Title="@L["MAE medio (R)"]" Value="@(_executionQuality.AvgMaeR is null ? "—" : $"{_executionQuality.AvgMaeR:0.00}R")" Emphasis="text-danger" />
                 <KpiCard Title="@L["MFE medio (R)"]" Value="@(_executionQuality.AvgMfeR is null ? "—" : $"{_executionQuality.AvgMfeR:0.00}R")" Emphasis="text-success" />
             </div>
+            var maeR = _executionQuality.AvgMaeR ?? 0;
+            var mfeR = _executionQuality.AvgMfeR ?? 0;
+            var cap = _executionQuality.AvgCaptureRatio ?? 0;
+            string ExcursionWidth(double r) => Math.Min(Math.Abs(r) * 37.0, 49.0).ToString("0.#", CultureInfo.InvariantCulture);
+            var exitPct = Math.Min(cap * mfeR * 37.0, 49.0).ToString("0.#", CultureInfo.InvariantCulture);
             <div class="excursion">
                 <div class="axis"></div>
                 <div class="mae" style="width:@(ExcursionWidth(maeR))%"></div>

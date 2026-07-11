@@ -24,6 +24,8 @@ public class TrackRecordDbContext(DbContextOptions<TrackRecordDbContext> options
     public DbSet<TradeEmotionLog> TradeEmotionLogs => Set<TradeEmotionLog>();
     public DbSet<DailyMindsetCheckIn> DailyMindsetCheckIns => Set<DailyMindsetCheckIn>();
     public DbSet<TradeSetup> TradeSetups => Set<TradeSetup>();
+    public DbSet<RuleSource> RuleSources => Set<RuleSource>();
+    public DbSet<ProposedProgramChange> ProposedProgramChanges => Set<ProposedProgramChange>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
