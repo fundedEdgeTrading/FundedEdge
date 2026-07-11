@@ -2238,4 +2238,10 @@
   <data name="Desactivar un programa lo retira del catálogo activo sin borrar su historial (las cuentas ya creadas con él no se ven afectadas)." xml:space="preserve">
     <value>Deactivating a program removes it from the active catalog without deleting its history (accounts already created with it are not affected).</value>
   </data>
+  <data name="Consistencia máx. (fracción 0-1)" xml:space="preserve">
+    <value>Max. consistency (fraction 0-1)</value>
+  </data>
+  <data name="Ej. 0.30 = regla del 30 %. No un porcentaje." xml:space="preserve">
+    <value>E.g. 0.30 = the 30% rule. Not a percentage.</value>
+  </data>
 </root>

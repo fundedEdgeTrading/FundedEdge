@@ -138,6 +138,7 @@ else
             <h6 class="card-title">@(_editingProgramId is null ? L["Añadir programa"] : L["Editar programa"])</h6>
             <EditForm Model="_programForm" OnValidSubmit="SaveProgramAsync">
                 <DataAnnotationsValidator />
+                <ValidationSummary class="text-danger small mb-2" />
                 <div class="row g-2">
                     <div class="col-md-3">
                         <label class="form-label">@L["Nombre"]</label>
@@ -173,8 +174,9 @@ else
                         <InputNumber class="form-control" @bind-Value="_programForm.MinTradingDays" />
                     </div>
                     <div class="col-md-2">
-                        <label class="form-label">@L["Consistencia máx."]</label>
-                        <InputNumber class="form-control" @bind-Value="_programForm.ConsistencyMaxDayFraction" />
+                        <label class="form-label">@L["Consistencia máx. (fracción 0-1)"]</label>
+                        <InputNumber class="form-control" step="0.01" @bind-Value="_programForm.ConsistencyMaxDayFraction" />
+                        <div class="form-text">@L["Ej. 0.30 = regla del 30 %. No un porcentaje."]</div>
                     </div>
                     <div class="col-md-2">
                         <label class="form-label">@L["Coste eval."]</label>
@@ -215,12 +217,12 @@ else
 
                     <div class="col-12"><small class="text-muted fw-semibold">Payout</small></div>
                     <div class="col-md-2">
-                        <label class="form-label">Split trader (0-1)</label>
-                        <InputNumber class="form-control" @bind-Value="_programForm.PayoutSplitTraderPct" />
+                        <label class="form-label">Split trader (fracción 0-1)</label>
+                        <InputNumber class="form-control" step="0.01" @bind-Value="_programForm.PayoutSplitTraderPct" />
                     </div>
                     <div class="col-md-2">
-                        <label class="form-label">Cap retiro (% profit)</label>
-                        <InputNumber class="form-control" @bind-Value="_programForm.PayoutMaxProfitPct" />
+                        <label class="form-label">Cap retiro (fracción 0-1 del profit)</label>
+                        <InputNumber class="form-control" step="0.01" @bind-Value="_programForm.PayoutMaxProfitPct" />
                     </div>
                     <div class="col-md-2">
                         <label class="form-label">@L["Días entre payouts"]</label>
@@ -577,13 +579,16 @@ else
         public DrawdownType DrawdownType { get; set; } = DrawdownType.Trailing;
         public decimal? DailyLossLimit { get; set; }
         public int? MinTradingDays { get; set; }
+        [System.ComponentModel.DataAnnotations.Range(0, 1, ErrorMessage = "La consistencia máx. es una fracción entre 0 y 1 (ej. 0.30 = 30 %), no un porcentaje.")]
         public decimal? ConsistencyMaxDayFraction { get; set; }
         public decimal? FundedMaxDrawdown { get; set; }
         public DrawdownType? FundedDrawdownType { get; set; }
         public decimal? FundedDailyLossLimit { get; set; }
         public decimal? FundedProfitTarget { get; set; }
         public int? FundedMinTradingDays { get; set; }
+        [System.ComponentModel.DataAnnotations.Range(0, 1, ErrorMessage = "El split del trader es una fracción entre 0 y 1 (ej. 0.90 = 90 %), no un porcentaje.")]
         public decimal PayoutSplitTraderPct { get; set; } = 1.0m;
+        [System.ComponentModel.DataAnnotations.Range(0, 1, ErrorMessage = "El cap de retiro es una fracción entre 0 y 1 (ej. 0.50 = 50 %), no un porcentaje.")]
         public decimal? PayoutMaxProfitPct { get; set; }
         public int? PayoutMinDaysBetween { get; set; }
     }
