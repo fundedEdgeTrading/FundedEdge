@@ -57,25 +57,27 @@
         }
         else
         {
-            <table class="table table-sm align-middle mb-0">
-                <thead>
-                    <tr>
-                        <th>@L["Cuenta"]</th>
-                        <th>@L["Plataforma"]</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var a in _accounts)
-                    {
+            <div class="table-responsive">
+                <table class="table table-sm align-middle mb-0">
+                    <thead>
                         <tr>
-                            <td>@a.DisplayName</td>
-                            <td>@a.Feed</td>
-                            <td><a href="@($"/accounts/{a.Id}")">@L["Editar"] →</a></td>
+                            <th>@L["Cuenta"]</th>
+                            <th>@L["Plataforma"]</th>
+                            <th></th>
                         </tr>
-                    }
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        @foreach (var a in _accounts)
+                        {
+                            <tr>
+                                <td>@a.DisplayName</td>
+                                <td>@a.Feed</td>
+                                <td><a href="@($"/accounts/{a.Id}")">@L["Editar"] →</a></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
         }
     </div>
 </div>

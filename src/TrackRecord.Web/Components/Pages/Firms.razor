@@ -55,32 +55,34 @@ else if (_firms.Count == 0)
 }
 else
 {
-    <table class="table table-hover align-middle">
-        <thead>
-            <tr>
-                <th>@L["Nombre"]</th>
-                <th>Web</th>
-                <th>@L["Días mín. entre payouts"]</th>
-                <th>@L["Cuentas"]</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var firm in _firms)
-            {
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead>
                 <tr>
-                    <td>@firm.Name</td>
-                    <td>@firm.Website</td>
-                    <td>@(firm.MinDaysBetweenPayouts?.ToString() ?? "—")</td>
-                    <td>@firm.AccountCount</td>
-                    <td class="text-end">
-                        <button class="btn btn-sm btn-outline-secondary" @onclick="() => Edit(firm)">@L["Editar"]</button>
-                        <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteAsync(firm.Id)" disabled="@(firm.AccountCount > 0)">@L["Eliminar"]</button>
-                    </td>
+                    <th>@L["Nombre"]</th>
+                    <th>Web</th>
+                    <th>@L["Días mín. entre payouts"]</th>
+                    <th>@L["Cuentas"]</th>
+                    <th></th>
                 </tr>
-            }
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @foreach (var firm in _firms)
+                {
+                    <tr>
+                        <td>@firm.Name</td>
+                        <td>@firm.Website</td>
+                        <td>@(firm.MinDaysBetweenPayouts?.ToString() ?? "—")</td>
+                        <td>@firm.AccountCount</td>
+                        <td class="text-end">
+                            <button class="btn btn-sm btn-outline-secondary" @onclick="() => Edit(firm)">@L["Editar"]</button>
+                            <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteAsync(firm.Id)" disabled="@(firm.AccountCount > 0)">@L["Eliminar"]</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
 }
 
 @* ── P&L de negocio por firma (GUIA_FUNCIONALIDADES_PROPUESTAS.md §3.1) ─────────────────────── *@
@@ -278,20 +280,22 @@ else
                 @if (_importPreview is not null && _importPreview.Count > 0)
                 {
                     <p class="fw-semibold">@L["Vista previa — "] @_importPreview.Count @L[" programa(s)"]</p>
-                    <table class="table table-sm">
-                        <thead><tr><th>@L["Nombre"]</th><th>@L["Tamaño"]</th><th>Profit target</th><th>Split</th></tr></thead>
-                        <tbody>
-                            @foreach (var p in _importPreview)
-                            {
-                                <tr>
-                                    <td>@p.Name</td>
-                                    <td>@Currency.Format(p.AccountSize, 0)</td>
-                                    <td>@Currency.Format(p.ProfitTarget)</td>
-                                    <td>@p.PayoutSplitTraderPct.ToString("P0")</td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead><tr><th>@L["Nombre"]</th><th>@L["Tamaño"]</th><th>Profit target</th><th>Split</th></tr></thead>
+                            <tbody>
+                                @foreach (var p in _importPreview)
+                                {
+                                    <tr>
+                                        <td>@p.Name</td>
+                                        <td>@Currency.Format(p.AccountSize, 0)</td>
+                                        <td>@Currency.Format(p.ProfitTarget)</td>
+                                        <td>@p.PayoutSplitTraderPct.ToString("P0")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
                     <button class="btn btn-success btn-sm" @onclick="SaveImportAsync">@L["Guardar todos"]</button>
                 }
             </div>
