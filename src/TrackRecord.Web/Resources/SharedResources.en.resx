@@ -2220,4 +2220,22 @@
   <data name="Índice de tilt" xml:space="preserve">
     <value>Tilt index</value>
   </data>
+  <data name="Reglas de prop firms" xml:space="preserve">
+    <value>Prop firm rules</value>
+  </data>
+  <data name="Catálogo compartido de firmas y programas de evaluación. Los cambios aquí afectan a todos los usuarios." xml:space="preserve">
+    <value>Shared catalog of firms and evaluation programs. Changes here affect all users.</value>
+  </data>
+  <data name="Reglas" xml:space="preserve">
+    <value>Rules</value>
+  </data>
+  <data name="Gestionar reglas" xml:space="preserve">
+    <value>Manage rules</value>
+  </data>
+  <data name="Solo se pueden eliminar firmas sin cuentas asociadas. Eliminar una firma borra también todos sus programas de evaluación." xml:space="preserve">
+    <value>Only firms without associated accounts can be deleted. Deleting a firm also deletes all of its evaluation programs.</value>
+  </data>
+  <data name="Desactivar un programa lo retira del catálogo activo sin borrar su historial (las cuentas ya creadas con él no se ven afectadas)." xml:space="preserve">
+    <value>Deactivating a program removes it from the active catalog without deleting its history (accounts already created with it are not affected).</value>
+  </data>
 </root>
