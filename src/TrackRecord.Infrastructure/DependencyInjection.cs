@@ -12,6 +12,7 @@ using TrackRecord.Infrastructure.Email;
 using TrackRecord.Infrastructure.Identity;
 using TrackRecord.Infrastructure.Integrations.Csv;
 using TrackRecord.Infrastructure.Persistence;
+using TrackRecord.Infrastructure.RuleMonitor;
 using TrackRecord.Infrastructure.Services;
 using TrackRecord.Infrastructure.Settings;
 
@@ -95,8 +96,33 @@ public static class DependencyInjection
 
         AddAi(services, configuration);
         AddEmail(services, configuration);
+        AddRuleMonitor(services, configuration);
 
         return services;
+    }
+
+    private static void AddRuleMonitor(IServiceCollection services, IConfiguration configuration)
+    {
+        // Monitor de fuentes de reglas (INVESTIGACION_AUTOMATIZACION_REGLAS.md fases 1-2).
+        // Desactivado por defecto: activar con RuleMonitor:Enabled=true y, para recibir avisos,
+        // RuleMonitor:NotifyEmail (requiere SMTP configurado, ver AddEmail).
+        services.AddSingleton(new RuleMonitorOptions(
+            configuration.GetValue("RuleMonitor:Enabled", false),
+            configuration["RuleMonitor:NotifyEmail"]));
+
+        // User-Agent identificado y timeout corto: fetch 1x/día de páginas públicas de marketing.
+        services.AddHttpClient(RuleSourceChecker.HttpClientName, http =>
+        {
+            http.Timeout = TimeSpan.FromSeconds(30);
+            http.DefaultRequestHeaders.UserAgent.ParseAdd("FundedEdgeRuleMonitor/1.0 (+monitor de reglas de prop firms)");
+            http.DefaultRequestHeaders.Accept.ParseAdd("text/html");
+        });
+
+        services.AddScoped<IRuleSourceService, RuleSourceService>();
+        services.AddScoped<IRuleSourceChecker, RuleSourceChecker>();
+        services.AddScoped<IRuleExtractionService, ClaudeRuleExtractionService>();
+        services.AddScoped<IProgramChangeProposalService, ProgramChangeProposalService>();
+        services.AddHostedService<RuleSourceMonitorService>();
     }
 
     private static void AddEmail(IServiceCollection services, IConfiguration configuration)
