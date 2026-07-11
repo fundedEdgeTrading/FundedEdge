@@ -1222,49 +1222,6 @@ namespace TrackRecord.Infrastructure.Persistence.Migrations
                         });
                 });
 
-            modelBuilder.Entity("TrackRecord.Domain.Entities.ProposedProgramChange", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<Guid?>("ExistingProgramId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("PayloadJson")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ProgramName")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<Guid>("PropFirmId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTimeOffset?>("ReviewedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("SourceUrl")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PropFirmId");
-
-                    b.HasIndex("Status");
-
-                    b.ToTable("ProposedProgramChanges", (string)null);
-                });
-
             modelBuilder.Entity("TrackRecord.Domain.Entities.PublicProfile", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1296,47 +1253,6 @@ namespace TrackRecord.Infrastructure.Persistence.Migrations
                         .IsUnique();
 
                     b.ToTable("PublicProfiles", (string)null);
-                });
-
-            modelBuilder.Entity("TrackRecord.Domain.Entities.RuleSource", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<bool>("IsEnabled")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("Kind")
-                        .HasColumnType("int");
-
-                    b.Property<DateTimeOffset?>("LastChangedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<DateTimeOffset?>("LastCheckedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("LastContentHash")
-                        .HasMaxLength(64)
-                        .HasColumnType("nvarchar(64)");
-
-                    b.Property<string>("LastError")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
-
-                    b.Property<Guid>("PropFirmId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Url")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PropFirmId", "IsEnabled");
-
-                    b.ToTable("RuleSources", (string)null);
                 });
 
             modelBuilder.Entity("TrackRecord.Domain.Entities.Trade", b =>
@@ -1731,28 +1647,6 @@ namespace TrackRecord.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("Account");
-                });
-
-            modelBuilder.Entity("TrackRecord.Domain.Entities.ProposedProgramChange", b =>
-                {
-                    b.HasOne("TrackRecord.Domain.Entities.PropFirm", "PropFirm")
-                        .WithMany()
-                        .HasForeignKey("PropFirmId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("PropFirm");
-                });
-
-            modelBuilder.Entity("TrackRecord.Domain.Entities.RuleSource", b =>
-                {
-                    b.HasOne("TrackRecord.Domain.Entities.PropFirm", "PropFirm")
-                        .WithMany()
-                        .HasForeignKey("PropFirmId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("PropFirm");
                 });
 
             modelBuilder.Entity("TrackRecord.Domain.Entities.Trade", b =>
