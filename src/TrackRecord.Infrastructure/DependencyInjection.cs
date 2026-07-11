@@ -120,6 +120,8 @@ public static class DependencyInjection
 
         services.AddScoped<IRuleSourceService, RuleSourceService>();
         services.AddScoped<IRuleSourceChecker, RuleSourceChecker>();
+        services.AddScoped<IRuleExtractionService, ClaudeRuleExtractionService>();
+        services.AddScoped<IProgramChangeProposalService, ProgramChangeProposalService>();
         services.AddHostedService<RuleSourceMonitorService>();
     }
 

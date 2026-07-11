@@ -20,5 +20,8 @@ public record UpsertRuleSourceRequest(
     RuleSourceKind Kind,
     bool IsEnabled);
 
-/// <summary>Resultado de comprobar una fuente: si su contenido cambió desde el último hash.</summary>
-public record RuleSourceCheckResult(bool Changed, string? Error);
+/// <summary>
+/// Resultado de comprobar una fuente: si su contenido cambió desde el último hash y, cuando la
+/// extracción LLM corre (cambio detectado o forzada), cuántas propuestas dejó pendientes.
+/// </summary>
+public record RuleSourceCheckResult(bool Changed, string? Error, int ProposalsCreated = 0, string? ExtractionError = null);

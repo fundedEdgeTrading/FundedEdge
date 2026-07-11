@@ -13,20 +13,22 @@ namespace TrackRecord.Infrastructure.RuleMonitor;
 /// <summary>
 /// Comprobación de una fuente: fetch → normalizar → SHA-256 → comparar con la línea base.
 /// La primera comprobación de una fuente solo establece la línea base (no cuenta como cambio).
-/// Si el contenido cambió, actualiza el hash, marca <c>LastChangedAt</c> y avisa por email al
-/// administrador (RuleMonitor:NotifyEmail). Los errores de red no rompen el barrido: se guardan
-/// en <c>LastError</c> para que la UI los muestre.
+/// Si el contenido cambió, actualiza el hash, marca <c>LastChangedAt</c>, lanza la extracción
+/// LLM (fase 2; solo cuando hay API key, así el coste en régimen estacionario es casi nulo) y
+/// avisa por email al administrador (RuleMonitor:NotifyEmail). Los errores de red no rompen el
+/// barrido: se guardan en <c>LastError</c> para que la UI los muestre.
 /// </summary>
 public class RuleSourceChecker(
     IHttpClientFactory httpClientFactory,
     IDbContextFactory<TrackRecordDbContext> dbFactory,
     IAppEmailSender emailSender,
+    IRuleExtractionService extractionService,
     RuleMonitorOptions options,
     ILogger<RuleSourceChecker> logger) : IRuleSourceChecker
 {
     public const string HttpClientName = "RuleMonitor";
 
-    public async Task<RuleSourceCheckResult> CheckAsync(Guid ruleSourceId, CancellationToken ct = default)
+    public async Task<RuleSourceCheckResult> CheckAsync(Guid ruleSourceId, bool forceExtraction = false, CancellationToken ct = default)
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct);
         var source = await db.RuleSources
@@ -63,13 +65,29 @@ public class RuleSourceChecker(
 
         await db.SaveChangesAsync(ct);
 
+        // Fase 2: solo cuando algo cambió (o se fuerza desde el admin) se paga la extracción LLM.
+        var proposals = 0;
+        string? extractionError = null;
+        if ((changed || forceExtraction) && extractionService.IsConfigured)
+        {
+            try
+            {
+                proposals = await extractionService.ProposeFromContentAsync(source.Id, normalized, ct);
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                extractionError = ex.Message;
+                logger.LogError(ex, "Fallo extrayendo reglas de {Url}.", source.Url);
+            }
+        }
+
         if (changed)
         {
             logger.LogInformation("Cambio detectado en la fuente {Url} de {Firm}.", source.Url, source.PropFirm?.Name);
-            await NotifyChangeAsync(source.PropFirm?.Name ?? "(firma desconocida)", source.Url, ct);
+            await NotifyChangeAsync(source.PropFirm?.Name ?? "(firma desconocida)", source.Url, proposals, ct);
         }
 
-        return new RuleSourceCheckResult(changed, Error: null);
+        return new RuleSourceCheckResult(changed, Error: null, proposals, extractionError);
     }
 
     /// <summary>Descarga la página y la reduce a texto visible, que es lo que se hashea.</summary>
@@ -80,16 +98,20 @@ public class RuleSourceChecker(
         return HtmlContentNormalizer.Normalize(html);
     }
 
-    private async Task NotifyChangeAsync(string firmName, string url, CancellationToken ct)
+    private async Task NotifyChangeAsync(string firmName, string url, int proposals, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(options.NotifyEmail)) return;
+
+        var nextStep = proposals > 0
+            ? $"<p>La extracción automática ha dejado <strong>{proposals} propuesta(s)</strong> de cambio pendientes de revisión en <strong>/admin/rule-monitor</strong>.</p>"
+            : "<p>Revisa el catálogo en <strong>/admin/rule-monitor</strong> y actualiza los programas afectados si procede.</p>";
 
         var subject = $"[FundedEdge] Cambio de reglas detectado: {firmName}";
         var body =
             $"""
             <p>El monitor de reglas ha detectado un cambio en una página oficial de <strong>{WebUtility.HtmlEncode(firmName)}</strong>:</p>
             <p><a href="{WebUtility.HtmlEncode(url)}">{WebUtility.HtmlEncode(url)}</a></p>
-            <p>Revisa el catálogo en <strong>/admin/rule-monitor</strong> y actualiza los programas afectados si procede.</p>
+            {nextStep}
             """;
 
         try

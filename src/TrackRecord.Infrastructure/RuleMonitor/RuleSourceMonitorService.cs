@@ -69,7 +69,7 @@ public class RuleSourceMonitorService(
         {
             try
             {
-                await checker.CheckAsync(id, ct);
+                await checker.CheckAsync(id, forceExtraction: false, ct);
             }
             catch (OperationCanceledException) when (ct.IsCancellationRequested)
             {

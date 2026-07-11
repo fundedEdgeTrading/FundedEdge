@@ -5,6 +5,7 @@
 @inject IPropFirmService PropFirmService
 @inject IRuleSourceService SourceService
 @inject IRuleSourceChecker Checker
+@inject IProgramChangeProposalService ProposalService
 @inject IStringLocalizer<SharedResources> L
 
 <PageTitle>@L["Monitor de reglas"] — @Brand.Name</PageTitle>
@@ -121,8 +122,12 @@ else
                         </td>
                         <td>@(s.LastChangedAt?.LocalDateTime.ToString("g") ?? "—")</td>
                         <td class="text-end">
-                            <button class="btn btn-sm btn-outline-primary" @onclick="() => CheckNowAsync(s.Id)" disabled="@(_checkingId is not null)">
+                            <button class="btn btn-sm btn-outline-primary" @onclick="() => CheckNowAsync(s.Id, false)" disabled="@(_checkingId is not null)">
                                 @(_checkingId == s.Id ? L["Comprobando…"] : L["Comprobar ahora"])
+                            </button>
+                            <button class="btn btn-sm btn-outline-primary" @onclick="() => CheckNowAsync(s.Id, true)" disabled="@(_checkingId is not null)"
+                                    title="@L["Ejecuta la extracción con IA aunque la página no haya cambiado"]">
+                                🤖 @L["Extraer ahora"]
                             </button>
                             <button class="btn btn-sm btn-outline-secondary" @onclick="() => Edit(s)">@L["Editar"]</button>
                             <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteAsync(s.Id)">@L["Eliminar"]</button>
@@ -137,6 +142,103 @@ else
     </p>
 }
 
+@* ── Propuestas pendientes (extracción LLM) ─────────────────────────────────────────────────── *@
+
+<hr class="my-4" />
+<h2 class="h4">@L["Propuestas de cambio pendientes"]</h2>
+<p class="text-muted">
+    @L["Cambios extraídos automáticamente de las páginas oficiales. Aprobar aplica el versionado habitual del catálogo (la versión anterior queda inactiva); nada se escribe sin revisión."]
+</p>
+
+@if (_proposalError is not null)
+{
+    <div class="alert alert-danger">@_proposalError</div>
+}
+
+@if (_proposals is null)
+{
+    <p><em>@L["Cargando…"]</em></p>
+}
+else if (_proposals.Count == 0)
+{
+    <p class="text-muted">@L["No hay propuestas pendientes de revisión."]</p>
+}
+else
+{
+    @foreach (var prop in _proposals)
+    {
+        <div class="card mb-3">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h6 class="card-title mb-1">
+                            @prop.PropFirmName — @prop.ProgramName
+                            @if (prop.ExistingProgramId is null)
+                            {
+                                <span class="badge bg-info ms-1">@L["Programa nuevo"]</span>
+                            }
+                            <span class="badge @(prop.Confidence >= 0.8m ? "bg-success" : "bg-warning text-dark") ms-1">
+                                @L["Confianza"] @prop.Confidence.ToString("P0")
+                            </span>
+                        </h6>
+                        <div class="text-muted small">
+                            @prop.CreatedAt.LocalDateTime.ToString("g")
+                            @if (prop.SourceUrl is not null)
+                            {
+                                <span> · <a href="@prop.SourceUrl" target="_blank" rel="noopener">@L["fuente"]</a></span>
+                            }
+                        </div>
+                    </div>
+                    <div class="d-flex gap-1">
+                        @if (_confirmApproveId == prop.Id)
+                        {
+                            <button class="btn btn-sm btn-success" @onclick="() => ApproveAsync(prop.Id)" disabled="@_reviewing">@L["Confirmar y aplicar"]</button>
+                            <button class="btn btn-sm btn-outline-secondary" @onclick="() => _confirmApproveId = null">@L["Cancelar"]</button>
+                        }
+                        else
+                        {
+                            <button class="btn btn-sm btn-outline-success" @onclick="() => _confirmApproveId = prop.Id" disabled="@_reviewing">@L["Aprobar"]</button>
+                            <button class="btn btn-sm btn-outline-danger" @onclick="() => RejectAsync(prop.Id)" disabled="@_reviewing">@L["Rechazar"]</button>
+                        }
+                    </div>
+                </div>
+                <div class="table-responsive mt-2">
+                    <table class="table table-sm mb-0">
+                        <thead>
+                            <tr>
+                                <th>@L["Campo"]</th>
+                                <th class="text-end">@L["Actual"]</th>
+                                <th class="text-end">@L["Propuesto"]</th>
+                                <th>@L["Cita de la página"]</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var d in prop.Diffs)
+                            {
+                                <tr>
+                                    <td class="font-monospace">@d.Field</td>
+                                    <td class="text-end">@(d.CurrentValue ?? "—")</td>
+                                    <td class="text-end fw-semibold">@d.ProposedValue</td>
+                                    <td class="text-muted small">
+                                        @if (d.Quote is not null)
+                                        {
+                                            <em>"@d.Quote"</em>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-warning text-dark" title="@L["El modelo no aportó cita para este campo: verifícalo en la página antes de aprobar."]">@L["sin cita"]</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+}
+
 @code {
     private List<PropFirmDto>? _firms;
     private List<RuleSourceDto>? _sources;
@@ -145,6 +247,12 @@ else
     private SourceFormModel _form = new();
     private string? _error;
     private string? _info;
+
+    // ── Propuestas ───────────────────────────────────────────────────────────────────────────
+    private List<ProposedProgramChangeDto>? _proposals;
+    private Guid? _confirmApproveId;
+    private bool _reviewing;
+    private string? _proposalError;
 
     protected override async Task OnInitializedAsync()
     {
@@ -155,6 +263,7 @@ else
     private async Task LoadAsync()
     {
         _sources = (await SourceService.GetAllAsync()).ToList();
+        _proposals = (await ProposalService.GetPendingAsync()).ToList();
     }
 
     private void Edit(RuleSourceDto s)
@@ -211,20 +320,32 @@ else
         }
     }
 
-    private async Task CheckNowAsync(Guid id)
+    private async Task CheckNowAsync(Guid id, bool forceExtraction)
     {
         _error = null;
         _info = null;
         _checkingId = id;
         try
         {
-            var result = await Checker.CheckAsync(id);
+            var result = await Checker.CheckAsync(id, forceExtraction);
             _info = result switch
             {
                 { Error: not null } => L["La comprobación falló: "] + result.Error,
                 { Changed: true } => L["El contenido de la página cambió desde la última comprobación."],
                 _ => L["Sin cambios respecto a la última comprobación."],
             };
+            if (result.ProposalsCreated > 0)
+            {
+                _info += " " + L["Propuestas pendientes de revisión: "] + result.ProposalsCreated;
+            }
+            else if (result.ExtractionError is not null)
+            {
+                _error = L["La extracción falló: "] + result.ExtractionError;
+            }
+            else if (forceExtraction && result.Error is null)
+            {
+                _info += " " + L["La extracción no encontró diferencias con el catálogo."];
+            }
         }
         catch (Exception ex)
         {
@@ -233,6 +354,47 @@ else
         finally
         {
             _checkingId = null;
+        }
+        await LoadAsync();
+    }
+
+    // ── Revisión de propuestas ───────────────────────────────────────────────────────────────
+
+    private async Task ApproveAsync(Guid id)
+    {
+        _proposalError = null;
+        _reviewing = true;
+        try
+        {
+            await ProposalService.ApproveAsync(id);
+        }
+        catch (Exception ex)
+        {
+            _proposalError = ex.Message;
+        }
+        finally
+        {
+            _reviewing = false;
+            _confirmApproveId = null;
+        }
+        await LoadAsync();
+    }
+
+    private async Task RejectAsync(Guid id)
+    {
+        _proposalError = null;
+        _reviewing = true;
+        try
+        {
+            await ProposalService.RejectAsync(id);
+        }
+        catch (Exception ex)
+        {
+            _proposalError = ex.Message;
+        }
+        finally
+        {
+            _reviewing = false;
         }
         await LoadAsync();
     }
