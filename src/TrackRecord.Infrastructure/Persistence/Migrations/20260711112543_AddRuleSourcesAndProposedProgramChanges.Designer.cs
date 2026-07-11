@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TrackRecord.Infrastructure.Persistence;
 
@@ -11,9 +12,11 @@ using TrackRecord.Infrastructure.Persistence;
 namespace TrackRecord.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(TrackRecordDbContext))]
-    partial class TrackRecordDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260711112543_AddRuleSourcesAndProposedProgramChanges")]
+    partial class AddRuleSourcesAndProposedProgramChanges
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
