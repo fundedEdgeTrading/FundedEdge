@@ -1,74 +1,257 @@
 # CLAUDE.md
 
-## Primary Goal
-Your primary objective is to minimize token usage while maintaining correctness.
-Assume this repository is large. Reading unnecessary files is considered a failure.
+# Mission
 
-## Core Rules
-- Never scan the entire repository.
-- Only inspect the files needed for the current task.
-- Do not reopen files already in context.
-- Make the minimum code changes required.
-- Avoid unrelated refactors, formatting-only edits, or renames.
-- Do not explain code unless requested.
+Implement the requested change using the minimum possible context and the minimum possible token usage while preserving correctness.
 
-## Search Strategy
-1. Think.
-2. Identify the most likely file.
-3. Read one file.
-4. If insufficient, read one more.
-5. Stop searching as soon as enough information is available.
+Token efficiency is a first-class objective.
 
-Never recursively inspect folders or perform repeated repository-wide searches.
+---
 
-## Large Repository Policy
-Avoid reading every project, README, solution or folder.
-Locate only what is necessary.
+# Repository Exploration
 
-## Editing Policy
-- Modify only directly involved files.
-- Preserve existing style and architecture.
-- Never move or rename files unless requested.
+Only inspect files that are directly required.
 
-## Git Policy
-- Do not inspect history, blame or commits unless requested.
+Never scan the entire repository.
 
-## Build Policy
+Never enumerate directories unless necessary.
+
+Stop searching as soon as enough context exists.
+
+Prefer symbol search over reading files.
+
+Prefer targeted searches over recursive exploration.
+
+Never reopen files already inspected unless they changed.
+
+Avoid reading generated code.
+
+Avoid reading lock files.
+
+Avoid reading build artifacts.
+
+Avoid reading vendor or third-party code.
+
+Avoid reading documentation unless explicitly requested.
+
+---
+
+# Code Changes
+
+Modify the smallest possible amount of code.
+
+Prefer extending existing implementations.
+
+Do not refactor unrelated code.
+
+Do not rename files unless necessary.
+
+Do not reformat unrelated files.
+
+Preserve existing architecture.
+
+Preserve existing coding style.
+
+Avoid introducing new abstractions unless they clearly simplify the solution.
+
+---
+
+# Output
+
+Keep responses extremely concise.
+
+Default response:
+
+- files changed
+- one sentence describing the implementation
+- build/test result
+
+Do not explain implementation.
+
+Do not explain why the solution works.
+
+Do not summarize code.
+
+Do not include code snippets unless requested.
+
+Never repeat the user's request.
+
+---
+
+# Git
+
+When implementation is complete:
+
+- stage modified files
+- create one meaningful commit
+- push current branch
+
+Never:
+
+- create Pull Requests
+- generate PR descriptions
+- generate PR titles
+- inspect GitHub metadata
+- compare branches
+- fetch unnecessary remote information
+
+If there are no code changes:
+
+do not commit.
+
+do not push.
+
+Only one commit per task.
+
+---
+
+# Testing
+
+Only run what is necessary.
+
 Prefer:
-- dotnet build <project>
-instead of:
-- dotnet build solution.sln
 
-Only build affected projects.
+- affected project build
+- affected unit tests
 
-## Testing Policy
-Run only affected tests.
+Never execute:
 
-## .NET
-- Respect .editorconfig, nullable settings and analyzers.
-- Do not change formatting outside edited code.
+- complete solution build
+- integration tests
+- end-to-end tests
+- benchmarks
 
-## Token Optimization
-Every file read has a cost.
-Every search has a cost.
-Prefer reasoning over exploration.
-Avoid repeated searches for already found symbols.
+unless explicitly requested.
 
-## Incremental Work
-Implement exactly what was requested.
-Do not anticipate future requirements.
+If confidence is already high, avoid redundant executions.
 
-## Communication
-Default verbosity: LOW.
-Default explanation: MINIMAL.
-Return only what is necessary unless more detail is requested.
+---
 
-## Repository Assumptions
-Assume the project builds and conventions are intentional unless told otherwise.
+# Search
 
-## Performance Priority
-1. Correctness
-2. Low token usage
-3. Minimal file reads
-4. Fast completion
-5. Code elegance
+Prefer:
+
+rg
+grep
+symbol search
+
+Avoid opening large files.
+
+Read only relevant sections.
+
+Stop searching immediately once enough information exists.
+
+---
+
+# Context
+
+Keep as little context as possible.
+
+Forget unrelated files after finishing a task.
+
+Do not retain unnecessary repository knowledge.
+
+Avoid discussing unrelated modules.
+
+---
+
+# Communication
+
+Never produce long explanations.
+
+Never produce tutorials.
+
+Never produce architectural discussions unless requested.
+
+Avoid markdown tables.
+
+Avoid long bullet lists.
+
+Answer using fewer than 150 words whenever possible.
+
+---
+
+# Decision Making
+
+When multiple valid solutions exist:
+
+Prefer:
+
+- fewer files
+- fewer modified lines
+- lower complexity
+- existing utilities
+- existing dependencies
+
+Avoid introducing:
+
+- new packages
+- new frameworks
+- new services
+- unnecessary abstractions
+
+---
+
+# Performance
+
+Avoid unnecessary commands.
+
+Avoid repeated searches.
+
+Avoid repeated builds.
+
+Avoid repeated file reads.
+
+Avoid repeated git commands.
+
+Do not verify something twice.
+
+Trust previous successful results.
+
+---
+
+# Default Behaviour
+
+Think.
+
+Locate.
+
+Modify.
+
+Build only if needed.
+
+Commit.
+
+Push.
+
+Stop.
+
+Assume existing code is correct unless the requested task requires investigating it.
+
+Do not inspect surrounding modules out of curiosity.
+
+Never read more than one level of dependencies.
+
+If File A references File B, inspect B only if strictly required.
+
+Do not recursively explore dependency chains.
+
+Every file opened and every command executed must have a clear purpose.
+
+If a file or command does not directly contribute to solving the user's request, do not read or execute it.
+
+# For .NET repositories
+
+Prefer:
+
+- solution-wide search only when symbol lookup fails
+- build the affected project instead of the entire solution
+- inspect only the project containing the modified code
+
+Avoid:
+
+- rebuilding every project
+- restoring packages if already restored
+- reading csproj files unless dependencies change
+- reading launchSettings.json
+- reading appsettings unless configuration is involved
