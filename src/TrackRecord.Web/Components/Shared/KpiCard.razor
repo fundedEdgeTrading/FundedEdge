@@ -1,7 +1,7 @@
-<div class="stat-tile">
+<div class="stat-tile @(Variant == "hero" ? "hero-card" : "")">
     @if (Delta is not null)
     {
-        <div class="stat-top">
+        <div class="@(Variant == "hero" ? "hero-top" : "stat-top")">
             <div class="stat-label">@Title</div>
             <span class="delta @(DeltaGood ? "up" : "down")">@(DeltaGood ? "▲" : "▼") @Delta</span>
         </div>
@@ -10,10 +10,14 @@
     {
         <div class="stat-label">@Title</div>
     }
-    <div class="stat-value @Emphasis">@Value</div>
+    <div class="@(Variant == "hero" ? "stat-value hero-value" : "stat-value") @Emphasis">@Value</div>
+    @if (Spark is not null)
+    {
+        @Spark
+    }
     @if (!string.IsNullOrWhiteSpace(Sub))
     {
-        <div class="stat-sub">@Sub</div>
+        <div class="@(Variant == "hero" ? "hero-caption" : "stat-sub")">@Sub</div>
     }
 </div>
 
@@ -26,4 +30,8 @@
     /// <summary>Semántica del delta para el trader: true = favorable (verde).</summary>
     [Parameter] public bool DeltaGood { get; set; }
     [Parameter] public string? Sub { get; set; }
+    /// <summary>"" (tile normal) | "hero" (tarjeta grande de la banda superior).</summary>
+    [Parameter] public string Variant { get; set; } = "";
+    /// <summary>Sparkline SVG o barra de progreso opcional bajo el valor.</summary>
+    [Parameter] public RenderFragment? Spark { get; set; }
 }

@@ -2940,7 +2940,7 @@ ul.plan-features {
 
 .tag-row {
     display: grid;
-    grid-template-columns: 1fr auto auto auto auto;
+    grid-template-columns: 1fr auto auto auto minmax(180px, 1.4fr);
     gap: 1.2rem;
     align-items: center;
     padding: 0.65rem 1rem;
@@ -3044,4 +3044,114 @@ ul.plan-features {
     background: var(--accent-soft);
     border: 1px solid rgba(47, 214, 163, 0.3);
     color: var(--accent-strong);
+}
+
+/* ============================================================
+   Rediseño v2 — Dashboard: banda hero, semáforo con riel,
+   panel de tags con barra, franjas con barra, excursión MAE/MFE
+   ============================================================ */
+
+/* ---- Banda hero ---- */
+.hero-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(232px, 1fr));
+    gap: 14px;
+    margin: 1.6rem 0 0;
+}
+
+.hero-card {
+    background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,0)), var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 18px 20px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 13px;
+    transition: border-color .18s var(--ease), box-shadow .18s var(--ease), transform .18s var(--ease);
+}
+
+.hero-card:hover {
+    border-color: rgba(47, 214, 163, .32);
+    box-shadow: var(--shadow-2);
+    transform: translateY(-2px);
+}
+
+.hero-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+
+.hero-value {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    font-size: 2rem;               /* 32px */
+    font-weight: 600;
+    letter-spacing: -.02em;
+    line-height: 1;
+    color: var(--text-1);
+}
+
+.hero-caption { font-size: .78rem; color: var(--text-3); }
+
+/* Barra de progreso fina (ROI / win rate) */
+.hero-meter { height: 7px; border-radius: 999px; background: var(--surface-3); overflow: hidden; }
+.hero-meter > span {
+    display: block; height: 100%; border-radius: 999px; transform-origin: left;
+    background: linear-gradient(90deg, var(--accent), var(--accent-strong));
+}
+.hero-meter.neutral > span { background: linear-gradient(90deg, var(--text-3), var(--text-2)); }
+
+/* Sparkline SVG */
+.spark { width: 100%; height: 38px; display: block; }
+.spark-area { }                                  /* fill lo pone el markup con currentColor/opacidad */
+.spark-line { fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* ---- Semáforo de reglas: riel de color arriba ---- */
+.rule-card { padding: 0; overflow: hidden; }     /* override del .rule-card actual */
+.rule-rail { height: 3px; }
+.rule-rail.ok    { background: linear-gradient(90deg, var(--good), transparent); }
+.rule-rail.warn  { background: linear-gradient(90deg, var(--warning), transparent); }
+.rule-rail.risk  { background: linear-gradient(90deg, var(--danger), transparent); }
+.rule-body { padding: 13px 16px 8px; }
+
+/* ---- Panel de tags: barra de P&L por fila ---- */
+.tagbar-wrap { display: flex; align-items: center; gap: 10px; justify-content: flex-end; }
+.tagbar { flex: 1; max-width: 150px; height: 6px; border-radius: 999px; background: var(--surface-3); overflow: hidden; }
+.tagbar > span { display: block; height: 100%; border-radius: 999px; transform-origin: left; }
+.tagbar > span.pos { background: var(--good); }
+.tagbar > span.neg { background: var(--danger); }
+
+/* ---- Franjas horarias: fila con barra ---- */
+.hours-bar-row { display: flex; flex-direction: column; gap: 4px; }
+.hours-bar-row .lbl { display: flex; justify-content: space-between; gap: 8px; white-space: nowrap; font-size: .78rem; color: var(--text-2); }
+.hours-bar-track { height: 5px; border-radius: 999px; background: var(--surface-3); overflow: hidden; }
+.hours-bar-track > span { display: block; height: 100%; transform-origin: left; }
+.hours-bar-track > span.pos { background: var(--good); }
+.hours-bar-track > span.neg { background: var(--danger); }
+
+/* ---- Excursión MAE/MFE (barra divergente) ---- */
+.excursion { position: relative; height: 26px; margin-bottom: 8px; }
+.excursion .axis   { position: absolute; left: 0; right: 0; top: 11px; height: 4px; background: var(--surface-3); border-radius: 999px; }
+.excursion .mae    { position: absolute; left: 50%; top: 11px; height: 4px; background: var(--danger); border-radius: 999px; transform: translateX(-100%); transform-origin: right; }
+.excursion .mfe    { position: absolute; left: 50%; top: 11px; height: 4px; background: var(--good);   border-radius: 999px; transform-origin: left; }
+.excursion .center { position: absolute; left: 50%; top: 5px; width: 1px; height: 16px; background: rgba(255,255,255,.3); }
+.excursion .exit   { position: absolute; top: 2px; width: 2px; height: 22px; background: var(--accent-strong); box-shadow: 0 0 6px rgba(47,214,163,.6); }
+
+/* IMPORTANTE (regla de escala): el eje divergente solo tiene 50% a cada lado del centro.
+   Escala 1R ≈ 37% de ancho para que la mayor excursión quepa en su mitad.
+   Ej.: MFE +1.34R → width:49%; MAE −0.62R → width:23%; marca "salida" en left:calc(50% + 29%). */
+
+/* ---- Micro-animaciones ---- */
+@media (prefers-reduced-motion: no-preference) {
+    .hero-grid .hero-card { animation: fade-up .55s var(--ease) backwards; }
+    .hero-grid .hero-card:nth-child(1) { animation-delay: .05s; }
+    .hero-grid .hero-card:nth-child(2) { animation-delay: .09s; }
+    .hero-grid .hero-card:nth-child(3) { animation-delay: .13s; }
+    .hero-grid .hero-card:nth-child(4) { animation-delay: .17s; }
+
+    .hero-meter > span,
+    .tagbar > span,
+    .hours-bar-track > span,
+    .excursion .mae, .excursion .mfe { animation: fill-grow .85s var(--ease) .35s backwards; }
+
+    .spark-line { stroke-dasharray: 430; stroke-dashoffset: 430; animation: line-draw 1s ease-out .3s forwards; }
+    .spark-area { animation: fade-in .5s ease-out .9s backwards; }
+    .rule-card { animation: fade-up .45s ease-out backwards; }
 }
