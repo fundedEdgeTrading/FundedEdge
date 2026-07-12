@@ -28,6 +28,7 @@ builder.Services.AddRazorComponents()
 builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
 
 builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddSingleton<CurrencyBroadcaster>();
 builder.Services.AddScoped<CurrencyState>();
 
 builder.Services.AddCascadingAuthenticationState();
