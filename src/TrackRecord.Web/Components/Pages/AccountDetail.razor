@@ -5,7 +5,6 @@
 @inject ITradeSetupService SetupService
 @inject ICsvTradeImportService CsvImportService
 @inject IGenericCsvImportService GenericCsvImportService
-@inject IKpiService KpiService
 @inject CurrencyState Currency
 @inject NavigationManager Nav
 @inject IStringLocalizer<SharedResources> L
@@ -58,22 +57,11 @@ else
     </div>
 
     <div class="kpi-grid mt-3">
-        <KpiCard Title="Net P&amp;L" Value="@Currency.Format(NetPnL)" Emphasis="@(NetPnL >= 0 ? "text-success" : "text-danger")" />
         <KpiCard Title="@L["Costes totales"]" Value="@Currency.Format(TotalCosts)" />
         <KpiCard Title="@L["Payouts recibidos"]" Value="@Currency.Format(TotalPayouts)" />
         <KpiCard Title="Profit target" Value="@Currency.Format(_account.ProfitTarget, 0)" />
         <KpiCard Title="Max drawdown" Value="@Currency.Format(_account.MaxDrawdown, 0)" />
     </div>
-
-    @if (_equity is { Count: > 1 })
-    {
-        <div class="card mt-3">
-            <div class="card-body">
-                <h5 class="card-title">@L["Curva de equity de la cuenta"]</h5>
-                <EquityChart Points="_equity" Currency="Currency.Current" />
-            </div>
-        </div>
-    }
 
     <h2 class="mt-4">@L["Ciclo de vida"]</h2>
     <EditForm Model="_transition" OnValidSubmit="TransitionAsync" class="row g-2 align-items-end mb-2">
@@ -409,7 +397,6 @@ else
                         <th>Dir.</th>
                         <th>@L["Cant."]</th>
                         <th>@L["Setup"]</th>
-                        <th class="text-end">Net P&amp;L</th>
                         <th class="text-end">@L["Riesgo"]</th>
                         <th class="text-end">R</th>
                         <th class="text-end">MAE</th>
@@ -439,7 +426,6 @@ else
                                     }
                                 </select>
                             </td>
-                            <td class="text-end @(t.NetPnL >= 0 ? "text-success" : "text-danger")">@Currency.Format(t.NetPnL)</td>
                             <td class="text-end" style="width:100px">
                                 <input type="number" step="0.01" class="form-control form-control-sm text-end" value="@t.RiskedAmount"
                                        @onchange="@(e => UpdateTradeRiskAsync(t, decimal.TryParse(e.Value?.ToString(), System.Globalization.NumberStyles.Number, System.Globalization.CultureInfo.InvariantCulture, out var v) ? v : (decimal?)null))" />
@@ -472,10 +458,8 @@ else
     [Parameter] public Guid AccountId { get; set; }
 
     private TradingAccountDetailDto? _account;
-    private List<EquityCurvePoint>? _equity;
     private ConfirmDialog? _confirmDialog;
 
-    private decimal NetPnL => _account?.Trades.Sum(t => t.NetPnL) ?? 0m;
     private decimal TotalCosts => _account?.Costs.Sum(c => c.Amount) ?? 0m;
     private decimal TotalPayouts => _account?.Payouts.Sum(p => p.AmountReceived) ?? 0m;
 
@@ -527,7 +511,6 @@ else
         }
 
         _platform = _account.Feed;
-        _equity = (await KpiService.GetEquityCurveAsync(AccountId)).ToList();
     }
 
     private void StartRename()

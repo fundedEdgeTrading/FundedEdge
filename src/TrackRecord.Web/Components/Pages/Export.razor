@@ -15,7 +15,7 @@
         @L["Exportar tu track record en PDF es una función de los planes Pro y Elite."] <a href="plan">@L["Mejora tu plan"]</a>.
     </div>
 }
-else if (_business is null || _trading is null)
+else if (_business is null)
 {
     <p class="text-muted">@L["Cargando…"]</p>
 }
@@ -43,34 +43,11 @@ else
             </tbody>
         </table>
 
-        <h2>@L["Operativa (trading)"]</h2>
-        <table class="table table-sm">
-            <tbody>
-                <tr><td>@L["Trades cerrados"]</td><td class="text-end">@_trading.TotalTrades</td></tr>
-                <tr><td>Win rate</td><td class="text-end">@FormatPercent(_trading.WinRate)</td></tr>
-                <tr><td>Profit factor</td><td class="text-end">@FormatRatio(_trading.ProfitFactor)</td></tr>
-                <tr><td>Expectancy / trade</td><td class="text-end">@Currency.Format(_trading.Expectancy)</td></tr>
-                <tr><td>@L["Máx. drawdown"]</td><td class="text-end">@Currency.Format(_trading.MaxDrawdown)</td></tr>
-                <tr><td>Net P&amp;L</td><td class="text-end">@Currency.Format(_trading.NetPnL)</td></tr>
-            </tbody>
-        </table>
-
-        <h2>@L["Curva de equity"]</h2>
-        @if (_equity is { Count: > 1 })
-        {
-            <EquityChart Points="_equity" Currency="Currency.Current" />
-        }
-        else
-        {
-            <p class="text-muted">@L["Sin trades suficientes todavía."]</p>
-        }
     </div>
 }
 
 @code {
     private BusinessKpis? _business;
-    private TradingKpis? _trading;
-    private List<EquityCurvePoint>? _equity;
     private PlanLimits? _limits;
 
     protected override async Task OnInitializedAsync()
@@ -79,12 +56,9 @@ else
         if (!_limits.CanExportPdf) return;
 
         _business = await KpiService.GetBusinessKpisAsync();
-        _trading = await KpiService.GetTradingKpisAsync();
-        _equity = (await KpiService.GetEquityCurveAsync()).ToList();
     }
 
     private Task PrintAsync() => JS.InvokeVoidAsync("print").AsTask();
 
     private static string FormatPercent(double? value) => value is null ? "—" : $"{value:P1}";
-    private static string FormatRatio(double? value) => value is null ? "—" : value.Value.ToString("0.00");
 }
