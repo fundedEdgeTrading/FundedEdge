@@ -664,6 +664,109 @@ input[type="file"] {
     border-radius: 2px;
 }
 
+/* ---- Curva de equidad (Dashboard, KPI "Cashflow neto") ---- */
+.equity-wrap {
+    position: relative;
+    margin-top: 2px;
+}
+
+.equity-line {
+    stroke: #5ce6ba;
+    stroke-width: 2.25;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    filter: drop-shadow(0 0 5px rgba(47, 214, 163, 0.35));
+}
+
+.equity-area {
+    pointer-events: none;
+}
+
+.equity-hit {
+    cursor: crosshair;
+}
+
+.equity-guide {
+    stroke: rgba(255, 255, 255, 0.28);
+    stroke-width: 1;
+    stroke-dasharray: 3 3;
+}
+
+.equity-dot-halo {
+    fill: #2fd6a3;
+    opacity: 0.16;
+}
+
+.equity-dot {
+    fill: #5ce6ba;
+    stroke: var(--bg);
+    stroke-width: 2;
+}
+
+.equity-tooltip {
+    position: absolute;
+    transform: translate(-50%, calc(-100% - 16px));
+    pointer-events: none;
+    background: rgba(22, 28, 42, 0.92);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--border-strong);
+    border-radius: 12px;
+    padding: 10px 13px;
+    box-shadow: 0 20px 48px -20px rgba(0, 0, 0, 0.75);
+    min-width: 170px;
+    z-index: 10;
+}
+
+.equity-tooltip-date {
+    font-size: 0.72rem;
+    color: var(--text-2);
+    margin-bottom: 5px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.equity-tooltip-value {
+    font-family: var(--font-mono);
+    font-size: 1.05rem;
+    font-weight: 650;
+    color: var(--text-1);
+    margin-bottom: 6px;
+}
+
+.equity-tooltip-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 14px;
+    font-size: 0.74rem;
+    font-family: var(--font-mono);
+}
+
+.equity-tooltip-row.good {
+    color: var(--good-text);
+    margin-bottom: 2px;
+}
+
+.equity-tooltip-row.bad {
+    color: var(--danger-text);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .equity-line {
+        stroke-dasharray: 1600;
+        stroke-dashoffset: 1600;
+        animation: equity-draw 1.1s var(--ease) 0.1s forwards;
+    }
+
+    .equity-area {
+        animation: fade-in 0.5s ease-out 0.5s backwards;
+    }
+}
+
+@keyframes equity-draw {
+    to { stroke-dashoffset: 0; }
+}
+
 /* ============================================================
    Psicología (diario emocional): barras, heatmap, tiles de severidad
    ============================================================ */
@@ -2162,6 +2265,117 @@ img.nav-user-avatar {
     }
 
 /* ============================================================
+   Rediseño v2 — Dashboard: barra de filtro de periodo
+   ============================================================ */
+
+.period-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.7rem;
+    margin-bottom: 0.3rem;
+}
+
+.period-left {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+}
+
+.period-bar-label {
+    margin-bottom: 0;
+}
+
+.period-toggle {
+    position: relative;
+    display: flex;
+    gap: 3px;
+    padding: 3px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border-strong);
+    border-radius: 11px;
+}
+
+.period-option {
+    appearance: none;
+    border: none;
+    background: transparent;
+    color: var(--text-2);
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 0.42rem 0.85rem;
+    border-radius: 8px;
+    cursor: pointer;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: background-color 0.13s ease, color 0.13s ease;
+}
+
+    .period-option:hover {
+        color: var(--text-1);
+    }
+
+    .period-option.active {
+        background: var(--accent-soft);
+        color: var(--accent-strong);
+    }
+
+.period-range-label {
+    font-size: 0.78rem;
+    color: var(--text-3);
+}
+
+.period-popover {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    z-index: 30;
+    width: 270px;
+    max-width: 80vw;
+    background: var(--surface-raised);
+    border: 1px solid var(--border-strong);
+    border-radius: 14px;
+    padding: 16px;
+    box-shadow: var(--shadow-2);
+    animation: fade-up 0.18s ease-out backwards;
+}
+
+.period-popover-label {
+    font-size: 0.76rem;
+    font-weight: 550;
+    color: var(--text-2);
+    margin-bottom: 0.3rem;
+}
+
+.period-popover-input {
+    width: 100%;
+    background: var(--surface-2);
+    border: 1px solid var(--border-strong);
+    color: var(--text-1);
+    border-radius: 10px;
+    padding: 0.4rem 0.6rem;
+    font-size: 0.82rem;
+    margin-bottom: 0.7rem;
+}
+
+.period-popover-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+}
+
+@media (max-width: 640px) {
+    .period-popover {
+        left: 0;
+        right: auto;
+    }
+}
+
+/* ============================================================
    Rediseño v1 — KPI tiles con contexto (delta + subtexto + sparkline)
    ============================================================ */
 
@@ -3054,9 +3268,29 @@ ul.plan-features {
 /* ---- Banda hero ---- */
 .hero-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(232px, 1fr));
+    grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
     gap: 14px;
     margin: 1.6rem 0 0;
+}
+
+.hero-side {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+    .hero-side .hero-card {
+        flex: 1;
+    }
+
+@media (max-width: 980px) {
+    .hero-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.hero-grid > .hero-skeleton-card {
+    min-height: 280px;
 }
 
 .hero-card {
@@ -3141,10 +3375,10 @@ ul.plan-features {
 /* ---- Micro-animaciones ---- */
 @media (prefers-reduced-motion: no-preference) {
     .hero-grid .hero-card { animation: fade-up .55s var(--ease) backwards; }
-    .hero-grid .hero-card:nth-child(1) { animation-delay: .05s; }
-    .hero-grid .hero-card:nth-child(2) { animation-delay: .09s; }
-    .hero-grid .hero-card:nth-child(3) { animation-delay: .13s; }
-    .hero-grid .hero-card:nth-child(4) { animation-delay: .17s; }
+    .hero-grid > .hero-card:nth-child(1) { animation-delay: .05s; }
+    .hero-side .hero-card:nth-child(1) { animation-delay: .09s; }
+    .hero-side .hero-card:nth-child(2) { animation-delay: .13s; }
+    .hero-side .hero-card:nth-child(3) { animation-delay: .17s; }
 
     .hero-meter > span,
     .tagbar > span,

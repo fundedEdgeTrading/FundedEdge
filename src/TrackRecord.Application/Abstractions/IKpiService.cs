@@ -9,6 +9,9 @@ public interface IKpiService
     Task<IReadOnlyList<MonthlyCashflowPoint>> GetMonthlyCashflowAsync(int months = 12, CancellationToken ct = default);
     Task<IReadOnlyList<EquityCurvePoint>> GetEquityCurveAsync(Guid? accountId = null, CancellationToken ct = default);
 
+    /// <summary>KPIs del negocio (costes, payouts, evaluaciones compradas, ROI) acotados a [start, end], más la curva de equidad agregada en bins. start = null → sin límite inferior ("Todo").</summary>
+    Task<PeriodKpis> GetPeriodKpisAsync(DateOnly? start, DateOnly end, CancellationToken ct = default);
+
     /// <summary>Rendimiento por tag/setup entre los trades con Tags informado, ordenado por Net P&amp;L descendente.</summary>
     Task<IReadOnlyList<TagPerformanceDto>> GetTagPerformanceAsync(CancellationToken ct = default);
 

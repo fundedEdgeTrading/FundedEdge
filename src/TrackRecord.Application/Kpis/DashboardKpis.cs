@@ -46,6 +46,23 @@ public record MonthlyCashflowPoint(int Year, int Month, decimal Costs, decimal P
 
 public record EquityCurvePoint(DateOnly Date, decimal CumulativeNetPnL);
 
+/// <summary>Punto agregado (bin) de la curva de equidad de costes/payouts de un periodo filtrado.</summary>
+public record EquityBinPoint(DateOnly Date, decimal Cumulative, decimal DayCost, decimal DayPayout);
+
+/// <summary>
+/// KPIs del negocio de fondeo acotados a un rango de fechas (filtro de periodo del Dashboard),
+/// más la curva de equidad (costes/payouts acumulados) agregada en bins para el gráfico.
+/// </summary>
+public record PeriodKpis(
+    DateOnly Start,
+    DateOnly End,
+    decimal TotalCosts,
+    decimal TotalPayouts,
+    decimal NetCashflow,
+    int EvaluationsPurchased,
+    double? Roi,
+    IReadOnlyList<EquityBinPoint> EquityCurve);
+
 /// <summary>
 /// Rendimiento agregado de un tag/setup (Trade.Tags, lista separada por comas) — "¿qué setup me
 /// da dinero de verdad?". Un trade con varios tags cuenta en cada uno de ellos.
