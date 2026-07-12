@@ -466,7 +466,7 @@ else
     private async Task TransitionAsync()
     {
         await AccountService.TransitionStageAsync(new TransitionAccountStageRequest(
-            AccountId, _transition.NewStage, _transition.OccurredOn.ToDateTime(TimeOnly.MinValue), _transition.Notes));
+            AccountId, _transition.NewStage, new DateTimeOffset(_transition.OccurredOn.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero), _transition.Notes));
         _transition = new TransitionFormModel();
         await LoadAsync();
     }
@@ -501,7 +501,7 @@ else
 
     private async Task AddTradeAsync()
     {
-        var closedAt = _tradeForm.ClosedOn.ToDateTime(TimeOnly.MinValue);
+        var closedAt = new DateTimeOffset(_tradeForm.ClosedOn.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero);
         await AccountService.AddTradeAsync(new CreateTradeRequest(
             AccountId, _tradeForm.Symbol, _tradeForm.Direction, _tradeForm.Quantity,
             0m, 0m, closedAt, closedAt, _tradeForm.GrossPnL, _tradeForm.Commissions,

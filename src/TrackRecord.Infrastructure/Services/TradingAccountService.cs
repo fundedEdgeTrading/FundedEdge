@@ -192,7 +192,7 @@ public class TradingAccountService(
             AccountId = account.Id,
             FromStage = AccountStage.Evaluation,
             ToStage = AccountStage.Evaluation,
-            OccurredAt = request.PurchasedOn.ToDateTime(TimeOnly.MinValue),
+            OccurredAt = new DateTimeOffset(request.PurchasedOn.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero),
             Notes = "Cuenta comprada.",
         });
 

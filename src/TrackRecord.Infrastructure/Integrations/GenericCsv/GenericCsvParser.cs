@@ -58,8 +58,9 @@ public static class GenericCsvParser
     public static DateTimeOffset ParseDate(string raw)
     {
         var trimmed = raw.Trim().Trim('"');
-        if (DateTimeOffset.TryParse(trimmed, CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out var value)) return value;
-        if (DateTimeOffset.TryParse(trimmed, CultureInfo.CurrentCulture, DateTimeStyles.AssumeLocal, out value)) return value;
+        const DateTimeStyles styles = DateTimeStyles.AssumeLocal | DateTimeStyles.AdjustToUniversal;
+        if (DateTimeOffset.TryParse(trimmed, CultureInfo.InvariantCulture, styles, out var value)) return value;
+        if (DateTimeOffset.TryParse(trimmed, CultureInfo.CurrentCulture, styles, out value)) return value;
         throw new FormatException($"No se pudo interpretar '{raw}' como fecha/hora.");
     }
 

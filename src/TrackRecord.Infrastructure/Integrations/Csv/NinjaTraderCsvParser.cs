@@ -214,8 +214,9 @@ public class NinjaTraderCsvParser
     private static DateTimeOffset ParseDate(string raw, CultureInfo culture)
     {
         var trimmed = raw.Trim();
-        if (DateTimeOffset.TryParse(trimmed, culture, DateTimeStyles.AssumeLocal, out var value)) return value;
-        if (DateTimeOffset.TryParse(trimmed, CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out value)) return value;
+        const DateTimeStyles styles = DateTimeStyles.AssumeLocal | DateTimeStyles.AdjustToUniversal;
+        if (DateTimeOffset.TryParse(trimmed, culture, styles, out var value)) return value;
+        if (DateTimeOffset.TryParse(trimmed, CultureInfo.InvariantCulture, styles, out value)) return value;
         throw new FormatException($"No se pudo interpretar '{raw}' como fecha/hora.");
     }
 
