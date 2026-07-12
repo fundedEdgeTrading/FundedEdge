@@ -139,14 +139,15 @@ public class TradovateCsvParser
     private static DateTimeOffset ParseTimestamp(string raw)
     {
         var trimmed = raw.Trim();
+        const DateTimeStyles styles = DateTimeStyles.AssumeLocal | DateTimeStyles.AdjustToUniversal;
         foreach (var format in TimestampFormats)
         {
-            if (DateTimeOffset.TryParseExact(trimmed, format, CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out var exact))
+            if (DateTimeOffset.TryParseExact(trimmed, format, CultureInfo.InvariantCulture, styles, out var exact))
             {
                 return exact;
             }
         }
-        if (DateTimeOffset.TryParse(trimmed, CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out var value)) return value;
+        if (DateTimeOffset.TryParse(trimmed, CultureInfo.InvariantCulture, styles, out var value)) return value;
         throw new FormatException($"No se pudo interpretar '{raw}' como fecha/hora.");
     }
 
