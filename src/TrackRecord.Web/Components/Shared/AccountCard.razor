@@ -1,4 +1,4 @@
-@* Tarjeta de cuenta para listados: P&L grande, progreso a profit target y
+@* Tarjeta de cuenta para listados: progreso a profit target y
    costes/payouts en el pie. Toda la tarjeta es clicable. *@
 @inject CurrencyState Currency
 @inject IStringLocalizer<SharedResources> L
@@ -13,10 +13,6 @@
             <span>@Account.PropFirmName · @Currency.Format(Account.AccountSize, 0)</span>
         </div>
         <span class="stage @StageClass">@Account.Stage</span>
-    </div>
-    <div class="ac-pnl">
-        <span class="val @(Account.NetPnL >= 0 ? "text-success" : "text-danger")">@Currency.Format(Account.NetPnL)</span>
-        <span class="lbl">Net P&amp;L</span>
     </div>
     @if (Account.ProfitTarget > 0 || Compliance is not null)
     {
