@@ -2,9 +2,9 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using TrackRecord.Infrastructure.Persistence;
 
 #nullable disable
@@ -12,8 +12,8 @@ using TrackRecord.Infrastructure.Persistence;
 namespace TrackRecord.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(TrackRecordDbContext))]
-    [Migration("20260708171918_AddEvaluationProgramFundedAndPayoutRules")]
-    partial class AddEvaluationProgramFundedAndPayoutRules
+    [Migration("20260712114829_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -21,33 +21,32 @@ namespace TrackRecord.Infrastructure.Persistence.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("ProductVersion", "10.0.9")
-                .HasAnnotation("Relational:MaxIdentifierLength", 128);
+                .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
-            SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+            NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
                 {
                     b.Property<string>("Id")
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("text");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<string>("Name")
                         .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                        .HasColumnType("character varying(256)");
 
                     b.Property<string>("NormalizedName")
                         .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                        .HasColumnType("character varying(256)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("NormalizedName")
                         .IsUnique()
-                        .HasDatabaseName("RoleNameIndex")
-                        .HasFilter("[NormalizedName] IS NOT NULL");
+                        .HasDatabaseName("RoleNameIndex");
 
                     b.ToTable("AspNetRoles", (string)null);
                 });
@@ -56,19 +55,19 @@ namespace TrackRecord.Infrastructure.Persistence.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("ClaimType")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<string>("ClaimValue")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<string>("RoleId")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
@@ -81,19 +80,19 @@ namespace TrackRecord.Infrastructure.Persistence.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("ClaimType")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<string>("ClaimValue")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<string>("UserId")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
@@ -105,17 +104,17 @@ namespace TrackRecord.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
                 {
                     b.Property<string>("LoginProvider")
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("text");
 
                     b.Property<string>("ProviderKey")
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("text");
 
                     b.Property<string>("ProviderDisplayName")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<string>("UserId")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("text");
 
                     b.HasKey("LoginProvider", "ProviderKey");
 
@@ -127,10 +126,10 @@ namespace TrackRecord.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
                 {
                     b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("text");
 
                     b.Property<string>("RoleId")
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("text");
 
                     b.HasKey("UserId", "RoleId");
 
@@ -142,16 +141,16 @@ namespace TrackRecord.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
                 {
                     b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("text");
 
                     b.Property<string>("LoginProvider")
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("text");
 
                     b.Property<string>("Name")
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("text");
 
                     b.Property<string>("Value")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.HasKey("UserId", "LoginProvider", "Name");
 
@@ -162,20 +161,20 @@ namespace TrackRecord.Infrastructure.Persistence.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<Guid>("AccountId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("Kind")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<string>("Notes")
                         .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasColumnType("character varying(500)");
 
                     b.Property<DateOnly>("PaidOn")
                         .HasColumnType("date");
@@ -191,23 +190,23 @@ namespace TrackRecord.Infrastructure.Persistence.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<Guid>("AccountId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<int>("FromStage")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<string>("Notes")
                         .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
+                        .HasColumnType("character varying(1000)");
 
                     b.Property<DateTimeOffset>("OccurredAt")
-                        .HasColumnType("datetimeoffset");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("ToStage")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
@@ -220,36 +219,36 @@ namespace TrackRecord.Infrastructure.Persistence.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Content")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("datetimeoffset");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("InputTokens")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<int>("Kind")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<string>("Model")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("character varying(100)");
 
                     b.Property<int>("OutputTokens")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<string>("Question")
                         .HasMaxLength(2000)
-                        .HasColumnType("nvarchar(2000)");
+                        .HasColumnType("character varying(2000)");
 
                     b.Property<string>("UserId")
                         .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("character varying(450)");
 
                     b.HasKey("Id");
 
@@ -260,11 +259,49 @@ namespace TrackRecord.Infrastructure.Persistence.Migrations
                     b.ToTable("AiReports", (string)null);
                 });
 
+            modelBuilder.Entity("TrackRecord.Domain.Entities.DailyMindsetCheckIn", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date");
+
+                    b.Property<int>("DominantPreMarketEmotion")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ExternalStress")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<int>("PreMarketFocus")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("SleepQuality")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "Date")
+                        .IsUnique();
+
+                    b.ToTable("DailyMindsetCheckIns", (string)null);
+                });
+
             modelBuilder.Entity("TrackRecord.Domain.Entities.EvaluationProgram", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<decimal>("AccountSize")
                         .HasColumnType("decimal(18,2)");
@@ -279,7 +316,7 @@ namespace TrackRecord.Infrastructure.Persistence.Migrations
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("DrawdownType")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<DateOnly>("EffectiveFrom")
                         .HasColumnType("date");
@@ -288,51 +325,51 @@ namespace TrackRecord.Infrastructure.Persistence.Migrations
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal?>("FundedDailyLossLimit")
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("numeric");
 
                     b.Property<int?>("FundedDrawdownType")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<decimal?>("FundedMaxDrawdown")
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("numeric");
 
                     b.Property<int?>("FundedMinTradingDays")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<decimal?>("FundedProfitTarget")
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("numeric");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
+                        .HasColumnType("boolean");
 
                     b.Property<decimal>("MaxDrawdown")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<int?>("MinTradingDays")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
+                        .HasColumnType("character varying(200)");
 
                     b.Property<decimal?>("PayoutMaxProfitPct")
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("numeric");
 
                     b.Property<int?>("PayoutMinDaysBetween")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<decimal>("PayoutSplitTraderPct")
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("numeric");
 
                     b.Property<decimal>("ProfitTarget")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<Guid>("PropFirmId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<Guid?>("PropFirmId1")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
@@ -343,6 +380,27 @@ namespace TrackRecord.Infrastructure.Persistence.Migrations
                     b.ToTable("EvaluationPrograms", (string)null);
 
                     b.HasData(
+                        new
+                        {
+                            Id = new Guid("b0000000-0000-0000-0000-000000000015"),
+                            AccountSize = 25000m,
+                            ActivationCost = 130m,
+                            ConsistencyMaxDayFraction = 0.30m,
+                            DrawdownType = 0,
+                            EffectiveFrom = new DateOnly(2026, 1, 1),
+                            EvaluationCost = 147m,
+                            FundedDrawdownType = 0,
+                            FundedMaxDrawdown = 1500m,
+                            FundedMinTradingDays = 7,
+                            IsActive = true,
+                            MaxDrawdown = 1500m,
+                            MinTradingDays = 7,
+                            Name = "Apex 25K",
+                            PayoutMinDaysBetween = 7,
+                            PayoutSplitTraderPct = 1.00m,
+                            ProfitTarget = 1500m,
+                            PropFirmId = new Guid("33333333-3333-3333-3333-333333333333")
+                        },
                         new
                         {
                             Id = new Guid("b0000000-0000-0000-0000-000000000001"),
@@ -387,12 +445,56 @@ namespace TrackRecord.Infrastructure.Persistence.Migrations
                         },
                         new
                         {
+                            Id = new Guid("b0000000-0000-0000-0000-000000000016"),
+                            AccountSize = 150000m,
+                            ActivationCost = 130m,
+                            ConsistencyMaxDayFraction = 0.30m,
+                            DrawdownType = 0,
+                            EffectiveFrom = new DateOnly(2026, 1, 1),
+                            EvaluationCost = 297m,
+                            FundedDrawdownType = 0,
+                            FundedMaxDrawdown = 5000m,
+                            FundedMinTradingDays = 7,
+                            IsActive = true,
+                            MaxDrawdown = 5000m,
+                            MinTradingDays = 7,
+                            Name = "Apex 150K",
+                            PayoutMinDaysBetween = 7,
+                            PayoutSplitTraderPct = 1.00m,
+                            ProfitTarget = 9000m,
+                            PropFirmId = new Guid("33333333-3333-3333-3333-333333333333")
+                        },
+                        new
+                        {
+                            Id = new Guid("b0000000-0000-0000-0000-000000000017"),
+                            AccountSize = 25000m,
+                            ActivationCost = 0m,
+                            DailyLossLimit = 600m,
+                            DrawdownType = 1,
+                            EffectiveFrom = new DateOnly(2026, 1, 1),
+                            EvaluationCost = 130m,
+                            FundedDailyLossLimit = 600m,
+                            FundedDrawdownType = 1,
+                            FundedMaxDrawdown = 1000m,
+                            IsActive = true,
+                            MaxDrawdown = 1000m,
+                            MinTradingDays = 5,
+                            Name = "Tradeify Growth 25K",
+                            PayoutMinDaysBetween = 14,
+                            PayoutSplitTraderPct = 0.90m,
+                            ProfitTarget = 1500m,
+                            PropFirmId = new Guid("22222222-2222-2222-2222-222222222222")
+                        },
+                        new
+                        {
                             Id = new Guid("b0000000-0000-0000-0000-000000000003"),
                             AccountSize = 50000m,
                             ActivationCost = 0m,
+                            DailyLossLimit = 1250m,
                             DrawdownType = 1,
                             EffectiveFrom = new DateOnly(2026, 1, 1),
                             EvaluationCost = 165m,
+                            FundedDailyLossLimit = 1250m,
                             FundedDrawdownType = 1,
                             FundedMaxDrawdown = 2000m,
                             IsActive = true,
@@ -400,7 +502,7 @@ namespace TrackRecord.Infrastructure.Persistence.Migrations
                             MinTradingDays = 5,
                             Name = "Tradeify Growth 50K",
                             PayoutMinDaysBetween = 14,
-                            PayoutSplitTraderPct = 0.80m,
+                            PayoutSplitTraderPct = 0.90m,
                             ProfitTarget = 3000m,
                             PropFirmId = new Guid("22222222-2222-2222-2222-222222222222")
                         },
@@ -409,9 +511,11 @@ namespace TrackRecord.Infrastructure.Persistence.Migrations
                             Id = new Guid("b0000000-0000-0000-0000-000000000004"),
                             AccountSize = 100000m,
                             ActivationCost = 0m,
+                            DailyLossLimit = 2500m,
                             DrawdownType = 1,
                             EffectiveFrom = new DateOnly(2026, 1, 1),
                             EvaluationCost = 219m,
+                            FundedDailyLossLimit = 2500m,
                             FundedDrawdownType = 1,
                             FundedMaxDrawdown = 3000m,
                             IsActive = true,
@@ -419,9 +523,51 @@ namespace TrackRecord.Infrastructure.Persistence.Migrations
                             MinTradingDays = 5,
                             Name = "Tradeify Advanced 100K",
                             PayoutMinDaysBetween = 14,
-                            PayoutSplitTraderPct = 0.80m,
+                            PayoutSplitTraderPct = 0.90m,
                             ProfitTarget = 6000m,
                             PropFirmId = new Guid("22222222-2222-2222-2222-222222222222")
+                        },
+                        new
+                        {
+                            Id = new Guid("b0000000-0000-0000-0000-000000000018"),
+                            AccountSize = 150000m,
+                            ActivationCost = 0m,
+                            DailyLossLimit = 3750m,
+                            DrawdownType = 1,
+                            EffectiveFrom = new DateOnly(2026, 1, 1),
+                            EvaluationCost = 275m,
+                            FundedDailyLossLimit = 3750m,
+                            FundedDrawdownType = 1,
+                            FundedMaxDrawdown = 5000m,
+                            IsActive = true,
+                            MaxDrawdown = 5000m,
+                            MinTradingDays = 5,
+                            Name = "Tradeify Growth 150K",
+                            PayoutMinDaysBetween = 14,
+                            PayoutSplitTraderPct = 0.90m,
+                            ProfitTarget = 9000m,
+                            PropFirmId = new Guid("22222222-2222-2222-2222-222222222222")
+                        },
+                        new
+                        {
+                            Id = new Guid("b0000000-0000-0000-0000-000000000019"),
+                            AccountSize = 25000m,
+                            ActivationCost = 0m,
+                            DailyLossLimit = 625m,
+                            DrawdownType = 2,
+                            EffectiveFrom = new DateOnly(2026, 1, 1),
+                            EvaluationCost = 95m,
+                            FundedDailyLossLimit = 625m,
+                            FundedDrawdownType = 2,
+                            FundedMaxDrawdown = 1000m,
+                            IsActive = true,
+                            MaxDrawdown = 1000m,
+                            Name = "Lucid 25K",
+                            PayoutMaxProfitPct = 0.50m,
+                            PayoutMinDaysBetween = 14,
+                            PayoutSplitTraderPct = 0.90m,
+                            ProfitTarget = 1000m,
+                            PropFirmId = new Guid("11111111-1111-1111-1111-111111111111")
                         },
                         new
                         {
@@ -467,6 +613,27 @@ namespace TrackRecord.Infrastructure.Persistence.Migrations
                         },
                         new
                         {
+                            Id = new Guid("b0000000-0000-0000-0000-000000000020"),
+                            AccountSize = 150000m,
+                            ActivationCost = 0m,
+                            DailyLossLimit = 3750m,
+                            DrawdownType = 2,
+                            EffectiveFrom = new DateOnly(2026, 1, 1),
+                            EvaluationCost = 365m,
+                            FundedDailyLossLimit = 3750m,
+                            FundedDrawdownType = 2,
+                            FundedMaxDrawdown = 4500m,
+                            IsActive = true,
+                            MaxDrawdown = 4500m,
+                            Name = "Lucid 150K",
+                            PayoutMaxProfitPct = 0.50m,
+                            PayoutMinDaysBetween = 14,
+                            PayoutSplitTraderPct = 0.90m,
+                            ProfitTarget = 6000m,
+                            PropFirmId = new Guid("11111111-1111-1111-1111-111111111111")
+                        },
+                        new
+                        {
                             Id = new Guid("b0000000-0000-0000-0000-000000000007"),
                             AccountSize = 50000m,
                             ActivationCost = 149m,
@@ -481,7 +648,7 @@ namespace TrackRecord.Infrastructure.Persistence.Migrations
                             MaxDrawdown = 2000m,
                             MinTradingDays = 5,
                             Name = "Topstep 50K",
-                            PayoutMinDaysBetween = 7,
+                            PayoutMinDaysBetween = 14,
                             PayoutSplitTraderPct = 0.90m,
                             ProfitTarget = 3000m,
                             PropFirmId = new Guid("44444444-4444-4444-4444-444444444444")
@@ -502,27 +669,66 @@ namespace TrackRecord.Infrastructure.Persistence.Migrations
                             MaxDrawdown = 3000m,
                             MinTradingDays = 5,
                             Name = "Topstep 100K",
-                            PayoutMinDaysBetween = 7,
+                            PayoutMinDaysBetween = 14,
                             PayoutSplitTraderPct = 0.90m,
                             ProfitTarget = 6000m,
                             PropFirmId = new Guid("44444444-4444-4444-4444-444444444444")
                         },
                         new
                         {
+                            Id = new Guid("b0000000-0000-0000-0000-000000000021"),
+                            AccountSize = 150000m,
+                            ActivationCost = 149m,
+                            DailyLossLimit = 3000m,
+                            DrawdownType = 0,
+                            EffectiveFrom = new DateOnly(2026, 1, 1),
+                            EvaluationCost = 199m,
+                            FundedDailyLossLimit = 3000m,
+                            FundedDrawdownType = 0,
+                            FundedMaxDrawdown = 4500m,
+                            IsActive = true,
+                            MaxDrawdown = 4500m,
+                            MinTradingDays = 5,
+                            Name = "Topstep 150K",
+                            PayoutMinDaysBetween = 14,
+                            PayoutSplitTraderPct = 0.90m,
+                            ProfitTarget = 9000m,
+                            PropFirmId = new Guid("44444444-4444-4444-4444-444444444444")
+                        },
+                        new
+                        {
+                            Id = new Guid("b0000000-0000-0000-0000-000000000022"),
+                            AccountSize = 25000m,
+                            ActivationCost = 0m,
+                            ConsistencyMaxDayFraction = 0.50m,
+                            DrawdownType = 0,
+                            EffectiveFrom = new DateOnly(2026, 1, 1),
+                            EvaluationCost = 120m,
+                            FundedDrawdownType = 0,
+                            FundedMaxDrawdown = 1000m,
+                            IsActive = true,
+                            MaxDrawdown = 1000m,
+                            Name = "MFF Rapid 25K",
+                            PayoutMinDaysBetween = 5,
+                            PayoutSplitTraderPct = 0.90m,
+                            ProfitTarget = 1500m,
+                            PropFirmId = new Guid("55555555-5555-5555-5555-555555555555")
+                        },
+                        new
+                        {
                             Id = new Guid("b0000000-0000-0000-0000-000000000009"),
                             AccountSize = 50000m,
-                            ActivationCost = 135m,
-                            DailyLossLimit = 1000m,
+                            ActivationCost = 0m,
+                            ConsistencyMaxDayFraction = 0.50m,
                             DrawdownType = 0,
                             EffectiveFrom = new DateOnly(2026, 1, 1),
                             EvaluationCost = 165m,
-                            FundedDailyLossLimit = 1000m,
                             FundedDrawdownType = 0,
-                            FundedMaxDrawdown = 2500m,
+                            FundedMaxDrawdown = 2000m,
                             IsActive = true,
-                            MaxDrawdown = 2500m,
-                            Name = "MFF 50K",
-                            PayoutMinDaysBetween = 14,
+                            MaxDrawdown = 2000m,
+                            Name = "MFF Rapid 50K",
+                            PayoutMinDaysBetween = 5,
                             PayoutSplitTraderPct = 0.90m,
                             ProfitTarget = 3000m,
                             PropFirmId = new Guid("55555555-5555-5555-5555-555555555555")
@@ -531,39 +737,95 @@ namespace TrackRecord.Infrastructure.Persistence.Migrations
                         {
                             Id = new Guid("b0000000-0000-0000-0000-000000000010"),
                             AccountSize = 100000m,
-                            ActivationCost = 135m,
-                            DailyLossLimit = 2000m,
+                            ActivationCost = 0m,
+                            ConsistencyMaxDayFraction = 0.50m,
                             DrawdownType = 0,
                             EffectiveFrom = new DateOnly(2026, 1, 1),
                             EvaluationCost = 250m,
-                            FundedDailyLossLimit = 2000m,
                             FundedDrawdownType = 0,
                             FundedMaxDrawdown = 3000m,
                             IsActive = true,
                             MaxDrawdown = 3000m,
-                            Name = "MFF 100K",
-                            PayoutMinDaysBetween = 14,
+                            Name = "MFF Rapid 100K",
+                            PayoutMinDaysBetween = 5,
                             PayoutSplitTraderPct = 0.90m,
                             ProfitTarget = 6000m,
                             PropFirmId = new Guid("55555555-5555-5555-5555-555555555555")
                         },
                         new
                         {
-                            Id = new Guid("b0000000-0000-0000-0000-000000000011"),
-                            AccountSize = 50000m,
-                            ActivationCost = 130m,
+                            Id = new Guid("b0000000-0000-0000-0000-000000000023"),
+                            AccountSize = 150000m,
+                            ActivationCost = 0m,
+                            ConsistencyMaxDayFraction = 0.50m,
                             DrawdownType = 0,
+                            EffectiveFrom = new DateOnly(2026, 1, 1),
+                            EvaluationCost = 320m,
+                            FundedDrawdownType = 0,
+                            FundedMaxDrawdown = 4500m,
+                            IsActive = true,
+                            MaxDrawdown = 4500m,
+                            Name = "MFF Rapid 150K",
+                            PayoutMinDaysBetween = 5,
+                            PayoutSplitTraderPct = 0.90m,
+                            ProfitTarget = 9000m,
+                            PropFirmId = new Guid("55555555-5555-5555-5555-555555555555")
+                        },
+                        new
+                        {
+                            Id = new Guid("b0000000-0000-0000-0000-000000000024"),
+                            AccountSize = 25000m,
+                            ActivationCost = 130m,
+                            DrawdownType = 1,
                             EffectiveFrom = new DateOnly(2026, 1, 1),
                             EvaluationCost = 150m,
                             FundedDrawdownType = 0,
-                            FundedMaxDrawdown = 2500m,
+                            FundedMaxDrawdown = 1500m,
                             IsActive = true,
-                            MaxDrawdown = 2500m,
-                            MinTradingDays = 10,
+                            MaxDrawdown = 1500m,
+                            MinTradingDays = 5,
+                            Name = "TPT 25K",
+                            PayoutMinDaysBetween = 14,
+                            PayoutSplitTraderPct = 0.80m,
+                            ProfitTarget = 1500m,
+                            PropFirmId = new Guid("66666666-6666-6666-6666-666666666666")
+                        },
+                        new
+                        {
+                            Id = new Guid("b0000000-0000-0000-0000-000000000011"),
+                            AccountSize = 50000m,
+                            ActivationCost = 130m,
+                            DrawdownType = 1,
+                            EffectiveFrom = new DateOnly(2026, 1, 1),
+                            EvaluationCost = 150m,
+                            FundedDrawdownType = 0,
+                            FundedMaxDrawdown = 2000m,
+                            IsActive = true,
+                            MaxDrawdown = 2000m,
+                            MinTradingDays = 5,
                             Name = "TPT 50K",
                             PayoutMinDaysBetween = 14,
-                            PayoutSplitTraderPct = 0.85m,
+                            PayoutSplitTraderPct = 0.80m,
                             ProfitTarget = 3000m,
+                            PropFirmId = new Guid("66666666-6666-6666-6666-666666666666")
+                        },
+                        new
+                        {
+                            Id = new Guid("b0000000-0000-0000-0000-000000000025"),
+                            AccountSize = 75000m,
+                            ActivationCost = 130m,
+                            DrawdownType = 1,
+                            EffectiveFrom = new DateOnly(2026, 1, 1),
+                            EvaluationCost = 185m,
+                            FundedDrawdownType = 0,
+                            FundedMaxDrawdown = 3000m,
+                            IsActive = true,
+                            MaxDrawdown = 3000m,
+                            MinTradingDays = 5,
+                            Name = "TPT 75K",
+                            PayoutMinDaysBetween = 14,
+                            PayoutSplitTraderPct = 0.80m,
+                            ProfitTarget = 4500m,
                             PropFirmId = new Guid("66666666-6666-6666-6666-666666666666")
                         },
                         new
@@ -571,56 +833,121 @@ namespace TrackRecord.Infrastructure.Persistence.Migrations
                             Id = new Guid("b0000000-0000-0000-0000-000000000012"),
                             AccountSize = 100000m,
                             ActivationCost = 130m,
-                            DrawdownType = 0,
+                            DrawdownType = 1,
                             EffectiveFrom = new DateOnly(2026, 1, 1),
                             EvaluationCost = 220m,
                             FundedDrawdownType = 0,
                             FundedMaxDrawdown = 3000m,
                             IsActive = true,
                             MaxDrawdown = 3000m,
-                            MinTradingDays = 10,
+                            MinTradingDays = 5,
                             Name = "TPT 100K",
                             PayoutMinDaysBetween = 14,
-                            PayoutSplitTraderPct = 0.85m,
+                            PayoutSplitTraderPct = 0.80m,
                             ProfitTarget = 6000m,
                             PropFirmId = new Guid("66666666-6666-6666-6666-666666666666")
                         },
                         new
                         {
-                            Id = new Guid("b0000000-0000-0000-0000-000000000013"),
-                            AccountSize = 25000m,
-                            ActivationCost = 0m,
-                            DrawdownType = 0,
+                            Id = new Guid("b0000000-0000-0000-0000-000000000026"),
+                            AccountSize = 150000m,
+                            ActivationCost = 130m,
+                            DrawdownType = 1,
                             EffectiveFrom = new DateOnly(2026, 1, 1),
-                            EvaluationCost = 150m,
+                            EvaluationCost = 300m,
                             FundedDrawdownType = 0,
-                            FundedMaxDrawdown = 1500m,
+                            FundedMaxDrawdown = 4500m,
                             IsActive = true,
-                            MaxDrawdown = 1500m,
-                            MinTradingDays = 15,
-                            Name = "E2T Gauntlet Mini 25K",
-                            PayoutMinDaysBetween = 30,
+                            MaxDrawdown = 4500m,
+                            MinTradingDays = 5,
+                            Name = "TPT 150K",
+                            PayoutMinDaysBetween = 14,
                             PayoutSplitTraderPct = 0.80m,
-                            ProfitTarget = 1500m,
-                            PropFirmId = new Guid("77777777-7777-7777-7777-777777777777")
+                            ProfitTarget = 9000m,
+                            PropFirmId = new Guid("66666666-6666-6666-6666-666666666666")
                         },
                         new
                         {
                             Id = new Guid("b0000000-0000-0000-0000-000000000014"),
                             AccountSize = 50000m,
                             ActivationCost = 0m,
-                            DrawdownType = 0,
+                            ConsistencyMaxDayFraction = 0.30m,
+                            DailyLossLimit = 1100m,
+                            DrawdownType = 1,
                             EffectiveFrom = new DateOnly(2026, 1, 1),
                             EvaluationCost = 245m,
-                            FundedDrawdownType = 0,
+                            FundedDrawdownType = 1,
                             FundedMaxDrawdown = 2000m,
                             IsActive = true,
                             MaxDrawdown = 2000m,
-                            MinTradingDays = 15,
-                            Name = "E2T Gauntlet 50K",
+                            MinTradingDays = 10,
+                            Name = "E2T Gauntlet Mini 50K",
                             PayoutMinDaysBetween = 30,
                             PayoutSplitTraderPct = 0.80m,
                             ProfitTarget = 3000m,
+                            PropFirmId = new Guid("77777777-7777-7777-7777-777777777777")
+                        },
+                        new
+                        {
+                            Id = new Guid("b0000000-0000-0000-0000-000000000013"),
+                            AccountSize = 100000m,
+                            ActivationCost = 0m,
+                            ConsistencyMaxDayFraction = 0.30m,
+                            DailyLossLimit = 2200m,
+                            DrawdownType = 1,
+                            EffectiveFrom = new DateOnly(2026, 1, 1),
+                            EvaluationCost = 430m,
+                            FundedDrawdownType = 1,
+                            FundedMaxDrawdown = 4000m,
+                            IsActive = true,
+                            MaxDrawdown = 4000m,
+                            MinTradingDays = 10,
+                            Name = "E2T Gauntlet Mini 100K",
+                            PayoutMinDaysBetween = 30,
+                            PayoutSplitTraderPct = 0.80m,
+                            ProfitTarget = 6000m,
+                            PropFirmId = new Guid("77777777-7777-7777-7777-777777777777")
+                        },
+                        new
+                        {
+                            Id = new Guid("b0000000-0000-0000-0000-000000000027"),
+                            AccountSize = 150000m,
+                            ActivationCost = 0m,
+                            ConsistencyMaxDayFraction = 0.30m,
+                            DailyLossLimit = 3300m,
+                            DrawdownType = 1,
+                            EffectiveFrom = new DateOnly(2026, 1, 1),
+                            EvaluationCost = 600m,
+                            FundedDrawdownType = 1,
+                            FundedMaxDrawdown = 6000m,
+                            IsActive = true,
+                            MaxDrawdown = 6000m,
+                            MinTradingDays = 10,
+                            Name = "E2T Gauntlet Mini 150K",
+                            PayoutMinDaysBetween = 30,
+                            PayoutSplitTraderPct = 0.80m,
+                            ProfitTarget = 9000m,
+                            PropFirmId = new Guid("77777777-7777-7777-7777-777777777777")
+                        },
+                        new
+                        {
+                            Id = new Guid("b0000000-0000-0000-0000-000000000028"),
+                            AccountSize = 200000m,
+                            ActivationCost = 0m,
+                            ConsistencyMaxDayFraction = 0.30m,
+                            DailyLossLimit = 4400m,
+                            DrawdownType = 1,
+                            EffectiveFrom = new DateOnly(2026, 1, 1),
+                            EvaluationCost = 750m,
+                            FundedDrawdownType = 1,
+                            FundedMaxDrawdown = 8000m,
+                            IsActive = true,
+                            MaxDrawdown = 8000m,
+                            MinTradingDays = 10,
+                            Name = "E2T Gauntlet Mini 200K",
+                            PayoutMinDaysBetween = 30,
+                            PayoutSplitTraderPct = 0.80m,
+                            ProfitTarget = 12000m,
                             PropFirmId = new Guid("77777777-7777-7777-7777-777777777777")
                         });
                 });
@@ -629,41 +956,41 @@ namespace TrackRecord.Infrastructure.Persistence.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<Guid>("AccountId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<decimal>("Commission")
                         .HasColumnType("decimal(18,4)");
 
                     b.Property<DateTimeOffset>("ExecutedAt")
-                        .HasColumnType("datetimeoffset");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("ExternalId")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("character varying(100)");
 
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,8)");
 
                     b.Property<int>("Quantity")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<int>("Side")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<int>("Source")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<string>("Symbol")
                         .IsRequired()
                         .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)");
+                        .HasColumnType("character varying(30)");
 
                     b.Property<Guid?>("TradeId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
@@ -681,17 +1008,17 @@ namespace TrackRecord.Infrastructure.Persistence.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("character varying(100)");
 
                     b.Property<string>("Root")
                         .IsRequired()
                         .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasColumnType("character varying(20)");
 
                     b.Property<decimal>("TickSize")
                         .HasColumnType("decimal(18,8)");
@@ -761,14 +1088,14 @@ namespace TrackRecord.Infrastructure.Persistence.Migrations
                 {
                     b.Property<string>("Key")
                         .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
+                        .HasColumnType("character varying(200)");
 
                     b.Property<string>("ProtectedValue")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<DateTimeOffset>("UpdatedAt")
-                        .HasColumnType("datetimeoffset");
+                        .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Key");
 
@@ -779,10 +1106,10 @@ namespace TrackRecord.Infrastructure.Persistence.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<Guid>("AccountId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<decimal>("AmountReceived")
                         .HasColumnType("decimal(18,2)");
@@ -792,7 +1119,7 @@ namespace TrackRecord.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("Notes")
                         .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasColumnType("character varying(500)");
 
                     b.Property<DateOnly?>("PaidOn")
                         .HasColumnType("date");
@@ -801,7 +1128,7 @@ namespace TrackRecord.Infrastructure.Persistence.Migrations
                         .HasColumnType("date");
 
                     b.Property<int>("Status")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
@@ -814,10 +1141,10 @@ namespace TrackRecord.Infrastructure.Persistence.Migrations
                 {
                     b.Property<string>("Id")
                         .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
+                        .HasColumnType("character varying(200)");
 
                     b.Property<DateTimeOffset>("ProcessedAt")
-                        .HasColumnType("datetimeoffset");
+                        .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 
@@ -828,22 +1155,22 @@ namespace TrackRecord.Infrastructure.Persistence.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<int?>("MinDaysBetweenPayouts")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
+                        .HasColumnType("character varying(200)");
 
                     b.Property<string>("Notes")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<string>("Website")
                         .HasMaxLength(300)
-                        .HasColumnType("nvarchar(300)");
+                        .HasColumnType("character varying(300)");
 
                     b.HasKey("Id");
 
@@ -901,23 +1228,23 @@ namespace TrackRecord.Infrastructure.Persistence.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("datetimeoffset");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<bool>("IsEnabled")
-                        .HasColumnType("bit");
+                        .HasColumnType("boolean");
 
                     b.Property<string>("Slug")
                         .IsRequired()
                         .HasMaxLength(60)
-                        .HasColumnType("nvarchar(60)");
+                        .HasColumnType("character varying(60)");
 
                     b.Property<string>("UserId")
                         .IsRequired()
                         .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("character varying(450)");
 
                     b.HasKey("Id");
 
@@ -934,10 +1261,10 @@ namespace TrackRecord.Infrastructure.Persistence.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<Guid>("AccountId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<decimal>("AvgEntryPrice")
                         .HasColumnType("decimal(18,8)");
@@ -946,29 +1273,35 @@ namespace TrackRecord.Infrastructure.Persistence.Migrations
                         .HasColumnType("decimal(18,8)");
 
                     b.Property<DateTimeOffset>("ClosedAt")
-                        .HasColumnType("datetimeoffset");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<decimal>("Commissions")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("Direction")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<decimal>("GrossPnL")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<Guid?>("InstrumentId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal?>("MaxAdverseExcursion")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("MaxFavorableExcursion")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("Notes")
                         .HasMaxLength(2000)
-                        .HasColumnType("nvarchar(2000)");
+                        .HasColumnType("character varying(2000)");
 
                     b.Property<DateTimeOffset>("OpenedAt")
-                        .HasColumnType("datetimeoffset");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("Quantity")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<decimal?>("RiskedAmount")
                         .HasColumnType("decimal(18,2)");
@@ -976,11 +1309,11 @@ namespace TrackRecord.Infrastructure.Persistence.Migrations
                     b.Property<string>("Symbol")
                         .IsRequired()
                         .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)");
+                        .HasColumnType("character varying(30)");
 
                     b.Property<string>("Tags")
                         .HasMaxLength(300)
-                        .HasColumnType("nvarchar(300)");
+                        .HasColumnType("character varying(300)");
 
                     b.HasKey("Id");
 
@@ -991,11 +1324,73 @@ namespace TrackRecord.Infrastructure.Persistence.Migrations
                     b.ToTable("Trades", (string)null);
                 });
 
+            modelBuilder.Entity("TrackRecord.Domain.Entities.TradeEmotionLog", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Adherence")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Emotion")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Intensity")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset>("LoggedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Moment")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<Guid>("TradeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("WasImpulsive")
+                        .HasColumnType("boolean");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TradeId");
+
+                    b.ToTable("TradeEmotionLogs", (string)null);
+                });
+
+            modelBuilder.Entity("TrackRecord.Domain.Entities.TradeSetup", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "Name")
+                        .IsUnique();
+
+                    b.ToTable("TradeSetups", (string)null);
+                });
+
             modelBuilder.Entity("TrackRecord.Domain.Entities.TradingAccount", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<decimal>("AccountSize")
                         .HasColumnType("decimal(18,2)");
@@ -1006,20 +1401,20 @@ namespace TrackRecord.Infrastructure.Persistence.Migrations
                     b.Property<string>("DisplayName")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
+                        .HasColumnType("character varying(200)");
 
                     b.Property<int>("DrawdownType")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<Guid?>("EvaluationProgramId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<string>("ExternalAccountId")
                         .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("character varying(100)");
 
                     b.Property<int>("Feed")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<DateOnly?>("FundedOn")
                         .HasColumnType("date");
@@ -1028,23 +1423,23 @@ namespace TrackRecord.Infrastructure.Persistence.Migrations
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("Notes")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<decimal>("ProfitTarget")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<Guid>("PropFirmId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<DateOnly>("PurchasedOn")
                         .HasColumnType("date");
 
                     b.Property<int>("Stage")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<string>("UserId")
                         .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("character varying(450)");
 
                     b.HasKey("Id");
 
@@ -1062,66 +1457,69 @@ namespace TrackRecord.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("TrackRecord.Infrastructure.Identity.ApplicationUser", b =>
                 {
                     b.Property<string>("Id")
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("text");
 
                     b.Property<int>("AccessFailedCount")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
+
+                    b.Property<string>("AvatarUrl")
+                        .HasColumnType("text");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<string>("DisplayName")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<string>("Email")
                         .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                        .HasColumnType("character varying(256)");
 
                     b.Property<bool>("EmailConfirmed")
-                        .HasColumnType("bit");
+                        .HasColumnType("boolean");
 
                     b.Property<bool>("LockoutEnabled")
-                        .HasColumnType("bit");
+                        .HasColumnType("boolean");
 
                     b.Property<DateTimeOffset?>("LockoutEnd")
-                        .HasColumnType("datetimeoffset");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("NormalizedEmail")
                         .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                        .HasColumnType("character varying(256)");
 
                     b.Property<string>("NormalizedUserName")
                         .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                        .HasColumnType("character varying(256)");
 
                     b.Property<string>("PasswordHash")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<string>("PhoneNumber")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<bool>("PhoneNumberConfirmed")
-                        .HasColumnType("bit");
+                        .HasColumnType("boolean");
 
                     b.Property<int>("PlanTier")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<string>("SecurityStamp")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<string>("StripeCustomerId")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<DateTimeOffset?>("TrialEndsAt")
-                        .HasColumnType("datetimeoffset");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<bool>("TwoFactorEnabled")
-                        .HasColumnType("bit");
+                        .HasColumnType("boolean");
 
                     b.Property<string>("UserName")
                         .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                        .HasColumnType("character varying(256)");
 
                     b.HasKey("Id");
 
@@ -1130,8 +1528,7 @@ namespace TrackRecord.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("NormalizedUserName")
                         .IsUnique()
-                        .HasDatabaseName("UserNameIndex")
-                        .HasFilter("[NormalizedUserName] IS NOT NULL");
+                        .HasDatabaseName("UserNameIndex");
 
                     b.ToTable("AspNetUsers", (string)null);
                 });
@@ -1269,6 +1666,17 @@ namespace TrackRecord.Infrastructure.Persistence.Migrations
                     b.Navigation("Account");
 
                     b.Navigation("Instrument");
+                });
+
+            modelBuilder.Entity("TrackRecord.Domain.Entities.TradeEmotionLog", b =>
+                {
+                    b.HasOne("TrackRecord.Domain.Entities.Trade", "Trade")
+                        .WithMany()
+                        .HasForeignKey("TradeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Trade");
                 });
 
             modelBuilder.Entity("TrackRecord.Domain.Entities.TradingAccount", b =>
