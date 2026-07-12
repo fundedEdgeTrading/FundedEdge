@@ -43,28 +43,6 @@ else
                 <tr><td>@L["Cashflow neto"]</td><td class="text-end">@Currency.Format(_business.NetCashflow)</td></tr>
             </tbody>
         </table>
-
-        <h2>@L["Operativa (trading)"]</h2>
-        <table class="table table-sm">
-            <tbody>
-                <tr><td>@L["Trades cerrados"]</td><td class="text-end">@_trading.TotalTrades</td></tr>
-                <tr><td>@L["Tasa de acierto"]</td><td class="text-end">@FormatPercent(_trading.WinRate)</td></tr>
-                <tr><td>@L["Factor de beneficio"]</td><td class="text-end">@FormatRatio(_trading.ProfitFactor)</td></tr>
-                <tr><td>Expectancy / trade</td><td class="text-end">@Currency.Format(_trading.Expectancy)</td></tr>
-                <tr><td>@L["Máx. drawdown"]</td><td class="text-end">@Currency.Format(_trading.MaxDrawdown)</td></tr>
-                <tr><td>Net P&amp;L</td><td class="text-end">@Currency.Format(_trading.NetPnL)</td></tr>
-            </tbody>
-        </table>
-
-        <h2>@L["Curva de equity"]</h2>
-        @if (_equity is { Count: > 1 })
-        {
-            <EquityChart Points="_equity" Currency="Currency.Current" />
-        }
-        else
-        {
-            <p class="text-muted">@L["Sin trades suficientes todavía."]</p>
-        }
     </div>
 }
 
