@@ -2244,4 +2244,52 @@
   <data name="Ej. 0.30 = regla del 30 %. No un porcentaje." xml:space="preserve">
     <value>E.g. 0.30 = the 30% rule. Not a percentage.</value>
   </data>
+  <data name="Panel" xml:space="preserve">
+    <value>Dashboard</value>
+  </data>
+  <data name="Tasa de acierto" xml:space="preserve">
+    <value>Win rate</value>
+  </data>
+  <data name="Factor de beneficio" xml:space="preserve">
+    <value>Profit factor</value>
+  </data>
+  <data name="Tasa de aprobación" xml:space="preserve">
+    <value>Pass rate</value>
+  </data>
+  <data name="Objetivo de beneficio" xml:space="preserve">
+    <value>Profit target</value>
+  </data>
+  <data name="Objetivo de beneficio fondeada" xml:space="preserve">
+    <value>Profit target (funded)</value>
+  </data>
+  <data name="Drawdown máximo" xml:space="preserve">
+    <value>Max drawdown</value>
+  </data>
+  <data name="Drawdown máximo fondeada" xml:space="preserve">
+    <value>Max drawdown (funded)</value>
+  </data>
+  <data name="Drawdown máx." xml:space="preserve">
+    <value>Max DD</value>
+  </data>
+  <data name="Reparto" xml:space="preserve">
+    <value>Split</value>
+  </data>
+  <data name="Reparto trader" xml:space="preserve">
+    <value>Split trader</value>
+  </data>
+  <data name="Puntuación de encaje" xml:space="preserve">
+    <value>Fit Score</value>
+  </data>
+  <data name="Trades" xml:space="preserve">
+    <value>Trades</value>
+  </data>
+  <data name="Payout" xml:space="preserve">
+    <value>Payout</value>
+  </data>
+  <data name="Payouts" xml:space="preserve">
+    <value>Payouts</value>
+  </data>
+  <data name="Bankroll" xml:space="preserve">
+    <value>Bankroll</value>
+  </data>
 </root>

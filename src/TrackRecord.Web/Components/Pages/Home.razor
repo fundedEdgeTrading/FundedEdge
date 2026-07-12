@@ -14,7 +14,7 @@
 
 <PageTitle>Dashboard — @Brand.Name</PageTitle>
 
-<h1>Dashboard</h1>
+<h1>@L["Panel"]</h1>
 <p class="text-muted">@L["Visión general del negocio de fondeo y de tu operativa."]</p>
 
 @if (_pendingEmotionCount > 0)
@@ -72,7 +72,7 @@
             </Spark>
         </KpiCard>
 
-        <KpiCard Variant="hero" Title="Win rate"
+        <KpiCard Variant="hero" Title="@L["Tasa de acierto"]"
                  Value="@FormatPercent(_trading.WinRate)"
                  Sub="@L["{0} trades cerrados · payoff {1}", _trading.TotalTrades, FormatRatio(_trading.PayoffRatio)]">
             <Spark>
@@ -197,7 +197,7 @@ else
     else
     {
         <div class="kpi-grid">
-            <KpiCard Title="Profit factor" Value="@FormatRatio(_trading.ProfitFactor)" />
+            <KpiCard Title="@L["Factor de beneficio"]" Value="@FormatRatio(_trading.ProfitFactor)" />
             <KpiCard Title="@L["Expectancy / trade"]" Value="@FormatMoney(_trading.Expectancy)" />
             <KpiCard Title="Payoff ratio" Value="@FormatRatio(_trading.PayoffRatio)" />
             <KpiCard Title="@L["R-múltiplo medio"]" Value="@(_trading.AvgRMultiple?.ToString("0.00") ?? "—")" />
@@ -214,8 +214,8 @@ else
                 <div class="tag-row tag-head">
                     <span>Tag</span>
                     <span class="text-end">@L["Trades cerrados"]</span>
-                    <span class="text-end">Win rate</span>
-                    <span class="text-end">Profit factor</span>
+                    <span class="text-end">@L["Tasa de acierto"]</span>
+                    <span class="text-end">@L["Factor de beneficio"]</span>
                     <span class="text-end">Net P&amp;L</span>
                 </div>
                 @{ var maxAbsTagPnL = _tagPerformance.Max(t => Math.Abs(t.NetPnL)); }

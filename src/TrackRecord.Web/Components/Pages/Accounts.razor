@@ -89,11 +89,11 @@
                                 <h4>@L["Evaluación"]</h4>
                                 <dl>
                                     <div class="kv2"><dt>@L["Tamaño"]</dt><dd>@Currency.Format(_selectedProgram.AccountSize, 0)</dd></div>
-                                    <div class="kv2"><dt>Profit target</dt><dd>@Currency.Format(_selectedProgram.ProfitTarget)</dd></div>
-                                    <div class="kv2"><dt>Max drawdown</dt><dd>@Currency.Format(_selectedProgram.MaxDrawdown) · @_selectedProgram.DrawdownType</dd></div>
+                                    <div class="kv2"><dt>@L["Objetivo de beneficio"]</dt><dd>@Currency.Format(_selectedProgram.ProfitTarget)</dd></div>
+                                    <div class="kv2"><dt>@L["Drawdown máximo"]</dt><dd>@Currency.Format(_selectedProgram.MaxDrawdown) · @_selectedProgram.DrawdownType</dd></div>
                                     @if (_selectedProgram.DailyLossLimit.HasValue)
                                     {
-                                        <div class="kv2"><dt>@L["Daily loss limit"]</dt><dd>@Currency.Format(_selectedProgram.DailyLossLimit.Value)</dd></div>
+                                        <div class="kv2"><dt>@L["Límite de pérdida diaria"]</dt><dd>@Currency.Format(_selectedProgram.DailyLossLimit.Value)</dd></div>
                                     }
                                     @if (_selectedProgram.MinTradingDays.HasValue)
                                     {
@@ -113,11 +113,11 @@
                             <div class="spec-col">
                                 <h4>@L["Fase fondeada"]</h4>
                                 <dl>
-                                    <div class="kv2"><dt>Drawdown</dt><dd>@(_selectedProgram.FundedDrawdownType?.ToString() ?? _selectedProgram.DrawdownType.ToString())</dd></div>
-                                    <div class="kv2"><dt>Max drawdown</dt><dd>@Currency.Format(_selectedProgram.FundedMaxDrawdown ?? _selectedProgram.MaxDrawdown)</dd></div>
+                                    <div class="kv2"><dt>@L["Drawdown"]</dt><dd>@(_selectedProgram.FundedDrawdownType?.ToString() ?? _selectedProgram.DrawdownType.ToString())</dd></div>
+                                    <div class="kv2"><dt>@L["Drawdown máximo"]</dt><dd>@Currency.Format(_selectedProgram.FundedMaxDrawdown ?? _selectedProgram.MaxDrawdown)</dd></div>
                                     @if ((_selectedProgram.FundedDailyLossLimit ?? _selectedProgram.DailyLossLimit).HasValue)
                                     {
-                                        <div class="kv2"><dt>Daily loss</dt><dd>@Currency.Format((_selectedProgram.FundedDailyLossLimit ?? _selectedProgram.DailyLossLimit)!.Value)</dd></div>
+                                        <div class="kv2"><dt>@L["Pérdida diaria"]</dt><dd>@Currency.Format((_selectedProgram.FundedDailyLossLimit ?? _selectedProgram.DailyLossLimit)!.Value)</dd></div>
                                     }
                                     @if (_selectedProgram.FundedMinTradingDays.HasValue)
                                     {
@@ -126,9 +126,9 @@
                                 </dl>
                             </div>
                             <div class="spec-col">
-                                <h4>Payout</h4>
+                                <h4>@L["Payout"]</h4>
                                 <dl>
-                                    <div class="kv2"><dt>Split trader</dt><dd>@_selectedProgram.PayoutSplitTraderPct.ToString("P0")</dd></div>
+                                    <div class="kv2"><dt>@L["Reparto trader"]</dt><dd>@_selectedProgram.PayoutSplitTraderPct.ToString("P0")</dd></div>
                                     @if (_selectedProgram.PayoutMaxProfitPct.HasValue)
                                     {
                                         <div class="kv2"><dt>@L["Cap retiro"]</dt><dd>@_selectedProgram.PayoutMaxProfitPct.Value.ToString("P0") @L["del profit"]</dd></div>
@@ -154,14 +154,14 @@
                             </div>
                         </div>
                         <div class="col-md-3 col-6">
-                            <label class="form-label">Profit target</label>
+                            <label class="form-label">@L["Objetivo de beneficio"]</label>
                             <div class="igroup">
                                 <span class="prefix">@Currency.Symbol</span>
                                 <InputNumber class="form-control" @bind-Value="_form.ProfitTarget" />
                             </div>
                         </div>
                         <div class="col-md-3 col-6">
-                            <label class="form-label">Max drawdown</label>
+                            <label class="form-label">@L["Drawdown máximo"]</label>
                             <div class="igroup">
                                 <span class="prefix">@Currency.Symbol</span>
                                 <InputNumber class="form-control" @bind-Value="_form.MaxDrawdown" />
@@ -287,7 +287,7 @@ else
                     <th>@L["Comprada"]</th>
                     <th class="text-end">Net P&amp;L</th>
                     <th class="text-end">@L["Costes"]</th>
-                    <th class="text-end">Payouts</th>
+                    <th class="text-end">@L["Payouts"]</th>
                     <th></th>
                 </tr>
             </thead>

@@ -69,7 +69,7 @@ else
             </p>
             <EditForm Model="_plannerForm" OnValidSubmit="RunPlannerAsync" class="row g-2 align-items-end">
                 <div class="col-md-2">
-                    <label class="form-label">Bankroll</label>
+                    <label class="form-label">@L["Bankroll"]</label>
                     <div class="igroup">
                         <span class="prefix">@Currency.Symbol</span>
                         <InputNumber class="form-control" @bind-Value="_plannerForm.Bankroll" />

@@ -4,6 +4,7 @@
 @rendermode InteractiveServer
 @inject IAdminUserService AdminService
 @inject IStringLocalizer<SharedResources> L
+@inject TrackRecord.Web.State.CurrencyState Currency
 
 <PageTitle>@L["KPIs por usuario"] — @Brand.Name</PageTitle>
 
@@ -45,20 +46,20 @@ else
                             </div>
                             <div class="col-4">
                                 <div class="fw-bold">@user.TotalTrades</div>
-                                <small class="text-muted">Trades</small>
+                                <small class="text-muted">@L["Trades"]</small>
                             </div>
                         </div>
                         <div class="row text-center mt-3">
                             <div class="col-4">
-                                <div class="fw-bold">@user.TotalCosts.ToString("C0")</div>
+                                <div class="fw-bold">@Currency.Format(user.TotalCosts, 0)</div>
                                 <small class="text-muted">@L["Costes"]</small>
                             </div>
                             <div class="col-4">
-                                <div class="fw-bold">@user.TotalPayouts.ToString("C0")</div>
-                                <small class="text-muted">Payouts</small>
+                                <div class="fw-bold">@Currency.Format(user.TotalPayouts, 0)</div>
+                                <small class="text-muted">@L["Payouts"]</small>
                             </div>
                             <div class="col-4">
-                                <div class="fw-bold @(user.NetCashflow < 0 ? "text-danger" : "text-success")">@user.NetCashflow.ToString("C0")</div>
+                                <div class="fw-bold @(user.NetCashflow < 0 ? "text-danger" : "text-success")">@Currency.Format(user.NetCashflow, 0)</div>
                                 <small class="text-muted">@L["Neto"]</small>
                             </div>
                         </div>
