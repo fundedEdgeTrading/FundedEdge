@@ -2,6 +2,7 @@
 @using Microsoft.AspNetCore.Authorization
 @attribute [Authorize(Roles = "Administrator,Support")]
 @rendermode InteractiveServer
+@implements IDisposable
 @inject IAdminUserService AdminService
 @inject IStringLocalizer<SharedResources> L
 @inject TrackRecord.Web.State.CurrencyState Currency
@@ -73,7 +74,15 @@ else
 @code {
     private IReadOnlyList<AdminUserKpis>? _kpis;
 
-    protected override async Task OnInitializedAsync() => _kpis = await AdminService.GetUserKpisAsync();
+    protected override async Task OnInitializedAsync()
+    {
+        Currency.Changed += OnCurrencyChanged;
+        _kpis = await AdminService.GetUserKpisAsync();
+    }
+
+    private void OnCurrencyChanged() => InvokeAsync(StateHasChanged);
+
+    public void Dispose() => Currency.Changed -= OnCurrencyChanged;
 
     private static string RoiBadge(double? roi) => roi switch
     {

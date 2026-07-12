@@ -1,6 +1,7 @@
 @page "/firms"
 @using Microsoft.AspNetCore.Components.Authorization
 @rendermode InteractiveServer
+@implements IDisposable
 @inject IPropFirmService PropFirmService
 @inject IEvaluationProgramService ProgramService
 @inject IKpiService KpiService
@@ -165,13 +166,21 @@ else
     private Guid? _selectedFirmId;
     private List<EvaluationProgramDto>? _programs;
 
-    protected override async Task OnInitializedAsync() => await LoadAsync();
+    protected override async Task OnInitializedAsync()
+    {
+        Currency.Changed += OnCurrencyChanged;
+        await LoadAsync();
+    }
 
     private async Task LoadAsync()
     {
         _firms = (await PropFirmService.GetAllAsync()).ToList();
         _firmBreakdown = (await KpiService.GetFirmBusinessBreakdownAsync()).ToList();
     }
+
+    private void OnCurrencyChanged() => InvokeAsync(StateHasChanged);
+
+    public void Dispose() => Currency.Changed -= OnCurrencyChanged;
 
     private async Task LoadProgramsAsync()
     {
