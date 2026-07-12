@@ -22,6 +22,10 @@
     }
 
     function animate(el) {
+        // Los valores hero cambian al filtrar por periodo; si el count-up reemplaza su textContent
+        // desengancha el nodo de texto que Blazor rastrea y el valor se congela en el de la primera
+        // carga (la gráfica SVG y el meter sí se repintan, el número no). Se excluyen del count-up.
+        if (el.classList.contains('hero-value')) return;
         if (el.dataset.countup === 'done') return;
         var original = el.textContent;
         var parsed = parseNumber(original);

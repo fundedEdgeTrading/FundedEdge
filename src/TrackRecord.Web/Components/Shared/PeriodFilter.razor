@@ -1,0 +1,87 @@
+@* Filtro de periodo global del Dashboard: 5 presets + rango personalizado (popover con dos
+   inputs de fecha). Mismo patrón visual que .currency-toggle (NavMenu), pastillas más grandes. *@
+
+@inject IStringLocalizer<SharedResources> L
+
+<div class="period-bar">
+    <div class="period-left">
+        <span class="stat-label period-bar-label">@L["Periodo"]</span>
+        <div class="period-toggle">
+            @foreach (var preset in _presets)
+            {
+                var p = preset;
+                <button type="button" class="period-option @(Preset == p ? "active" : "")" @onclick="() => SelectPreset(p)">@PresetLabel(p)</button>
+            }
+            <button type="button" class="period-option period-custom-btn @(Preset == PeriodPreset.Custom ? "active" : "")" @onclick="ToggleCustomPicker">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" width="13" height="13">
+                    <rect x="3" y="4" width="18" height="18" rx="3"></rect><path d="M3 9h18"></path><path d="M8 2v4"></path><path d="M16 2v4"></path>
+                </svg>
+                @L["Personalizado"]
+            </button>
+
+            @if (_showCustomPicker)
+            {
+                <div class="period-popover">
+                    <div class="period-popover-label">@L["Desde"]</div>
+                    <input type="date" class="period-popover-input" @bind="_pendingStart" />
+                    <div class="period-popover-label">@L["Hasta"]</div>
+                    <input type="date" class="period-popover-input" @bind="_pendingEnd" />
+                    <div class="period-popover-actions">
+                        <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="CancelCustom">@L["Cancelar"]</button>
+                        <button type="button" class="btn btn-primary btn-sm" @onclick="ApplyCustom">@L["Aplicar"]</button>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+    <span class="period-range-label">@RangeLabel</span>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public PeriodPreset Preset { get; set; }
+    [Parameter] public EventCallback<PeriodPreset> PresetChanged { get; set; }
+    [Parameter] public DateOnly CustomStart { get; set; }
+    [Parameter] public DateOnly CustomEnd { get; set; }
+    [Parameter] public EventCallback<(DateOnly Start, DateOnly End)> OnApplyCustom { get; set; }
+    [Parameter] public string RangeLabel { get; set; } = "";
+
+    private readonly PeriodPreset[] _presets = [PeriodPreset.Week, PeriodPreset.Month, PeriodPreset.Quarter, PeriodPreset.Year, PeriodPreset.All];
+    private bool _showCustomPicker;
+    private DateOnly _pendingStart;
+    private DateOnly _pendingEnd;
+
+    private async Task SelectPreset(PeriodPreset preset)
+    {
+        _showCustomPicker = false;
+        await PresetChanged.InvokeAsync(preset);
+    }
+
+    private void ToggleCustomPicker()
+    {
+        if (!_showCustomPicker)
+        {
+            _pendingStart = CustomStart;
+            _pendingEnd = CustomEnd;
+        }
+        _showCustomPicker = !_showCustomPicker;
+    }
+
+    private void CancelCustom() => _showCustomPicker = false;
+
+    private async Task ApplyCustom()
+    {
+        _showCustomPicker = false;
+        if (_pendingStart > _pendingEnd) { (_pendingStart, _pendingEnd) = (_pendingEnd, _pendingStart); }
+        await OnApplyCustom.InvokeAsync((_pendingStart, _pendingEnd));
+    }
+
+    private string PresetLabel(PeriodPreset preset) => preset switch
+    {
+        PeriodPreset.Week => L["Última semana"],
+        PeriodPreset.Month => L["Mes actual"],
+        PeriodPreset.Quarter => L["Trimestre"],
+        PeriodPreset.Year => L["Año actual"],
+        PeriodPreset.All => L["Todo"],
+        _ => "",
+    };
+}

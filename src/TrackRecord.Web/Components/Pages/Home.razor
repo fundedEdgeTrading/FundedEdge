@@ -14,7 +14,7 @@
 
 <PageTitle>Dashboard — @Brand.Name</PageTitle>
 
-<h1>Dashboard</h1>
+<h1>@L["Panel"]</h1>
 <p class="text-muted">@L["Visión general del negocio de fondeo y de tu operativa."]</p>
 
 @if (_pendingEmotionCount > 0)
@@ -36,92 +36,121 @@
     </div>
 }
 
-@if (_business is not null && _trading is not null)
+<PeriodFilter Preset="_preset" PresetChanged="OnPresetChanged"
+              CustomStart="_customStart" CustomEnd="_customEnd" OnApplyCustom="OnCustomApplied"
+              RangeLabel="@RangeLabel" />
+
+@if (_business is null || _trading is null || _periodKpis is null)
 {
     <div class="hero-grid">
-        <KpiCard Variant="hero" Title="@L["Cashflow neto"]"
-                 Value="@Currency.Format(_business.NetCashflow)"
-                 Emphasis="@(_business.NetCashflow >= 0 ? "text-success" : "text-danger")"
-                 Sub="@($"{Currency.Format(_business.TotalPayoutsReceived, 0)} payouts − {Currency.Format(_business.TotalCosts, 0)} {L["Costes"].Value.ToLowerInvariant()}")">
-            <Spark>
-                <svg class="spark" viewBox="0 0 232 40" preserveAspectRatio="none" style="color:var(--good)">
-                    <path class="spark-area" d="M2,34 L40,32 L78,27 L116,22 L154,17 L192,13 L230,8 L230,40 L2,40 Z" fill="var(--good-soft)" />
-                    <path class="spark-line" d="M2,34 L40,32 L78,27 L116,22 L154,17 L192,13 L230,8" stroke="var(--good)" />
-                </svg>
-            </Spark>
-        </KpiCard>
-
-        <KpiCard Variant="hero" Title="@L["ROI del negocio"]"
-                 Value="@FormatPercent(_business.BusinessRoi)" Emphasis="@RoiEmphasis">
-            <Spark>
-                <div class="hero-meter">
-                    <span style="width:@(Math.Clamp((_business.BusinessRoi ?? 0) * 100, 0, 100).ToString("0", CultureInfo.InvariantCulture))%"></span>
+        <div class="hero-card hero-skeleton-card">
+            <div class="skeleton skeleton-label"></div>
+            <div class="skeleton skeleton-value" style="width:30%; height:1.8rem; margin-bottom:1.4rem;"></div>
+            <div class="skeleton" style="width:100%; height:150px; border-radius:10px;"></div>
+        </div>
+        <div class="hero-side">
+            @for (var i = 0; i < 3; i++)
+            {
+                <div class="hero-card hero-skeleton-card">
+                    <div class="skeleton skeleton-label"></div>
+                    <div class="skeleton skeleton-value"></div>
                 </div>
-            </Spark>
-        </KpiCard>
-
+            }
+        </div>
     </div>
-}
 
-@if (_compliance is { Count: > 0 })
-{
     <h2>@L["Semáforo de reglas"]</h2>
     <div class="rule-grid">
-        @foreach (var c in _compliance)
+        @for (var i = 0; i < 4; i++)
         {
             <div class="rule-card">
-                <div class="rule-rail @RailClass(c)"></div>
-                <div class="rule-body">
-                    <div class="rule-head">
-                        <b>@c.AccountDisplayName</b>
-                        <span class="stage @OverallStageClass(c)">@OverallStageText(c)</span>
-                    </div>
-                    <div class="rule-row">
-                        <span>@L["Pérdida diaria"]</span>
-                        <span class="rule-val">
-                            @Dot(c.DailyLossLevel)
-                            @(c.DailyLossLimit is null ? L["N/A"].Value : L["quedan {0}", Currency.Format(c.DailyLossRemaining ?? 0, 0)].Value)
-                        </span>
-                    </div>
-                    <div class="rule-row">
-                        <span>@L["Drawdown"]</span>
-                        <span class="rule-val">@Dot(c.DrawdownLevel) @L["colchón {0}", Currency.Format(c.DrawdownRemainingBuffer, 0)]</span>
-                    </div>
-                    <div class="rule-row">
-                        <span>@L["Consistencia"]</span>
-                        <span class="rule-val">
-                            @if (c.ConsistencyLevel is null)
-                            {
-                                @L["N/A"]
-                            }
-                            else
-                            {
-                                @Dot(c.ConsistencyLevel.Value)
-                                @($"{c.ConsistencyTopDayFraction:P0} / {c.ConsistencyMaxDayFraction:P0}")
-                            }
-                        </span>
-                    </div>
-                </div>
-            </div>
-        }
-    </div>
-}
-
-@if (_business is null || _trading is null)
-{
-    <h2>@L["Negocio de fondeo"]</h2>
-    <div class="kpi-grid">
-        @for (var i = 0; i < 8; i++)
-        {
-            <div class="stat-tile">
-                <div class="skeleton skeleton-label"></div>
-                <div class="skeleton skeleton-value"></div>
+                <div class="skeleton" style="width:50%; height:0.75rem; margin-bottom:0.9rem;"></div>
+                <div class="skeleton" style="width:80%; height:0.6rem; margin-bottom:0.5rem;"></div>
+                <div class="skeleton" style="width:70%; height:0.6rem;"></div>
             </div>
         }
     </div>
 }
 else
 {
+    <div class="hero-grid">
+        <KpiCard Variant="hero" Title="@L["Cashflow neto"]"
+                 Value="@Currency.Format(_periodKpis!.NetCashflow)"
+                 Emphasis="@(_periodKpis.NetCashflow >= 0 ? "text-success" : "text-danger")"
+                 Sub="@($"{Currency.Format(_periodKpis.TotalPayouts, 0)} payouts − {Currency.Format(_periodKpis.TotalCosts, 0)} {L["Costes"].Value.ToLowerInvariant()}")"
+                 Delta="@_cashflowDelta.Text" DeltaGood="_cashflowDelta.Good">
+            <Spark>
+                <EquityCurveChart Points="_periodKpis.EquityCurve" Currency="Currency" />
+            </Spark>
+        </KpiCard>
+
+        <div class="hero-side">
+            <KpiCard Variant="hero" Title="@L["ROI del negocio"]"
+                     Value="@FormatPercent(_periodKpis.Roi)" Emphasis="@PeriodRoiEmphasis"
+                     Delta="@_roiDelta.Text" DeltaGood="_roiDelta.Good">
+                <Spark>
+                    <div class="hero-meter">
+                        <span style="width:@(Math.Clamp((_periodKpis.Roi ?? 0) * 100, 0, 100).ToString("0", CultureInfo.InvariantCulture))%"></span>
+                    </div>
+                </Spark>
+            </KpiCard>
+
+            <KpiCard Variant="hero" Title="@L["Total costes"]"
+                     Value="@Currency.Format(_periodKpis.TotalCosts)"
+                     Sub="@L["sobre {0} evaluaciones en el periodo", _periodKpis!.EvaluationsPurchased]"
+                     Delta="@_costsDelta.Text" DeltaGood="_costsDelta.Good" />
+
+            <KpiCard Variant="hero" Title="@L["Evaluaciones compradas"]"
+                     Value="@_periodKpis.EvaluationsPurchased.ToString()"
+                     Sub="@L["{0} fondeadas · {1} quemadas (histórico)", _business!.AccountsFunded, _business.AccountsFailed + _business.AccountsExpired]"
+                     Delta="@_evalDelta.Text" DeltaGood="_evalDelta.Good" />
+        </div>
+    </div>
+
+    @if (_compliance is { Count: > 0 })
+    {
+        <h2>@L["Semáforo de reglas"]</h2>
+        <div class="rule-grid">
+            @foreach (var c in _compliance)
+            {
+                <div class="rule-card">
+                    <div class="rule-rail @RailClass(c)"></div>
+                    <div class="rule-body">
+                        <div class="rule-head">
+                            <b>@c.AccountDisplayName</b>
+                            <span class="stage @OverallStageClass(c)">@OverallStageText(c)</span>
+                        </div>
+                        <div class="rule-row">
+                            <span>@L["Pérdida diaria"]</span>
+                            <span class="rule-val">
+                                @Dot(c.DailyLossLevel)
+                                @(c.DailyLossLimit is null ? L["N/A"].Value : L["quedan {0}", Currency.Format(c.DailyLossRemaining ?? 0, 0)].Value)
+                            </span>
+                        </div>
+                        <div class="rule-row">
+                            <span>@L["Drawdown"]</span>
+                            <span class="rule-val">@Dot(c.DrawdownLevel) @L["colchón {0}", Currency.Format(c.DrawdownRemainingBuffer, 0)]</span>
+                        </div>
+                        <div class="rule-row">
+                            <span>@L["Consistencia"]</span>
+                            <span class="rule-val">
+                                @if (c.ConsistencyLevel is null)
+                                {
+                                    @L["N/A"]
+                                }
+                                else
+                                {
+                                    @Dot(c.ConsistencyLevel.Value)
+                                    @($"{c.ConsistencyTopDayFraction:P0} / {c.ConsistencyMaxDayFraction:P0}")
+                                }
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
     <h2>@L["Evolución"]</h2>
     <div class="chart-grid">
         <div class="card">
@@ -143,13 +172,10 @@ else
 
     <h2>@L["Negocio de fondeo"]</h2>
     <div class="kpi-grid">
-        <KpiCard Title="Pass rate" Value="@FormatPercent(_business.PassRate)" />
-        <KpiCard Title="@L["Cuentas compradas"]" Value="@_business.AccountsPurchased.ToString()"
-                 Sub="@($"{_business.AccountsInEvaluation} {L["En evaluación"].Value.ToLowerInvariant()} · {_business.AccountsFunded} {L["fondeadas"]} · {_business.AccountsFailed + _business.AccountsExpired} {L["quemadas"]}")" />
+        <KpiCard Title="Pass rate" Value="@FormatPercent(_business!.PassRate)" />
         <KpiCard Title="@L["Coste por cuenta fondeada"]" Value="@FormatMoney(_business.CostPerFundedAccount)" />
         <KpiCard Title="@L["Payout medio por fondeada"]" Value="@FormatMoney(_business.AvgPayoutPerFundedAccount)" />
-        <KpiCard Title="@L["Payouts totales recibidos"]" Value="@FormatMoney(_business.TotalPayoutsReceived)" />
-        <KpiCard Title="@L["Costes totales"]" Value="@FormatMoney(_business.TotalCosts)" />
+        <KpiCard Title="@L["Payouts totales recibidos"]" Value="@Currency.Format(_periodKpis!.TotalPayouts)" />
     </div>
 }
 
@@ -163,18 +189,37 @@ else
     private int _pendingEmotionCount;
     private IReadOnlyList<AccountComplianceStatusDto>? _compliance;
 
-    private string RoiEmphasis => _business?.BusinessRoi switch
+    private PeriodPreset _preset = PeriodPreset.All;
+    private DateOnly _customStart = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-30));
+    private DateOnly _customEnd = DateOnly.FromDateTime(DateTime.UtcNow);
+    private DateOnly? _periodStart;
+    private DateOnly _periodEnd;
+    private PeriodKpis? _periodKpis;
+    private PeriodKpis? _previousPeriodKpis;
+
+    private (string? Text, bool Good) _cashflowDelta;
+    private (string? Text, bool Good) _roiDelta;
+    private (string? Text, bool Good) _costsDelta;
+    private (string? Text, bool Good) _evalDelta;
+
+    private string PeriodRoiEmphasis => _periodKpis?.Roi switch
     {
         > 0 => "text-success",
         < 0 => "text-danger",
         _ => "",
     };
 
+    private string RangeLabel => _preset == PeriodPreset.All
+        ? L["Todo"]
+        : $"{PresetDisplayName(_preset)} · {_periodStart!.Value:d MMM} – {_periodEnd:d MMM}";
+
     [CascadingParameter]
     private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthState { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
+        (_periodStart, _periodEnd) = ResolvePeriod(_preset, _customStart, _customEnd);
+
         // La raíz "/" es AllowAnonymous: un visitante sin sesión ve la landing con toda la info del
         // producto (no se le fuerza al login). El usuario autenticado sí ve su dashboard aquí. La
         // redirección ocurre durante el prerender (SSR), antes de cargar KPIs — que requieren usuario.
@@ -199,6 +244,89 @@ else
         var today = DateOnly.FromDateTime(DateTime.UtcNow.Date);
         _pendingEmotionCount = (await PsychologyService.GetPendingAsync(today.AddDays(-14), today)).Count;
         _compliance = await RuleComplianceService.GetComplianceStatusAsync();
+
+        await LoadPeriodAsync();
+    }
+
+    private async Task OnPresetChanged(PeriodPreset preset)
+    {
+        _preset = preset;
+        await LoadPeriodAsync();
+    }
+
+    private async Task OnCustomApplied((DateOnly Start, DateOnly End) range)
+    {
+        _preset = PeriodPreset.Custom;
+        _customStart = range.Start;
+        _customEnd = range.End;
+        await LoadPeriodAsync();
+    }
+
+    private async Task LoadPeriodAsync()
+    {
+        (_periodStart, _periodEnd) = ResolvePeriod(_preset, _customStart, _customEnd);
+        _periodKpis = await KpiService.GetPeriodKpisAsync(_periodStart, _periodEnd);
+
+        if (_preset != PeriodPreset.All)
+        {
+            var periodStart = _periodStart!.Value;
+            var days = _periodEnd.DayNumber - periodStart.DayNumber + 1;
+            var prevStart = periodStart.AddDays(-days);
+            var prevEnd = periodStart.AddDays(-1);
+            _previousPeriodKpis = await KpiService.GetPeriodKpisAsync(prevStart, prevEnd);
+        }
+        else
+        {
+            _previousPeriodKpis = null;
+        }
+
+        _cashflowDelta = ComputeDelta(_periodKpis.NetCashflow, _previousPeriodKpis?.NetCashflow, higherIsBetter: true);
+        _roiDelta = ComputeDeltaPts(_periodKpis.Roi, _previousPeriodKpis?.Roi);
+        _costsDelta = ComputeDelta(_periodKpis.TotalCosts, _previousPeriodKpis?.TotalCosts, higherIsBetter: false);
+        _evalDelta = ComputeDelta(_periodKpis.EvaluationsPurchased, _previousPeriodKpis?.EvaluationsPurchased, higherIsBetter: false);
+    }
+
+    private static (DateOnly? Start, DateOnly End) ResolvePeriod(PeriodPreset preset, DateOnly customStart, DateOnly customEnd)
+    {
+        var today = DateOnly.FromDateTime(DateTime.UtcNow.Date);
+        return preset switch
+        {
+            PeriodPreset.Week => (today.AddDays(-6), today),
+            PeriodPreset.Month => (new DateOnly(today.Year, today.Month, 1), today),
+            PeriodPreset.Quarter => (new DateOnly(today.Year, ((today.Month - 1) / 3) * 3 + 1, 1), today),
+            PeriodPreset.Year => (new DateOnly(today.Year, 1, 1), today),
+            PeriodPreset.All => (null, today),
+            PeriodPreset.Custom => (customStart, customEnd),
+            _ => (today.AddDays(-6), today),
+        };
+    }
+
+    private static string PresetDisplayName(PeriodPreset preset) => preset switch
+    {
+        PeriodPreset.Week => "Última semana",
+        PeriodPreset.Month => "Mes actual",
+        PeriodPreset.Quarter => "Trimestre",
+        PeriodPreset.Year => "Año actual",
+        PeriodPreset.Custom => "Personalizado",
+        _ => "",
+    };
+
+    private static (string? Text, bool Good) ComputeDelta(decimal current, decimal? previous, bool higherIsBetter)
+    {
+        if (previous is null || previous.Value == 0m) { return (null, true); }
+        var change = (current - previous.Value) / Math.Abs(previous.Value);
+        var good = higherIsBetter ? change >= 0 : change <= 0;
+        return ($"{Math.Abs(change):P1}", good);
+    }
+
+    private static (string? Text, bool Good) ComputeDelta(int current, int? previous, bool higherIsBetter) =>
+        ComputeDelta((decimal)current, previous is null ? null : (decimal)previous.Value, higherIsBetter);
+
+    private static (string? Text, bool Good) ComputeDeltaPts(double? current, double? previous)
+    {
+        if (current is null || previous is null) { return (null, true); }
+        var diff = current.Value - previous.Value;
+        return ($"{Math.Abs(diff):P1}", diff >= 0);
     }
 
     // Los KPI se calculan una vez en OnInitializedAsync; al cambiar de divisa solo hace falta
