@@ -19,14 +19,20 @@ public class TradingAccountService(
         var userId = await currentUser.RequireUserIdAsync();
         await using var db = await dbFactory.CreateDbContextAsync(ct);
 
-        var query = db.TradingAccounts.AsNoTracking().Include(a => a.PropFirm)
+        var query = db.TradingAccounts.AsNoTracking()
+            .Include(a => a.PropFirm)
+            .Include(a => a.EvaluationProgram)
+            .Include(a => a.Trades)
+            .Include(a => a.Costs)
+            .Include(a => a.Payouts)
             .Where(a => a.UserId == userId)
             .AsQueryable();
         if (stageFilter is not null) query = query.Where(a => a.Stage == stageFilter);
         if (propFirmId is not null) query = query.Where(a => a.PropFirmId == propFirmId);
 
-        return await query
-            .OrderByDescending(a => a.PurchasedOn)
+        var accounts = await query.OrderByDescending(a => a.PurchasedOn).ToListAsync(ct);
+
+        return accounts
             .Select(a => new TradingAccountListItemDto(
                 a.Id,
                 a.DisplayName,
@@ -40,11 +46,22 @@ public class TradingAccountService(
                 a.PurchasedOn,
                 a.FundedOn,
                 a.ClosedOn,
-                a.Trades.Sum(t => (decimal?)(t.GrossPnL - t.Commissions)) ?? 0m,
-                a.Costs.Sum(c => (decimal?)c.Amount) ?? 0m,
-                a.Payouts.Sum(p => (decimal?)p.AmountReceived) ?? 0m))
-            .ToListAsync(ct);
+                a.Trades.Sum(t => t.GrossPnL - t.Commissions),
+                a.Costs.Sum(c => c.Amount),
+                a.Payouts.Sum(p => p.AmountReceived),
+                ConsistencyMath.EffectiveProfitTarget(
+                    a.ProfitTarget,
+                    a.EvaluationProgram?.ConsistencyMaxDayFraction,
+                    BestDayPnL(a.Trades))))
+            .ToList();
     }
+
+    private static decimal BestDayPnL(IEnumerable<Trade> trades)
+        => trades
+            .GroupBy(t => DateOnly.FromDateTime(t.ClosedAt.Date))
+            .Select(g => g.Sum(t => t.GrossPnL - t.Commissions))
+            .DefaultIfEmpty(0m)
+            .Max();
 
     public async Task<TradingAccountDetailDto?> GetByIdAsync(Guid id, CancellationToken ct = default)
     {
@@ -54,6 +71,7 @@ public class TradingAccountService(
         var account = await db.TradingAccounts
             .AsNoTracking()
             .Include(a => a.PropFirm)
+            .Include(a => a.EvaluationProgram)
             .Include(a => a.Events)
             .Include(a => a.Costs)
             .Include(a => a.Payouts)
@@ -111,7 +129,11 @@ public class TradingAccountService(
                     t.MaxFavorableExcursion))
                 .ToList(),
             nextPayoutEligibleOn,
-            account.EvaluationProgramId);
+            account.EvaluationProgramId,
+            ConsistencyMath.EffectiveProfitTarget(
+                account.ProfitTarget,
+                account.EvaluationProgram?.ConsistencyMaxDayFraction,
+                BestDayPnL(account.Trades)));
     }
 
     public async Task<Guid> CreateAsync(CreateTradingAccountRequest request, CancellationToken ct = default)

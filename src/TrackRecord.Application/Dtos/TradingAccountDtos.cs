@@ -17,7 +17,9 @@ public record TradingAccountListItemDto(
     DateOnly? ClosedOn,
     decimal NetPnL,
     decimal TotalCosts,
-    decimal TotalPayoutsReceived);
+    decimal TotalPayoutsReceived,
+    // Objetivo de profit efectivo (target base elevado por la regla de consistencia, si aplica).
+    decimal EffectiveProfitTarget);
 
 public record TradingAccountDetailDto(
     Guid Id,
@@ -42,7 +44,9 @@ public record TradingAccountDetailDto(
     // Solo si la firma tiene MinDaysBetweenPayouts configurado y la cuenta está fondeada.
     DateOnly? NextPayoutEligibleOn,
     // Programa del catálogo vinculado a esta cuenta (null si se creó con flujo manual).
-    Guid? EvaluationProgramId);
+    Guid? EvaluationProgramId,
+    // Objetivo de profit efectivo (target base elevado por la regla de consistencia, si aplica).
+    decimal EffectiveProfitTarget);
 
 public record AccountEventDto(Guid Id, AccountStage FromStage, AccountStage ToStage, DateTimeOffset OccurredAt, string? Notes);
 
