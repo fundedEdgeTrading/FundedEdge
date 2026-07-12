@@ -35,17 +35,32 @@ else
 
         <div class="row g-3 mb-4">
             <div class="col-12">
+                @{
+                    var epRequired = ep.ConsistencyMaxDayFraction is { } epF && epF > 0m
+                        ? ConsistencyGoal(epF, ep.BestDayPnL, ep.CurrentPnL).RequiredProfit
+                        : 0m;
+                    var epEffectiveTarget = Math.Max(ep.ProfitTarget, epRequired);
+                    var epEffectivePct = epEffectiveTarget > 0m ? (double)(ep.CurrentPnL / epEffectiveTarget) : 0d;
+                    var epConsistencyRaises = epRequired > ep.ProfitTarget;
+                }
                 <div class="card">
                     <div class="card-body">
                         <h5 class="card-title">🎯 Profit Target</h5>
                         <div class="d-flex justify-content-between mb-1">
-                            <span>@Currency.Format(ep.CurrentPnL) / @Currency.Format(ep.ProfitTarget)</span>
-                            <span class="@(ep.ProfitTargetPct >= 1 ? "text-success fw-bold" : "")">@ep.ProfitTargetPct.ToString("P1")</span>
+                            <span>@Currency.Format(ep.CurrentPnL) / @Currency.Format(epEffectiveTarget)</span>
+                            <span class="@(epEffectivePct >= 1 ? "text-success fw-bold" : "")">@epEffectivePct.ToString("P1")</span>
                         </div>
                         <div class="progress" style="height:12px">
-                            <div class="progress-bar @(ep.ProfitTargetPct >= 1 ? "bg-success" : "bg-primary")"
-                                 style="width:@(Math.Min(ep.ProfitTargetPct * 100, 100).ToString("F1", System.Globalization.CultureInfo.InvariantCulture))%"></div>
+                            <div class="progress-bar @(epEffectivePct >= 1 ? "bg-success" : "bg-primary")"
+                                 style="width:@(Math.Min(epEffectivePct * 100, 100).ToString("F1", System.Globalization.CultureInfo.InvariantCulture))%"></div>
                         </div>
+                        @if (epConsistencyRaises)
+                        {
+                            <p class="mb-0 mt-2 text-muted small">
+                                @L["Objetivo base"]: @Currency.Format(ep.ProfitTarget) ·
+                                @L["elevado por la regla de consistencia a"] <span class="fw-bold">@Currency.Format(epEffectiveTarget)</span>
+                            </p>
+                        }
                     </div>
                 </div>
             </div>
