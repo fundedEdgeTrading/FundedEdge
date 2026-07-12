@@ -13,7 +13,7 @@ public class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<TrackRecor
     public TrackRecordDbContext CreateDbContext(string[] args)
     {
         var optionsBuilder = new DbContextOptionsBuilder<TrackRecordDbContext>();
-        optionsBuilder.UseSqlServer(ConnectionStrings.DefaultLocalExpress);
+        optionsBuilder.UseNpgsql(ConnectionStrings.DefaultLocalExpress);
         return new TrackRecordDbContext(optionsBuilder.Options);
     }
 }

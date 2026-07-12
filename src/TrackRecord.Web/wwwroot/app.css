@@ -2518,6 +2518,31 @@ img.nav-user-avatar {
     }
 }
 
+@media (max-width: 576px) {
+    .period-bar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .period-left {
+        width: 100%;
+    }
+
+    .period-toggle {
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .period-option {
+        flex: 0 0 auto;
+    }
+
+    .period-range-label {
+        text-align: right;
+    }
+}
+
 /* ============================================================
    Rediseño v1 — KPI tiles con contexto (delta + subtexto + sparkline)
    ============================================================ */
