@@ -22,6 +22,7 @@ public static class DependencyInjection
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         var connectionString = configuration.GetConnectionString("Default") ?? ConnectionStrings.DefaultLocalExpress;
+        connectionString = NormalizePostgresConnectionString(connectionString);
 
         services.AddDbContextFactory<TrackRecordDbContext>(options =>
             options.UseNpgsql(connectionString, sql => sql.MigrationsAssembly(typeof(DependencyInjection).Assembly.FullName)));
@@ -34,8 +35,16 @@ public static class DependencyInjection
         // Key ring persistido en disco: sin esto, los valores guardados en IntegrationSettings
         // (cifrados con IDataProtector — hoy solo preferencias de UI como la divisa) dejarían de
         // poder descifrarse tras reiniciar la app si el key ring por defecto no fuera estable.
-        var keysPath = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "TrackRecord", "keys");
+        // En Render el disco del contenedor es efímero: se define DataProtection:KeysPath
+        // (env var DataProtection__KeysPath) apuntando a un disco persistente; en local, si no se
+        // configura, se usa LocalApplicationData.
+        var keysPath = configuration["DataProtection:KeysPath"];
+        if (string.IsNullOrWhiteSpace(keysPath))
+        {
+            keysPath = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "TrackRecord", "keys");
+        }
+        Directory.CreateDirectory(keysPath);
         services.AddDataProtection()
             .SetApplicationName("TrackRecord")
             .PersistKeysToFileSystem(new DirectoryInfo(keysPath));
@@ -97,6 +106,30 @@ public static class DependencyInjection
         AddEmail(services, configuration);
 
         return services;
+    }
+
+    // Render (y otros PaaS) entregan la cadena de conexión en formato URI
+    // postgresql://usuario:password@host[:puerto]/basedatos, pero Npgsql espera formato clave=valor.
+    // Si detectamos el esquema URI lo convertimos; si ya viene en clave=valor lo dejamos igual.
+    private static string NormalizePostgresConnectionString(string connectionString)
+    {
+        if (!connectionString.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase) &&
+            !connectionString.StartsWith("postgresql://", StringComparison.OrdinalIgnoreCase))
+        {
+            return connectionString;
+        }
+
+        var uri = new Uri(connectionString);
+        var userInfo = uri.UserInfo.Split(':', 2);
+        var port = uri.Port > 0 ? uri.Port : 5432;
+        var database = uri.AbsolutePath.TrimStart('/');
+        var username = Uri.UnescapeDataString(userInfo[0]);
+        var password = userInfo.Length > 1 ? Uri.UnescapeDataString(userInfo[1]) : string.Empty;
+        // La conexión interna de Render (host tipo dpg-...-a, sin dominio) no requiere SSL; la
+        // externa (host con dominio, p. ej. ...-a.frankfurt-postgres.render.com) sí.
+        var ssl = uri.Host.Contains('.') ? "Ssl Mode=Require;Trust Server Certificate=true;" : string.Empty;
+        return $"Host={uri.Host};Port={port};Database={database};" +
+               $"Username={username};Password={password};{ssl}";
     }
 
     private static void AddEmail(IServiceCollection services, IConfiguration configuration)
