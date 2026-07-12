@@ -1534,9 +1534,149 @@ img.nav-user-avatar {
 .public-brand {
     display: flex;
     align-items: center;
-    gap: 0.6rem;
-    font-weight: 700;
+    gap: 0.7rem;
     color: var(--text-1);
+    text-decoration: none;
+    cursor: pointer;
+    transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+
+    .public-brand:hover {
+        transform: translateY(-1px);
+    }
+
+    .public-brand .brand-mark {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 2.4rem;
+        height: 2.4rem;
+        border-radius: 10px;
+        overflow: hidden;
+        background: linear-gradient(155deg, #3ee6b4 0%, #2fd6a3 42%, #1c8fae 100%);
+        box-shadow: 0 1px 0 rgba(255, 255, 255, 0.35) inset, 0 -10px 16px -8px rgba(0, 0, 0, 0.35) inset, 0 10px 20px -9px rgba(20, 190, 150, 0.55), 0 0 0 1px rgba(6, 30, 24, 0.4);
+        flex-shrink: 0;
+        transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.3, 1);
+    }
+
+    .public-brand:hover .brand-mark {
+        transform: scale(1.06) rotate(-2deg);
+    }
+
+    .public-brand .brand-mark-glass {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 52%;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.32), rgba(255, 255, 255, 0));
+        border-radius: 10px 10px 0 0;
+        pointer-events: none;
+    }
+
+    .public-brand .brand-mark-sheen {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        width: 45%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+        pointer-events: none;
+    }
+
+    .public-brand .brand-logo {
+        position: relative;
+        width: 1.32rem;
+        height: 1.32rem;
+    }
+
+    .public-brand .logo-bar {
+        transform-box: fill-box;
+        transform-origin: bottom;
+    }
+
+    .public-brand .logo-line,
+    .public-brand .logo-tip {
+        stroke-dasharray: 1;
+    }
+
+    .public-brand .logo-tip {
+        transform-box: fill-box;
+        transform-origin: 100% 0;
+    }
+
+    .public-brand .brand-text {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.12;
+    }
+
+    .public-brand .brand-name {
+        font-family: var(--font-display);
+        font-size: 1.12rem;
+        font-weight: 700;
+        letter-spacing: -0.015em;
+        color: var(--text-1);
+    }
+
+    .public-brand .brand-edge {
+        background: linear-gradient(90deg, #5ce6ba 20%, #e8ebf1 40%, #5ce6ba 60%);
+        background-size: 200% 100%;
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        color: transparent;
+    }
+
+    .public-brand .brand-sub {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        margin-top: 2px;
+        font-size: 0.6rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.22em;
+        color: var(--text-3);
+    }
+
+    .public-brand .brand-sub-tick {
+        width: 11px;
+        height: 1px;
+        background: linear-gradient(90deg, #2fd6a3, transparent);
+    }
+
+/* Reutiliza los @keyframes logo-* / word-wipe del bundle scoped (NavMenu.razor.css). */
+@media (prefers-reduced-motion: no-preference) {
+    .public-brand .brand-mark {
+        animation: logo-breathe 4.5s ease-in-out infinite;
+    }
+
+    .public-brand .brand-mark-sheen {
+        animation: logo-sheen 4.5s ease-in-out infinite;
+    }
+
+    .public-brand .brand-edge {
+        animation: word-wipe 4.5s ease-in-out infinite;
+    }
+
+    .public-brand:hover .logo-bar {
+        animation: logo-bar 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.2) backwards;
+    }
+
+        .public-brand:hover .logo-bar:nth-of-type(1) { animation-delay: 0.04s; }
+        .public-brand:hover .logo-bar:nth-of-type(2) { animation-delay: 0.13s; }
+        .public-brand:hover .logo-bar:nth-of-type(3) { animation-delay: 0.22s; }
+
+    .public-brand:hover .logo-line {
+        animation: logo-arrow 0.55s cubic-bezier(0.4, 0, 0.2, 1) 0.3s backwards;
+    }
+
+    .public-brand:hover .logo-tip {
+        animation: logo-arrow 0.3s cubic-bezier(0.4, 0, 0.2, 1) 0.8s backwards,
+                   logo-tip 0.35s cubic-bezier(0.2, 0.8, 0.3, 1) 0.8s backwards;
+    }
 }
 
 .public-nav {

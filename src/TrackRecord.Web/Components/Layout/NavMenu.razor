@@ -4,16 +4,27 @@
 @inject IStringLocalizer<SharedResources> L
 
 <div class="nav-header">
-    <a class="brand" href="">
+    <a class="brand" href="" aria-label="@($"{Brand.Name} — inicio")">
         <span class="brand-mark">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" />
-                <polyline points="16 7 22 7 22 13" />
+            <span class="brand-mark-glass"></span>
+            <span class="brand-mark-sheen"></span>
+            <svg class="brand-logo" viewBox="0 0 28 28" aria-hidden="true">
+                <defs>
+                    <linearGradient id="logoInk" x1="0" y1="1" x2="0" y2="0">
+                        <stop offset="0%" stop-color="#04241b" />
+                        <stop offset="100%" stop-color="#0a3d2d" />
+                    </linearGradient>
+                </defs>
+                <rect class="logo-bar" x="4.5" y="15" width="3.6" height="8.5" rx="1.1" fill="url(#logoInk)" opacity="0.88" />
+                <rect class="logo-bar" x="12.2" y="10.2" width="3.6" height="13.3" rx="1.1" fill="url(#logoInk)" opacity="0.94" />
+                <rect class="logo-bar" x="19.9" y="5.6" width="3.6" height="17.9" rx="1.1" fill="url(#logoInk)" />
+                <path class="logo-line" d="M4 12.5 L11 7.6 L16.3 10.9 L24.3 3.4" pathLength="1" fill="none" stroke="#06281f" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" />
+                <path class="logo-tip" d="M18.6 3.1 L24.3 3.4 L24.6 9.1" pathLength="1" fill="none" stroke="#06281f" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" />
             </svg>
         </span>
         <span class="brand-text">
-            @Brand.Name
-            <span class="brand-sub">Funded trading</span>
+            <span class="brand-name">Funded<span class="brand-edge">Edge</span></span>
+            <span class="brand-sub"><span class="brand-sub-tick"></span>Trading Intelligence</span>
         </span>
     </a>
 </div>
