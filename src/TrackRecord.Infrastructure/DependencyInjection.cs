@@ -24,7 +24,7 @@ public static class DependencyInjection
         var connectionString = configuration.GetConnectionString("Default") ?? ConnectionStrings.DefaultLocalExpress;
 
         services.AddDbContextFactory<TrackRecordDbContext>(options =>
-            options.UseSqlServer(connectionString, sql => sql.MigrationsAssembly(typeof(DependencyInjection).Assembly.FullName)));
+            options.UseNpgsql(connectionString, sql => sql.MigrationsAssembly(typeof(DependencyInjection).Assembly.FullName)));
 
         // ASP.NET Core Identity necesita poder inyectar un TrackRecordDbContext scoped "normal"
         // (sus stores no conocen IDbContextFactory); el resto de la app sigue usando el factory
