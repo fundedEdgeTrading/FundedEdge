@@ -221,24 +221,22 @@ public class AccountProgressService(
             case DrawdownType.Trailing:
             {
                 // Trailing: el suelo sube con el pico de equity. Drawdown consumido = pico - equity_actual.
-                var equity     = accountSize;
-                var peak       = accountSize;
-                var maxDrop    = 0m;
+                var equity = accountSize;
+                var peak   = accountSize;
                 foreach (var t in orderedTrades)
                 {
                     equity += t.GrossPnL - t.Commissions;
                     if (equity > peak) peak = equity;
-                    var drop = peak - equity;
-                    if (drop > maxDrop) maxDrop = drop;
                 }
-                return maxDrop;
+                return Math.Max(0m, peak - equity);
             }
             case DrawdownType.EndOfDay:
             {
                 // EOD: igual que trailing pero el pico solo se actualiza al cierre de cada día.
-                var equity  = accountSize;
-                var peak    = accountSize;
-                var maxDrop = 0m;
+                // El consumido es el retroceso actual respecto al pico de cierre, no el peor histórico:
+                // si cierras el día en máximos, el suelo sube con él y el consumido se resetea a 0.
+                var equity = accountSize;
+                var peak   = accountSize;
                 var dailyGroups = orderedTrades
                     .GroupBy(t => t.ClosedAt.Date)
                     .OrderBy(g => g.Key);
@@ -247,10 +245,8 @@ public class AccountProgressService(
                     var dayPnL = day.Sum(t => t.GrossPnL - t.Commissions);
                     equity += dayPnL;
                     if (equity > peak) peak = equity;
-                    var drop = peak - equity;
-                    if (drop > maxDrop) maxDrop = drop;
                 }
-                return maxDrop;
+                return Math.Max(0m, peak - equity);
             }
             default: // Static
             {
