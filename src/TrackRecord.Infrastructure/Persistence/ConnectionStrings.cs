@@ -7,5 +7,5 @@ public static class ConnectionStrings
     /// appsettings.json si el servidor usa otro host, puerto o credenciales.
     /// </summary>
     public const string DefaultLocalExpress =
-        "Host=localhost;Port=5432;Database=TrackRecord;Username=postgres;Password=postgres";
+        "Host=localhost;Port=5432;Database=FundedEdge;Username=postgres;Password=postgres";
 }
