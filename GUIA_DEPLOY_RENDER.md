@@ -298,7 +298,75 @@ Sin arreglarlo, tras cada deploy se invalidan cookies de sesión y valores cifra
 
 ---
 
-## 9. Checklist de puesta en marcha
+## 9. Referencia de variables de entorno (secretos)
+
+Todas se crean en **Web Service → Environment → Environment Variables → Add**. Regla clave de
+ASP.NET Core: cada `:` del código se escribe como **doble guion bajo `__`** en la variable de
+entorno. Si falta un bloque opcional, esa funcionalidad se desactiva sola (queda registrado en el
+log) y la app sigue arrancando.
+
+### 9.1. Obligatorios
+
+- `ConnectionStrings__Default` — Internal Database URL de Render, pegada tal cual
+  (`postgresql://usuario:pass@dpg-…-a/basedatos`). El código la normaliza a formato Npgsql.
+- `ASPNETCORE_ENVIRONMENT` = `Production` — *ya declarada en `render.yaml`, no la dupliques*.
+- `DataProtection__KeysPath` = `/var/dataprotection-keys` — *ya en `render.yaml`; debe coincidir con
+  el `mountPath` del disco*.
+
+Con esos tres la app funciona; el resto es opcional por funcionalidad.
+
+### 9.2. Administrador inicial (recomendado)
+
+- `Admin__Email` — email al que se asigna el rol Administrator al arrancar (idempotente). Regístrate
+  primero en la web con ese email.
+
+### 9.3. IA (Claude)
+
+- `ANTHROPIC_API_KEY` — clave de Anthropic (`sk-ant-…`); la lee el SDK automáticamente.
+  Alternativa equivalente: `Ai__ApiKey`.
+
+### 9.4. Login con Google (OAuth) — ambas o ninguna
+
+- `Authentication__Google__ClientId`
+- `Authentication__Google__ClientSecret`
+
+Se obtienen en Google Cloud Console → Credentials → OAuth client (Web). Redirect URI:
+`https://TU-DOMINIO/signin-google`.
+
+### 9.5. Pagos con Stripe
+
+Secretos (requeridos para activar Stripe):
+
+- `Stripe__SecretKey` (`sk_live_…`)
+- `Stripe__WebhookSecret` (`whsec_…`, lo da Stripe al crear el webhook)
+
+IDs de precio (no secretos, se configuran igual):
+
+- `Stripe__Prices__ProMonthly`, `Stripe__Prices__ProYearly`,
+  `Stripe__Prices__EliteMonthly`, `Stripe__Prices__EliteYearly` (cada uno un `price_…`).
+
+### 9.6. Email (SMTP) — host + from requeridos para activar el envío
+
+- `Email__SmtpHost`
+- `Email__From`
+- `Email__SmtpPort` (por defecto `587`)
+- `Email__SmtpUser`
+- `Email__SmtpPassword`
+- `Email__FromName` (por defecto el nombre de marca)
+
+### 9.7. URL pública (recomendado con Stripe/SEO)
+
+- `App__BaseUrl` = `https://tu-dominio` — para construir URLs absolutas en pagos y SEO
+  (sitemap, canónicos).
+
+### 9.8. No poner en producción (solo desarrollo)
+
+- `Database__AutoMigrate` — déjalo por defecto (migra solo al arrancar).
+- `Database__SeedDemo` — solo para datos de demo en desarrollo; nunca en producción.
+
+---
+
+## 10. Checklist de puesta en marcha
 
 - [ ] Crear `Dockerfile` en la raíz (sección 3.1).
 - [ ] Hacer que Kestrel escuche en `0.0.0.0:$PORT` (sección 3.1).
