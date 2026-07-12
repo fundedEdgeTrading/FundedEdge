@@ -2,7 +2,6 @@
 @rendermode InteractiveServer
 @implements IDisposable
 @inject IAccountProgressService ProgressService
-@inject IKpiService KpiService
 @inject CurrencyState Currency
 @inject NavigationManager Nav
 @inject IStringLocalizer<SharedResources> L
@@ -226,23 +225,12 @@ else
         </div>
     }
 
-    @* ── Curva de equity ──────────────────────────────────────────────────────── *@
-    @if (_equity is not null && _equity.Count > 0)
-    {
-        <div class="card mb-4">
-            <div class="card-body">
-                <h5 class="card-title">@L["Curva de equity"]</h5>
-                <EquityChart Points="_equity" Currency="Currency.Current" />
-            </div>
-        </div>
-    }
 }
 
 @code {
     [Parameter] public Guid AccountId { get; set; }
 
     private AccountProgressDto? _progress;
-    private IReadOnlyList<EquityCurvePoint>? _equity;
     private bool _loading = true;
 
     protected override async Task OnInitializedAsync()
@@ -260,7 +248,6 @@ else
     {
         _loading = true;
         _progress = await ProgressService.GetProgressAsync(AccountId);
-        _equity = await KpiService.GetEquityCurveAsync(AccountId);
         _loading = false;
     }
 

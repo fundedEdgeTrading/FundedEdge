@@ -285,7 +285,6 @@ else
                     <th>@L["Etapa"]</th>
                     <th>@L["Tamaño"]</th>
                     <th>@L["Comprada"]</th>
-                    <th class="text-end">Net P&amp;L</th>
                     <th class="text-end">@L["Costes"]</th>
                     <th class="text-end">@L["Payouts"]</th>
                     <th></th>
@@ -299,7 +298,6 @@ else
                         <td><span class="stage @StageBadgeClass(a.Stage)">@a.Stage</span></td>
                         <td>@Currency.Format(a.AccountSize, 0)</td>
                         <td class="num-muted">@a.PurchasedOn.ToString("d")</td>
-                        <td class="text-end @(a.NetPnL >= 0 ? "text-success" : "text-danger")">@Currency.Format(a.NetPnL)</td>
                         <td class="text-end @(a.TotalCosts == 0 ? "num-muted" : null)">@Currency.Format(a.TotalCosts)</td>
                         <td class="text-end @(a.TotalPayoutsReceived == 0 ? "num-muted" : null)">@Currency.Format(a.TotalPayoutsReceived)</td>
                         <td class="chev">›</td>

@@ -39,41 +39,7 @@ else
                 <p class="fs-4 fw-bold">@(_view.PassRate is { } pr ? pr.ToString("P0") : "—")</p>
             </div></div>
         </div>
-        <div class="col-md-4">
-            <div class="card h-100"><div class="card-body">
-                <h5 class="card-title">@L["Tasa de acierto"]</h5>
-                <p class="fs-4 fw-bold">@(_view.WinRate is { } wr ? wr.ToString("P0") : "—")</p>
-            </div></div>
-        </div>
-        <div class="col-md-4">
-            <div class="card h-100"><div class="card-body">
-                <h5 class="card-title">@L["Factor de beneficio"]</h5>
-                <p class="fs-4 fw-bold">@(_view.ProfitFactor is { } pf ? pf.ToString("0.00") : "—")</p>
-            </div></div>
-        </div>
-        <div class="col-md-4">
-            <div class="card h-100"><div class="card-body">
-                <h5 class="card-title">@L["R-múltiplo medio"]</h5>
-                <p class="fs-4 fw-bold">@(_view.AvgRMultiple is { } r ? r.ToString("0.00") + "R" : "—")</p>
-            </div></div>
-        </div>
-        <div class="col-md-4">
-            <div class="card h-100"><div class="card-body">
-                <h5 class="card-title">@L["Trades cerrados"]</h5>
-                <p class="fs-4 fw-bold">@_view.TotalTrades</p>
-            </div></div>
-        </div>
     </div>
-
-    @if (_view.EquityCurve.Count > 1)
-    {
-        <div class="card mb-4">
-            <div class="card-body">
-                <h5 class="card-title">@L["Curva de equity"]</h5>
-                <EquityChart Points="_view.EquityCurve" />
-            </div>
-        </div>
-    }
 
     <div class="public-section public-anti">
         <p class="mb-0">

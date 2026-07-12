@@ -15,7 +15,7 @@
         @L["Exportar tu track record en PDF es una función de los planes Pro y Elite."] <a href="plan">@L["Mejora tu plan"]</a>.
     </div>
 }
-else if (_business is null || _trading is null)
+else if (_business is null)
 {
     <p class="text-muted">@L["Cargando…"]</p>
 }
@@ -69,8 +69,6 @@ else
 
 @code {
     private BusinessKpis? _business;
-    private TradingKpis? _trading;
-    private List<EquityCurvePoint>? _equity;
     private PlanLimits? _limits;
 
     protected override async Task OnInitializedAsync()
@@ -79,12 +77,9 @@ else
         if (!_limits.CanExportPdf) return;
 
         _business = await KpiService.GetBusinessKpisAsync();
-        _trading = await KpiService.GetTradingKpisAsync();
-        _equity = (await KpiService.GetEquityCurveAsync()).ToList();
     }
 
     private Task PrintAsync() => JS.InvokeVoidAsync("print").AsTask();
 
     private static string FormatPercent(double? value) => value is null ? "—" : $"{value:P1}";
-    private static string FormatRatio(double? value) => value is null ? "—" : value.Value.ToString("0.00");
 }

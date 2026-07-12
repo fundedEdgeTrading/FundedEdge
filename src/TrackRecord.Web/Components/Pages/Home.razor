@@ -60,27 +60,6 @@
             </Spark>
         </KpiCard>
 
-        <KpiCard Variant="hero" Title="Net P&amp;L (trading)"
-                 Value="@Currency.Format(_trading.NetPnL)"
-                 Emphasis="@(_trading.NetPnL >= 0 ? "text-success" : "text-danger")"
-                 Sub="@($"{Currency.Format(_trading.GrossProfit, 0)} gross · {Currency.Format(_trading.GrossLoss, 0)} loss")">
-            <Spark>
-                <svg class="spark" viewBox="0 0 232 40" preserveAspectRatio="none" style="color:var(--accent-strong)">
-                    <path class="spark-area" d="M2,36 L40,35 L78,30 L116,26 L154,20 L192,10 L230,4 L230,40 L2,40 Z" fill="var(--accent-soft)" />
-                    <path class="spark-line" d="M2,36 L40,35 L78,30 L116,26 L154,20 L192,10 L230,4" stroke="var(--accent-strong)" />
-                </svg>
-            </Spark>
-        </KpiCard>
-
-        <KpiCard Variant="hero" Title="@L["Tasa de acierto"]"
-                 Value="@FormatPercent(_trading.WinRate)"
-                 Sub="@L["{0} trades cerrados · payoff {1}", _trading.TotalTrades, FormatRatio(_trading.PayoffRatio)]">
-            <Spark>
-                <div class="hero-meter neutral">
-                    <span style="width:@(Math.Clamp((_trading.WinRate ?? 0) * 100, 0, 100).ToString("0", CultureInfo.InvariantCulture))%"></span>
-                </div>
-            </Spark>
-        </KpiCard>
     </div>
 }
 
@@ -160,21 +139,6 @@ else
                 }
             </div>
         </div>
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">@L["Curva de equity (trading)"]</h5>
-                <p class="chart-caption">@L["P&L neto acumulado de todos tus trades cerrados, día a día."]</p>
-                @if (_equity is { Count: > 1 })
-                {
-                    <EquityChart Points="_equity" Currency="Currency.Current" />
-                }
-                else
-                {
-                    <EmptyState Title="@L["Sin trades suficientes"]"
-                                Text="@L["Cuando registres trades cerrados, la curva de equity aparecerá aquí."]" />
-                }
-            </div>
-        </div>
     </div>
 
     <h2>@L["Negocio de fondeo"]</h2>
@@ -187,141 +151,6 @@ else
         <KpiCard Title="@L["Payouts totales recibidos"]" Value="@FormatMoney(_business.TotalPayoutsReceived)" />
         <KpiCard Title="@L["Costes totales"]" Value="@FormatMoney(_business.TotalCosts)" />
     </div>
-
-    <h2>@L["Operativa (trading)"]</h2>
-    @if (_trading.TotalTrades == 0)
-    {
-        <EmptyState Title="@L["Todavía no hay trades registrados"]"
-                    Text="@L["Importa el CSV de Tradovate o NinjaTrader 8, o añade trades manualmente desde la ficha de una cuenta."]" />
-    }
-    else
-    {
-        <div class="kpi-grid">
-            <KpiCard Title="@L["Factor de beneficio"]" Value="@FormatRatio(_trading.ProfitFactor)" />
-            <KpiCard Title="@L["Expectancy / trade"]" Value="@FormatMoney(_trading.Expectancy)" />
-            <KpiCard Title="Payoff ratio" Value="@FormatRatio(_trading.PayoffRatio)" />
-            <KpiCard Title="@L["R-múltiplo medio"]" Value="@(_trading.AvgRMultiple?.ToString("0.00") ?? "—")" />
-            <KpiCard Title="@L["Máx. drawdown"]" Value="@Currency.Format(_trading.MaxDrawdown)" Emphasis="text-danger" />
-            <KpiCard Title="@L["Racha máx. pérdidas"]" Value="@_trading.MaxConsecutiveLosses.ToString()" />
-            <KpiCard Title="Gross profit" Value="@Currency.Format(_trading.GrossProfit)" Emphasis="text-success" />
-            <KpiCard Title="Gross loss" Value="@Currency.Format(_trading.GrossLoss)" Emphasis="text-danger" />
-        </div>
-
-        @if (_tagPerformance is { Count: > 0 })
-        {
-            <h2 class="mt-4">@L["Rendimiento por tag"]</h2>
-            <div class="tag-panel">
-                <div class="tag-row tag-head">
-                    <span>Tag</span>
-                    <span class="text-end">@L["Trades cerrados"]</span>
-                    <span class="text-end">@L["Tasa de acierto"]</span>
-                    <span class="text-end">@L["Factor de beneficio"]</span>
-                    <span class="text-end">Net P&amp;L</span>
-                </div>
-                @{ var maxAbsTagPnL = _tagPerformance.Max(t => Math.Abs(t.NetPnL)); }
-                @foreach (var tag in _tagPerformance)
-                {
-                    <div class="tag-row">
-                        <span><span class="tag-pill">@tag.Tag</span></span>
-                        <span class="text-end mono">@tag.TotalTrades</span>
-                        <span class="text-end mono">@FormatPercent(tag.WinRate)</span>
-                        <span class="text-end mono">@FormatRatio(tag.ProfitFactor)</span>
-                        <span class="tagbar-wrap">
-                            <span class="tagbar">
-                                <span class="@(tag.NetPnL >= 0 ? "pos" : "neg")"
-                                      style="width:@(((maxAbsTagPnL == 0 ? 0 : Math.Abs(tag.NetPnL) / maxAbsTagPnL) * 100).ToString("0", CultureInfo.InvariantCulture))%"></span>
-                            </span>
-                            <span class="mono @(tag.NetPnL >= 0 ? "text-success" : "text-danger")">@Currency.Format(tag.NetPnL)</span>
-                        </span>
-                    </div>
-                }
-            </div>
-        }
-
-        @if (_bestHours.Count > 0 || _worstHours.Count > 0)
-        {
-            <h2 class="mt-4">@L["Mejores y peores franjas horarias"]</h2>
-            <div class="hours-panel">
-                <div class="hours-cols">
-                    <div class="hours-col">
-                        <h4 class="text-success">@L["Mejor expectancy"]</h4>
-                        @{ var maxBestExpectancy = _bestHours.Count == 0 ? 1m : _bestHours.Max(p => Math.Abs(p.Expectancy ?? 0)); }
-                        @foreach (var p in _bestHours)
-                        {
-                            <div class="hours-bar-row">
-                                <div class="lbl">
-                                    <span>@HourLabel(p)</span>
-                                    <span class="mono text-success">@Currency.Format(p.Expectancy ?? 0) <span class="hours-n">(n=@p.TradeCount)</span></span>
-                                </div>
-                                <div class="hours-bar-track">
-                                    <span class="pos" style="width:@(((Math.Abs(p.Expectancy ?? 0) / maxBestExpectancy) * 100).ToString("0", CultureInfo.InvariantCulture))%"></span>
-                                </div>
-                            </div>
-                        }
-                    </div>
-                    <div class="hours-col">
-                        <h4 class="text-danger">@L["Peor expectancy"]</h4>
-                        @{ var maxWorstExpectancy = _worstHours.Count == 0 ? 1m : _worstHours.Max(p => Math.Abs(p.Expectancy ?? 0)); }
-                        @foreach (var p in _worstHours)
-                        {
-                            <div class="hours-bar-row">
-                                <div class="lbl">
-                                    <span>@HourLabel(p)</span>
-                                    <span class="mono text-danger">@Currency.Format(p.Expectancy ?? 0) <span class="hours-n">(n=@p.TradeCount)</span></span>
-                                </div>
-                                <div class="hours-bar-track">
-                                    <span class="neg" style="width:@(((Math.Abs(p.Expectancy ?? 0) / maxWorstExpectancy) * 100).ToString("0", CultureInfo.InvariantCulture))%"></span>
-                                </div>
-                            </div>
-                        }
-                    </div>
-                </div>
-                @if (_durationAsymmetry is { AvgWinDurationMinutes: not null, AvgLossDurationMinutes: not null })
-                {
-                    <div class="hours-foot">
-                        @L["Duración media: ganadores {0} min vs perdedores {1} min.", _durationAsymmetry.AvgWinDurationMinutes.Value.ToString("0"), _durationAsymmetry.AvgLossDurationMinutes.Value.ToString("0")]
-                    </div>
-                }
-            </div>
-        }
-
-        <h2 class="mt-4">@L["Calidad de ejecución (MAE/MFE)"]</h2>
-        @if (_executionQuality is { TradesWithData: > 0 })
-        {
-            var maeR = _executionQuality.AvgMaeR ?? 0;
-            var mfeR = _executionQuality.AvgMfeR ?? 0;
-            var cap = _executionQuality.AvgCaptureRatio ?? 0;
-            string ExcursionWidth(double r) => Math.Min(Math.Abs(r) * 37.0, 49.0).ToString("0.#", CultureInfo.InvariantCulture);
-            var exitPct = Math.Min(cap * mfeR * 37.0, 49.0).ToString("0.#", CultureInfo.InvariantCulture);
-
-            <p class="chart-caption">@L["Basado en {0} trade(s) con excursión registrada ({1} de tu histórico).", _executionQuality.TradesWithData, _executionQuality.CoveragePct.ToString("P0")]</p>
-            <div class="kpi-grid">
-                <KpiCard Title="@L["Ratio de captura"]" Value="@(_executionQuality.AvgCaptureRatio is null ? "—" : _executionQuality.AvgCaptureRatio.Value.ToString("P0"))" />
-                <KpiCard Title="@L["MAE medio (R)"]" Value="@(_executionQuality.AvgMaeR is null ? "—" : $"{_executionQuality.AvgMaeR:0.00}R")" Emphasis="text-danger" />
-                <KpiCard Title="@L["MFE medio (R)"]" Value="@(_executionQuality.AvgMfeR is null ? "—" : $"{_executionQuality.AvgMfeR:0.00}R")" Emphasis="text-success" />
-            </div>
-            <div class="excursion">
-                <div class="axis"></div>
-                <div class="mae" style="width:@(ExcursionWidth(maeR))%"></div>
-                <div class="mfe" style="width:@(ExcursionWidth(mfeR))%"></div>
-                <div class="center"></div>
-                <div class="exit" style="left:calc(50% + @(exitPct)%)"></div>
-            </div>
-            <div class="d-flex justify-content-between mono" style="font-size:.7rem;color:var(--text-3)">
-                <span>MAE @($"{maeR:0.00}")R</span>
-                <span style="color:var(--accent-strong)">salida @($"{cap * mfeR:0.00}")R</span>
-                <span>MFE +@($"{mfeR:0.00}")R</span>
-            </div>
-            <p class="text-muted small mt-2 mb-0">
-                @L["Ratio de captura = cuánto del movimiento a favor máximo (MFE) terminaste quedándote — 100% es salir en el mejor punto posible."]
-            </p>
-        }
-        else
-        {
-            <EmptyState Title="@L["Sin datos de excursión todavía"]"
-                        Text="@L["Al añadir un trade manualmente (o mapear las columnas al importar CSV), registra la pérdida y ganancia flotante máxima para desbloquear esta métrica."]" />
-        }
-    }
 }
 
 <script src="js/kpi-countup.js"></script>
@@ -330,15 +159,9 @@ else
     private BusinessKpis? _business;
     private TradingKpis? _trading;
     private List<MonthlyCashflowPoint>? _cashflow;
-    private List<EquityCurvePoint>? _equity;
     private IReadOnlyList<DrawdownAlertDto>? _drawdownAlerts;
-    private IReadOnlyList<TagPerformanceDto>? _tagPerformance;
     private int _pendingEmotionCount;
     private IReadOnlyList<AccountComplianceStatusDto>? _compliance;
-    private List<TimeOfDayPerformancePoint> _bestHours = [];
-    private List<TimeOfDayPerformancePoint> _worstHours = [];
-    private DurationAsymmetryDto? _durationAsymmetry;
-    private ExecutionQualityDto? _executionQuality;
 
     private string RoiEmphasis => _business?.BusinessRoi switch
     {
@@ -369,14 +192,6 @@ else
         _business = await KpiService.GetBusinessKpisAsync();
         _trading = await KpiService.GetTradingKpisAsync();
         _cashflow = (await KpiService.GetMonthlyCashflowAsync(months: 12)).ToList();
-        _equity = (await KpiService.GetEquityCurveAsync()).ToList();
-        _tagPerformance = await KpiService.GetTagPerformanceAsync();
-
-        var heatmap = (await KpiService.GetTimeOfDayHeatmapAsync()).Where(p => p.TradeCount >= 3).ToList();
-        _bestHours = heatmap.OrderByDescending(p => p.Expectancy).Take(5).ToList();
-        _worstHours = heatmap.OrderBy(p => p.Expectancy).Take(5).ToList();
-        _durationAsymmetry = await KpiService.GetDurationAsymmetryAsync();
-        _executionQuality = await KpiService.GetExecutionQualityAsync();
 
         var limits = await PlanService.GetLimitsAsync();
         _drawdownAlerts = limits.FullRiskModule ? await RiskAnalysisService.GetDrawdownAlertsAsync() : [];
@@ -392,22 +207,7 @@ else
 
     public void Dispose() => Currency.Changed -= OnCurrencyChanged;
 
-    private static string HourLabel(TimeOfDayPerformancePoint p) =>
-        $"{DayName(p.DayOfWeek)} {p.Hour:00}:00";
-
-    private static string DayName(DayOfWeek day) => day switch
-    {
-        DayOfWeek.Monday => "Lun",
-        DayOfWeek.Tuesday => "Mar",
-        DayOfWeek.Wednesday => "Mié",
-        DayOfWeek.Thursday => "Jue",
-        DayOfWeek.Friday => "Vie",
-        DayOfWeek.Saturday => "Sáb",
-        _ => "Dom",
-    };
-
     private static string FormatPercent(double? value) => value is null ? "—" : $"{value:P1}";
-    private static string FormatRatio(double? value) => value is null ? "—" : value.Value.ToString("0.00");
     private string FormatMoney(decimal? value) => Currency.Format(value);
 
     // El chip de la tarjeta refleja la peor de las tres reglas de la cuenta.
