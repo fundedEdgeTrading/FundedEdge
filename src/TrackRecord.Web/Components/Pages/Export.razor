@@ -1,5 +1,6 @@
 @page "/export"
 @rendermode InteractiveServer
+@implements IDisposable
 @inject IKpiService KpiService
 @inject IPlanService PlanService
 @inject CurrencyState Currency
@@ -51,11 +52,17 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        Currency.Changed += OnCurrencyChanged;
+
         _limits = await PlanService.GetLimitsAsync();
         if (!_limits.CanExportPdf) return;
 
         _business = await KpiService.GetBusinessKpisAsync();
     }
+
+    private void OnCurrencyChanged() => InvokeAsync(StateHasChanged);
+
+    public void Dispose() => Currency.Changed -= OnCurrencyChanged;
 
     private Task PrintAsync() => JS.InvokeVoidAsync("print").AsTask();
 

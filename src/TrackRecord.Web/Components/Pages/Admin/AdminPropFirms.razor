@@ -2,6 +2,7 @@
 @using Microsoft.AspNetCore.Authorization
 @attribute [Authorize(Roles = "Administrator")]
 @rendermode InteractiveServer
+@implements IDisposable
 @inject IPropFirmService PropFirmService
 @inject IEvaluationProgramService ProgramService
 @inject IExternalFirmDataProvider ExternalProvider
@@ -350,7 +351,15 @@ else
     private List<EvaluationProgramDto>? _importPreview;
     private string? _importError;
 
-    protected override async Task OnInitializedAsync() => await LoadAsync();
+    protected override async Task OnInitializedAsync()
+    {
+        Currency.Changed += OnCurrencyChanged;
+        await LoadAsync();
+    }
+
+    private void OnCurrencyChanged() => InvokeAsync(StateHasChanged);
+
+    public void Dispose() => Currency.Changed -= OnCurrencyChanged;
 
     private async Task LoadAsync()
     {
