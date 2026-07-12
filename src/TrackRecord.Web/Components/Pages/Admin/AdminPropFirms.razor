@@ -2,6 +2,7 @@
 @using Microsoft.AspNetCore.Authorization
 @attribute [Authorize(Roles = "Administrator")]
 @rendermode InteractiveServer
+@implements IDisposable
 @inject IPropFirmService PropFirmService
 @inject IEvaluationProgramService ProgramService
 @inject IExternalFirmDataProvider ExternalProvider
@@ -149,11 +150,11 @@ else
                         <InputNumber class="form-control" @bind-Value="_programForm.AccountSize" />
                     </div>
                     <div class="col-md-2">
-                        <label class="form-label">Profit target</label>
+                        <label class="form-label">@L["Objetivo de beneficio"]</label>
                         <InputNumber class="form-control" @bind-Value="_programForm.ProfitTarget" />
                     </div>
                     <div class="col-md-2">
-                        <label class="form-label">Max drawdown</label>
+                        <label class="form-label">@L["Drawdown máximo"]</label>
                         <InputNumber class="form-control" @bind-Value="_programForm.MaxDrawdown" />
                     </div>
                     <div class="col-md-2">
@@ -166,7 +167,7 @@ else
                         </InputSelect>
                     </div>
                     <div class="col-md-2">
-                        <label class="form-label">Daily loss limit</label>
+                        <label class="form-label">@L["Límite de pérdida diaria"]</label>
                         <InputNumber class="form-control" @bind-Value="_programForm.DailyLossLimit" />
                     </div>
                     <div class="col-md-2">
@@ -199,7 +200,7 @@ else
                         </InputSelect>
                     </div>
                     <div class="col-md-2">
-                        <label class="form-label">Max drawdown fondeada</label>
+                        <label class="form-label">@L["Drawdown máximo fondeada"]</label>
                         <InputNumber class="form-control" @bind-Value="_programForm.FundedMaxDrawdown" />
                     </div>
                     <div class="col-md-2">
@@ -207,7 +208,7 @@ else
                         <InputNumber class="form-control" @bind-Value="_programForm.FundedDailyLossLimit" />
                     </div>
                     <div class="col-md-2">
-                        <label class="form-label">Profit target fondeada</label>
+                        <label class="form-label">@L["Objetivo de beneficio fondeada"]</label>
                         <InputNumber class="form-control" @bind-Value="_programForm.FundedProfitTarget" />
                     </div>
                     <div class="col-md-2">
@@ -215,7 +216,7 @@ else
                         <InputNumber class="form-control" @bind-Value="_programForm.FundedMinTradingDays" />
                     </div>
 
-                    <div class="col-12"><small class="text-muted fw-semibold">Payout</small></div>
+                    <div class="col-12"><small class="text-muted fw-semibold">@L["Payout"]</small></div>
                     <div class="col-md-2">
                         <label class="form-label">Split trader (fracción 0-1)</label>
                         <InputNumber class="form-control" step="0.01" @bind-Value="_programForm.PayoutSplitTraderPct" />
@@ -262,7 +263,7 @@ else
                     <p class="fw-semibold">@L["Vista previa — "] @_importPreview.Count @L[" programa(s)"]</p>
                     <div class="table-responsive">
                         <table class="table table-sm">
-                            <thead><tr><th>@L["Nombre"]</th><th>@L["Tamaño"]</th><th>Profit target</th><th>Split</th></tr></thead>
+                            <thead><tr><th>@L["Nombre"]</th><th>@L["Tamaño"]</th><th>@L["Objetivo de beneficio"]</th><th>@L["Reparto"]</th></tr></thead>
                             <tbody>
                                 @foreach (var p in _importPreview)
                                 {
@@ -298,10 +299,10 @@ else
                     <tr>
                         <th>@L["Nombre"]</th>
                         <th class="text-end">@L["Tamaño"]</th>
-                        <th class="text-end">Profit target</th>
-                        <th class="text-end">Max DD</th>
+                        <th class="text-end">@L["Objetivo de beneficio"]</th>
+                        <th class="text-end">@L["Drawdown máx."]</th>
                         <th>DD</th>
-                        <th class="text-end">Split</th>
+                        <th class="text-end">@L["Reparto"]</th>
                         <th class="text-end">@L["Días payouts"]</th>
                         <th></th>
                     </tr>
@@ -350,7 +351,15 @@ else
     private List<EvaluationProgramDto>? _importPreview;
     private string? _importError;
 
-    protected override async Task OnInitializedAsync() => await LoadAsync();
+    protected override async Task OnInitializedAsync()
+    {
+        Currency.Changed += OnCurrencyChanged;
+        await LoadAsync();
+    }
+
+    private void OnCurrencyChanged() => InvokeAsync(StateHasChanged);
+
+    public void Dispose() => Currency.Changed -= OnCurrencyChanged;
 
     private async Task LoadAsync()
     {

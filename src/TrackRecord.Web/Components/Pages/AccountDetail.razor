@@ -135,7 +135,7 @@ else
         </div>
 
         <div class="col-md-6">
-            <h2>Payouts</h2>
+            <h2>@L["Payouts"]</h2>
             @if (_account.NextPayoutEligibleOn is { } nextPayoutOn)
             {
                 var daysLeft = nextPayoutOn.DayNumber - DateOnly.FromDateTime(DateTime.Today).DayNumber;
