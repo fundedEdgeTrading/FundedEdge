@@ -1,6 +1,7 @@
 @page "/accounts/{AccountId:guid}"
 @rendermode InteractiveServer
 @implements IDisposable
+@using System.Globalization
 @inject ITradingAccountService AccountService
 @inject ITradeSetupService SetupService
 @inject ICsvTradeImportService CsvImportService
@@ -19,14 +20,20 @@
 }
 else
 {
-    <div class="d-flex justify-content-between align-items-start">
-        <div>
+    <div class="ad-shell">
+        @* ---------- RAIL IZQUIERDO ---------- *@
+        <div class="ad-rail">
+            <div class="ad-brand">
+                <span class="ad-brand-box">@(_account.DisplayName.Length > 0 ? _account.DisplayName[0].ToString().ToUpperInvariant() : "A")</span>
+                <span class="ad-badge @StageBadgeClass(_account.Stage)">● @_account.Stage</span>
+            </div>
+
             @if (_editingName)
             {
-                <EditForm Model="_renameForm" OnValidSubmit="SaveNameAsync" class="mb-1">
+                <EditForm Model="_renameForm" OnValidSubmit="SaveNameAsync" class="mt-3 mb-1">
                     <DataAnnotationsValidator />
                     <div class="d-flex gap-2 align-items-center">
-                        <InputText class="form-control form-control-lg" style="max-width: 24rem;" @bind-Value="_renameForm.DisplayName" autofocus />
+                        <InputText class="form-control form-control-sm" @bind-Value="_renameForm.DisplayName" autofocus />
                         <button type="submit" class="btn btn-primary btn-sm">@L["Guardar"]</button>
                         <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="CancelRename">@L["Cancelar"]</button>
                     </div>
@@ -39,350 +46,607 @@ else
             }
             else
             {
-                <h1 class="d-flex align-items-center gap-2">
+                <h1 class="ad-title">
                     @_account.DisplayName
-                    <button class="btn btn-sm btn-link p-0 text-muted" title="@L["Editar nombre"]" @onclick="StartRename">✏️</button>
+                    <button class="ad-edit" title="@L["Editar nombre"]" @onclick="StartRename">✎</button>
                 </h1>
             }
-            <p class="text-muted mb-0">@_account.PropFirmName · @Currency.Format(_account.AccountSize, 0) · <span class="badge @StageBadgeClass(_account.Stage)">@_account.Stage</span></p>
-        </div>
-        <div class="d-flex gap-2 align-items-center">
-            @if (_account.EvaluationProgramId.HasValue)
-            {
-                <a class="btn btn-outline-primary btn-sm" href="/accounts/@AccountId/progress">📊 @L["Ver progreso"]</a>
-            }
-            <button class="btn btn-outline-danger" @onclick="ConfirmAndDeleteAccountAsync">@L["Eliminar cuenta"]</button>
-        </div>
-    </div>
+            <div class="ad-sub">@_account.PropFirmName · <span class="mono">@Currency.Format(_account.AccountSize, 0)</span></div>
 
-    <div class="kpi-grid mt-3">
-        <KpiCard Title="@L["Costes totales"]" Value="@Currency.Format(TotalCosts)" />
-        <KpiCard Title="@L["Payouts recibidos"]" Value="@Currency.Format(TotalPayouts)" />
-        <KpiCard Title="Profit target" Value="@Currency.Format(_account.EffectiveProfitTarget > 0 ? _account.EffectiveProfitTarget : _account.ProfitTarget, 0)" />
-        <KpiCard Title="Max drawdown" Value="@Currency.Format(_account.MaxDrawdown, 0)" />
-    </div>
+            @* Anillo de progreso al profit target *@
+            <div class="ad-ring-wrap">
+                <svg width="180" height="180" viewBox="0 0 160 160">
+                    <circle cx="80" cy="80" r="66" fill="none" stroke="var(--surface-3)" stroke-width="13"></circle>
+                    <circle class="ad-ring-progress" cx="80" cy="80" r="66" fill="none" stroke="url(#adRingGrad)" stroke-width="13"
+                            stroke-linecap="round" stroke-dasharray="414.7" stroke-dashoffset="@RingOffsetStr()" transform="rotate(-90 80 80)"></circle>
+                    <defs>
+                        <linearGradient id="adRingGrad" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0" stop-color="#2fd6a3"></stop>
+                            <stop offset="1" stop-color="#e3b341"></stop>
+                        </linearGradient>
+                    </defs>
+                </svg>
+                <div class="ad-ring-center">
+                    <span class="ad-ring-label">@L["Profit target"]</span>
+                    <span class="ad-ring-pct ad-countup">@ProfitPctInt%</span>
+                    <span class="ad-ring-frac">@Currency.Format(TradesNetPnL, 0) / @Currency.Format(ProfitTargetValue, 0)</span>
+                </div>
+            </div>
 
-    <h2 class="mt-4">@L["Ciclo de vida"]</h2>
-    <EditForm Model="_transition" OnValidSubmit="TransitionAsync" class="row g-2 align-items-end mb-2">
-        <div class="col-md-3">
-            <label class="form-label">@L["Nueva etapa"]</label>
-            <InputSelect class="form-select" @bind-Value="_transition.NewStage">
-                @foreach (var v in Enum.GetValues<AccountStage>())
+            @* P&L neto *@
+            <div class="ad-net">
+                <div class="ad-net-label">@L["P&L neto de la cuenta"]</div>
+                <div class="ad-net-val @(NetPnL >= 0 ? "pos" : "neg")">@(NetPnL >= 0 ? "+" : "")@Currency.Format(NetPnL, 0)</div>
+            </div>
+
+            @* Semáforo de salud *@
+            <div class="ad-section-label">@L["Salud de la cuenta"]</div>
+            <div class="ad-health">
+                <div class="ad-health-row">
+                    <div class="ad-health-name"><span class="ad-dot @(ProfitPct >= 1 ? "is-good" : "is-warn")"></span>@L["Profit target"]</div>
+                    <span class="ad-health-val @(ProfitPct >= 1 ? "is-good" : "is-warn")">@ProfitPctInt%</span>
+                </div>
+                <div class="ad-health-row">
+                    <div class="ad-health-name"><span class="ad-dot @DrawdownHealthClass"></span>@L["Margen drawdown"]</div>
+                    <span class="ad-health-val @DrawdownHealthClass">@DrawdownHealthLabel</span>
+                </div>
+                <div class="ad-health-row">
+                    <div class="ad-health-name"><span class="ad-dot @(CanRequestPayout ? "is-good" : "is-warn")"></span>@L["Elegibilidad payout"]</div>
+                    <span class="ad-health-val @(CanRequestPayout ? "is-good" : "is-warn")">@(CanRequestPayout ? L["disponible"] : L["no disponible"])</span>
+                </div>
+            </div>
+
+            @* Timeline del ciclo de vida *@
+            <div class="ad-section-label">@L["Ciclo de vida"]</div>
+            <div class="ad-timeline">
+                <div class="ad-timeline-line"></div>
+                @foreach (var item in Timeline())
                 {
-                    <option value="@v">@v</option>
+                    <div class="ad-tl-item">
+                        <span class="ad-tl-dot @(item.IsPayout ? "is-payout" : "")"></span>
+                        <div class="ad-tl-label">@item.Label</div>
+                        <div class="ad-tl-date">@item.Date.ToString("d")</div>
+                    </div>
                 }
-            </InputSelect>
-        </div>
-        <div class="col-md-3">
-            <label class="form-label">@L["Fecha"]</label>
-            <InputDate class="form-control" @bind-Value="_transition.OccurredOn" />
-        </div>
-        <div class="col-md-4">
-            <label class="form-label">@L["Notas"]</label>
-            <InputText class="form-control" @bind-Value="_transition.Notes" />
-        </div>
-        <div class="col-md-2">
-            <button type="submit" class="btn btn-primary w-100">@L["Registrar"]</button>
-        </div>
-    </EditForm>
-    <ul class="list-group mb-4">
-        @foreach (var evt in _account.Events)
-        {
-            <li class="list-group-item d-flex justify-content-between">
-                <span>@evt.FromStage → <strong>@evt.ToStage</strong> @(string.IsNullOrWhiteSpace(evt.Notes) ? "" : $"— {evt.Notes}")</span>
-                <span class="text-muted">@evt.OccurredAt.ToString("d")</span>
-            </li>
-        }
-    </ul>
+            </div>
 
-    <div class="row">
-        <div class="col-md-6">
-            <h2>@L["Costes"]</h2>
-            <EditForm Model="_costForm" OnValidSubmit="AddCostAsync" class="row g-2 align-items-end mb-2">
-                <div class="col-5">
-                    <label class="form-label">@L["Tipo"]</label>
-                    <InputSelect class="form-select" @bind-Value="_costForm.Kind">
-                        @foreach (var v in Enum.GetValues<CostKind>())
+            <EditForm Model="_transition" OnValidSubmit="TransitionAsync" class="row g-2 align-items-end mt-2">
+                <div class="col-7">
+                    <label class="form-label small">@L["Nueva etapa"]</label>
+                    <InputSelect class="form-select form-select-sm" @bind-Value="_transition.NewStage">
+                        @foreach (var v in Enum.GetValues<AccountStage>())
                         {
                             <option value="@v">@v</option>
                         }
                     </InputSelect>
                 </div>
-                <div class="col-3">
-                    <label class="form-label">@L["Importe"]</label>
-                    <InputNumber class="form-control" @bind-Value="_costForm.Amount" />
+                <div class="col-5">
+                    <label class="form-label small">@L["Fecha"]</label>
+                    <InputDate class="form-control form-control-sm" @bind-Value="_transition.OccurredOn" />
                 </div>
-                <div class="col-3">
-                    <label class="form-label">@L["Fecha"]</label>
-                    <InputDate class="form-control" @bind-Value="_costForm.PaidOn" />
+                <div class="col-12">
+                    <InputText class="form-control form-control-sm" @bind-Value="_transition.Notes" placeholder="@L["Notas"]" />
                 </div>
-                <div class="col-1">
-                    <button type="submit" class="btn btn-primary">+</button>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-outline-secondary btn-sm w-100">@L["Registrar cambio de etapa"]</button>
                 </div>
             </EditForm>
-            <ul class="list-group mb-4">
-                @foreach (var cost in _account.Costs)
-                {
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <span>@cost.Kind — @cost.PaidOn.ToString("d")</span>
-                        <span>
-                            @Currency.Format(cost.Amount)
-                            <button class="btn btn-sm btn-link text-danger" @onclick="() => RemoveCostAsync(cost.Id)">✕</button>
-                        </span>
-                    </li>
-                }
-            </ul>
+
+            @if (_account.EvaluationProgramId.HasValue)
+            {
+                <a class="btn btn-outline-primary w-100 mt-3" href="/accounts/@AccountId/progress">📊 @L["Ver progreso"]</a>
+            }
+            <button class="ad-delete-btn" @onclick="ConfirmAndDeleteAccountAsync">@L["Eliminar cuenta"]</button>
         </div>
 
-        <div class="col-md-6">
-            @if (CanRequestPayout)
+        @* ---------- COLUMNA DERECHA ---------- *@
+        <div class="ad-main">
+            @* Fila de KPIs *@
+            <div class="ad-kpis">
+                <div class="ad-card ad-kpi d1">
+                    <div class="ad-kpi-top"><span class="ad-kpi-label">@L["Payouts recibidos"]</span><span class="ad-kpi-dot"></span></div>
+                    <div class="ad-kpi-val good ad-countup">@Currency.Format(TotalPayouts, 0)</div>
+                    <svg class="ad-spark" viewBox="0 0 100 24" width="100%" height="28" preserveAspectRatio="none">
+                        <polyline points="0,20 25,18 50,12 75,11 100,4" fill="none" stroke="#56d364" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></polyline>
+                    </svg>
+                </div>
+                <div class="ad-card ad-kpi d2">
+                    <div class="ad-kpi-top"><span class="ad-kpi-label">@L["Costes totales"]</span><span class="ad-kpi-dot"></span></div>
+                    <div class="ad-kpi-val ad-countup">@Currency.Format(TotalCosts, 0)</div>
+                    <svg class="ad-spark" viewBox="0 0 100 24" width="100%" height="28" preserveAspectRatio="none">
+                        <polyline points="0,20 25,17 50,13 75,9 100,5" fill="none" stroke="#9aa3b2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></polyline>
+                    </svg>
+                </div>
+                <div class="ad-card ad-kpi d3 ad-dd">
+                    <div class="ad-dd-top">
+                        <span class="ad-kpi-label">@L["Margen de drawdown"]</span>
+                        <span class="ad-dd-meta">@Currency.Format(DrawdownUsed, 0) @L["usado"] · <strong>@Currency.Format(DrawdownMargin, 0)</strong> @L["de margen"]</span>
+                    </div>
+                    <div class="ad-dd-bar">
+                        <div class="ad-dd-used" style="width:@CssPct(DrawdownUsedPct)"></div>
+                        <div class="ad-dd-safe"></div>
+                    </div>
+                    <div class="ad-dd-caption"><span>@L["usado"]</span><span class="safe">@L["margen seguro hasta {0}", Currency.Format(_account.MaxDrawdown, 0)]</span></div>
+                </div>
+            </div>
+
+            @* Pestañas *@
+            <div class="ad-tabs">
+                <button class="ad-tab @(_activeTab == "resumen" ? "active" : "")" @onclick='() => _activeTab = "resumen"'>@L["Resumen"]</button>
+                <button class="ad-tab @(_activeTab == "costes" ? "active" : "")" @onclick='() => _activeTab = "costes"'>@L["Costes"]</button>
+                <button class="ad-tab @(_activeTab == "payouts" ? "active" : "")" @onclick='() => _activeTab = "payouts"'>@L["Payouts"]</button>
+                <button class="ad-tab @(_activeTab == "trades" ? "active" : "")" @onclick='() => _activeTab = "trades"'>@L["Trades"]</button>
+            </div>
+
+            @* ----- RESUMEN ----- *@
+            @if (_activeTab == "resumen")
             {
-                <h2>@L["Payouts"]</h2>
-                @if (_account.NextPayoutEligibleOn is { } nextPayoutOn)
+                <div class="ad-card ad-mb">
+                    <div class="ad-card-title">@L["Payouts vs. costes"]</div>
+                    <div class="ad-card-sub">@L["Composición del P&L neto"]</div>
+                    <div class="ad-bars">
+                        <div>
+                            <div class="ad-bar-head"><span class="name">@L["Payouts"]</span><span class="val good">+@Currency.Format(TotalPayouts, 0)</span></div>
+                            <div class="ad-bar-track"><div class="ad-bar-fill pay" style="width:@(TotalPayouts > 0 ? "100%" : "0%")"></div></div>
+                        </div>
+                        <div>
+                            <div class="ad-bar-head"><span class="name">@L["Costes"]</span><span class="val bad">−@Currency.Format(TotalCosts, 0)</span></div>
+                            <div class="ad-bar-track"><div class="ad-bar-fill cost" style="width:@CssRatio(TotalCosts, TotalPayouts)"></div></div>
+                        </div>
+                        <div class="ad-hair"></div>
+                        <div>
+                            <div class="ad-bar-head"><span class="name net">@L["P&L neto"]</span><span class="val net">@(NetPnL >= 0 ? "+" : "")@Currency.Format(NetPnL, 0)</span></div>
+                            <div class="ad-bar-track"><div class="ad-bar-fill net" style="width:@CssRatio(Math.Max(0, NetPnL), TotalPayouts)"></div></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="ad-card">
+                    <div class="ad-heat-head">
+                        <div>
+                            <div class="ad-card-title">@L["Actividad de trades"]</div>
+                            <div class="ad-card-sub">@HeatTitle() · @L["P&L diario"]</div>
+                        </div>
+                        <div class="ad-heat-legend">
+                            <span>−</span>
+                            <span class="sw" style="background:rgba(248,81,73,.55);"></span>
+                            <span class="sw" style="background:var(--surface-3);"></span>
+                            <span class="sw" style="background:rgba(63,185,80,.55);"></span>
+                            <span>+</span>
+                        </div>
+                    </div>
+                    <div class="ad-heat-dow">
+                        <div>L</div><div>M</div><div>X</div><div>J</div><div>V</div><div>S</div><div>D</div>
+                    </div>
+                    <div class="ad-heat-grid">
+                        @foreach (var cell in BuildHeat())
+                        {
+                            @if (cell.Empty)
+                            {
+                                <div class="ad-heat-cell empty"></div>
+                            }
+                            else
+                            {
+                                <div class="ad-heat-cell" style="background:@HeatBg(cell.Pnl)" title="@HeatTooltip(cell)">
+                                    <span class="ad-heat-day @(cell.Count > 0 ? "active" : "")">@cell.Day</span>
+                                    @if (cell.Count > 0)
+                                    {
+                                        <span class="ad-heat-pnl @(cell.Pnl >= 0 ? "pos" : "neg")">@Money(cell.Pnl)</span>
+                                        <span class="ad-heat-cnt">@(cell.Count == 1 ? L["1 trade"] : L["{0} trades", cell.Count])</span>
+                                    }
+                                </div>
+                            }
+                        }
+                    </div>
+                </div>
+            }
+
+            @* ----- COSTES ----- *@
+            @if (_activeTab == "costes")
+            {
+                <div class="ad-card ad-mb">
+                    <div class="ad-card-title mb-3">@L["Registrar coste"]</div>
+                    <EditForm Model="_costForm" OnValidSubmit="AddCostAsync" class="row g-2 align-items-end">
+                        <div class="col-md-5">
+                            <label class="form-label small">@L["Tipo"]</label>
+                            <InputSelect class="form-select" @bind-Value="_costForm.Kind">
+                                @foreach (var v in Enum.GetValues<CostKind>())
+                                {
+                                    <option value="@v">@v</option>
+                                }
+                            </InputSelect>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small">@L["Importe"]</label>
+                            <InputNumber class="form-control" @bind-Value="_costForm.Amount" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small">@L["Fecha"]</label>
+                            <InputDate class="form-control" @bind-Value="_costForm.PaidOn" />
+                        </div>
+                        <div class="col-md-1">
+                            <button type="submit" class="btn btn-primary w-100">+</button>
+                        </div>
+                    </EditForm>
+                </div>
+                <div class="ad-list">
+                    @foreach (var cost in _account.Costs)
+                    {
+                        <div class="ad-list-row">
+                            <div>
+                                <div class="name">@cost.Kind</div>
+                                <div class="date">@cost.PaidOn.ToString("d")</div>
+                            </div>
+                            <div class="ad-list-right">
+                                <span class="amt bad">−@Currency.Format(cost.Amount)</span>
+                                <button class="ad-x" @onclick="() => RemoveCostAsync(cost.Id)">✕</button>
+                            </div>
+                        </div>
+                    }
+                    <div class="ad-list-total"><span class="lbl">@L["Total"]</span><span class="amt">@Currency.Format(TotalCosts)</span></div>
+                </div>
+            }
+
+            @* ----- PAYOUTS ----- *@
+            @if (_activeTab == "payouts")
+            {
+                @if (CanRequestPayout)
                 {
-                    var daysLeft = nextPayoutOn.DayNumber - DateOnly.FromDateTime(DateTime.Today).DayNumber;
-                    <div class="alert @(daysLeft <= 0 ? "alert-success" : "alert-secondary") small">
-                        @if (daysLeft <= 0)
-                        {
-                            <text>@L["Ya puedes solicitar tu próximo payout según la regla de {0}.", _account.PropFirmName]</text>
-                        }
-                        else
-                        {
-                            <text>@L["Próximo payout elegible el {0} (en {1} día(s)), según la regla de {2}.", nextPayoutOn.ToString("d"), daysLeft, _account.PropFirmName]</text>
-                        }
+                    <div class="ad-elig">
+                        <span class="ad-dot is-good pulse"></span>
+                        @L["Ya puedes solicitar tu próximo payout según la regla de {0}.", _account.PropFirmName]
                     </div>
                 }
-                <EditForm Model="_payoutForm" OnValidSubmit="AddPayoutAsync" class="row g-2 align-items-end mb-2">
-                    <div class="col-3">
-                        <label class="form-label">@L["Solicitado"]</label>
-                        <InputNumber class="form-control" @bind-Value="_payoutForm.AmountRequested" />
+                else if (_account.NextPayoutEligibleOn is { } nextPayoutOn)
+                {
+                    var daysLeft = nextPayoutOn.DayNumber - DateOnly.FromDateTime(DateTime.Today).DayNumber;
+                    <div class="ad-elig wait">
+                        <span class="ad-dot is-warn"></span>
+                        @L["Próximo payout elegible el {0} (en {1} día(s)), según la regla de {2}.", nextPayoutOn.ToString("d"), daysLeft, _account.PropFirmName]
                     </div>
-                    <div class="col-3">
-                        <label class="form-label">@L["Recibido"]</label>
-                        <InputNumber class="form-control" @bind-Value="_payoutForm.AmountReceived" />
+                }
+                @if (CanRequestPayout)
+                {
+                    <div class="ad-card ad-mb">
+                        <div class="ad-card-title mb-3">@L["Solicitar payout"]</div>
+                        <EditForm Model="_payoutForm" OnValidSubmit="AddPayoutAsync" class="row g-2 align-items-end">
+                            <div class="col-md-3">
+                                <label class="form-label small">@L["Solicitado"]</label>
+                                <InputNumber class="form-control" @bind-Value="_payoutForm.AmountRequested" />
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small">@L["Recibido"]</label>
+                                <InputNumber class="form-control" @bind-Value="_payoutForm.AmountReceived" />
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label small">@L["Fecha solicitud"]</label>
+                                <InputDate class="form-control" @bind-Value="_payoutForm.RequestedOn" />
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small">@L["Estado"]</label>
+                                <InputSelect class="form-select" @bind-Value="_payoutForm.Status">
+                                    @foreach (var v in Enum.GetValues<PayoutStatus>())
+                                    {
+                                        <option value="@v">@v</option>
+                                    }
+                                </InputSelect>
+                            </div>
+                            <div class="col-md-1">
+                                <button type="submit" class="btn btn-primary w-100">+</button>
+                            </div>
+                        </EditForm>
                     </div>
-                    <div class="col-3">
-                        <label class="form-label">@L["Fecha solicitud"]</label>
-                        <InputDate class="form-control" @bind-Value="_payoutForm.RequestedOn" />
+                }
+                <div class="ad-list">
+                    @foreach (var payout in _account.Payouts)
+                    {
+                        <div class="ad-list-row">
+                            <div class="ad-list-right">
+                                <span class="ad-badge @PayoutBadgeClass(payout.Status)">@payout.Status</span>
+                                <span class="date">@payout.RequestedOn.ToString("d")</span>
+                            </div>
+                            <div class="ad-list-right">
+                                <span class="amt good">+@Currency.Format(payout.AmountReceived)</span>
+                                <button class="ad-x" @onclick="() => RemovePayoutAsync(payout.Id)">✕</button>
+                            </div>
+                        </div>
+                    }
+                    <div class="ad-list-total"><span class="lbl">@L["Total recibido"]</span><span class="amt good">@Currency.Format(TotalPayouts)</span></div>
+                </div>
+            }
+
+            @* ----- TRADES ----- *@
+            @if (_activeTab == "trades")
+            {
+                <div class="ad-card ad-import ad-mb">
+                    <div>
+                        <div class="ad-card-title mb-0">@L["Importar CSV"]</div>
+                        <div class="ad-card-sub mb-0">Tradovate / NinjaTrader 8 · @L["autodetección"]</div>
                     </div>
-                    <div class="col-2">
-                        <label class="form-label">@L["Estado"]</label>
-                        <InputSelect class="form-select" @bind-Value="_payoutForm.Status">
-                            @foreach (var v in Enum.GetValues<PayoutStatus>())
+                    <div class="d-flex gap-2 align-items-center flex-wrap">
+                        <InputSelect class="form-select form-select-sm" style="width:auto" Value="_platform" ValueExpression="() => _platform" TValue="DataFeedType" ValueChanged="OnPlatformChangedAsync">
+                            @foreach (var v in Enum.GetValues<DataFeedType>())
+                            {
+                                <option value="@v">@PlatformLabel(v)</option>
+                            }
+                        </InputSelect>
+                        <button type="button" class="btn btn-sm btn-outline-primary" @onclick="ShowTutorial">📖 @L["Ayuda"]</button>
+                        <InputFile OnChange="OnCsvFileSelectedAsync" accept=".csv" disabled="@_csvImporting" />
+                    </div>
+                </div>
+                @if (_csvImporting)
+                {
+                    <p class="text-muted small"><em>@L["Importando…"]</em></p>
+                }
+                else if (_csvImportSummary is not null)
+                {
+                    <p class="small">
+                        @L["Importados:"] <strong>@_csvImportSummary.Imported</strong> ·
+                        @L["Omitidos (ya importados):"] <strong>@_csvImportSummary.Skipped</strong>
+                        @if (_csvImportSummary.Errors.Count > 0)
+                        {
+                            <text> · <span class="text-danger">@L["{0} fila(s) con error", _csvImportSummary.Errors.Count]</span></text>
+                        }
+                    </p>
+                    @if (_csvImportSummary.Errors.Count > 0)
+                    {
+                        <ul class="small text-danger">
+                            @foreach (var err in _csvImportSummary.Errors.Take(10))
+                            {
+                                <li>@err</li>
+                            }
+                        </ul>
+                    }
+                }
+
+                <EditForm Model="_tradeForm" OnValidSubmit="AddTradeAsync" class="row g-2 align-items-end ad-mb">
+                    <div class="col-md-1">
+                        <label class="form-label small">@L["Símbolo"]</label>
+                        <InputText class="form-control" @bind-Value="_tradeForm.Symbol" placeholder="MES" />
+                    </div>
+                    <div class="col-md-1">
+                        <label class="form-label small">Dir.</label>
+                        <InputSelect class="form-select" @bind-Value="_tradeForm.Direction">
+                            @foreach (var v in Enum.GetValues<TradeDirection>())
                             {
                                 <option value="@v">@v</option>
                             }
                         </InputSelect>
                     </div>
-                    <div class="col-1">
-                        <button type="submit" class="btn btn-primary">+</button>
+                    <div class="col-md-1">
+                        <label class="form-label small">@L["Cant."]</label>
+                        <InputNumber class="form-control" @bind-Value="_tradeForm.Quantity" />
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small">@L["Fecha cierre"]</label>
+                        <InputDate class="form-control" @bind-Value="_tradeForm.ClosedOn" />
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small">@L["P&L bruto"]</label>
+                        <InputNumber class="form-control" @bind-Value="_tradeForm.GrossPnL" />
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small">@L["Comisiones"]</label>
+                        <InputNumber class="form-control" @bind-Value="_tradeForm.Commissions" />
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small">@L["Riesgo (R)"]</label>
+                        <InputNumber class="form-control" @bind-Value="_tradeForm.RiskedAmount" />
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small">Tags (setup)</label>
+                        <InputText class="form-control" @bind-Value="_tradeForm.Tags" placeholder="breakout, news" />
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small">@L["Pérdida flotante máx. (opcional)"]</label>
+                        <InputNumber class="form-control form-control-sm" @bind-Value="_tradeForm.MaxAdverseExcursion" placeholder="0" />
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small">@L["Ganancia flotante máx. (opcional)"]</label>
+                        <InputNumber class="form-control form-control-sm" @bind-Value="_tradeForm.MaxFavorableExcursion" placeholder="0" />
+                    </div>
+                    <div class="col-md-1">
+                        <button type="submit" class="btn btn-primary w-100">+</button>
                     </div>
                 </EditForm>
-                <ul class="list-group mb-4">
-                    @foreach (var payout in _account.Payouts)
-                    {
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            <span>@payout.RequestedOn.ToString("d") — @payout.Status</span>
-                            <span>
-                                @Currency.Format(payout.AmountReceived)
-                                <button class="btn btn-sm btn-link text-danger" @onclick="() => RemovePayoutAsync(payout.Id)">✕</button>
-                            </span>
-                        </li>
-                    }
-                </ul>
-            }
-        </div>
-    </div>
 
-    <h2 class="mt-4">@L["Journal de trades"]</h2>
-
-    <div class="card mb-3">
-        <div class="card-body">
-            <div class="d-flex justify-content-between align-items-start gap-2">
-                <h6 class="card-title">@L["Importar operaciones (CSV de Tradovate o NinjaTrader 8)"]</h6>
-                <button type="button" class="btn btn-sm btn-outline-primary" @onclick="ShowTutorial">
-                    📖 @L["¿Cómo exporto e importo mi CSV?"]
-                </button>
-            </div>
-            <p class="text-muted small mb-2">
-                @L["Sube el CSV exportado desde la app de Tradovate (Reports → Performance) o desde NinjaTrader 8 (Trade Performance → Trades → Export). El formato se detecta automáticamente y reimportar el mismo archivo no duplica trades."]
-            </p>
-            <div class="row g-2 align-items-end mb-2">
-                <div class="col-md-3">
-                    <label class="form-label small">@L["Plataforma de esta cuenta"]</label>
-                    <InputSelect class="form-select form-select-sm" Value="_platform" ValueExpression="() => _platform" TValue="DataFeedType" ValueChanged="OnPlatformChangedAsync">
-                        @foreach (var v in Enum.GetValues<DataFeedType>())
-                        {
-                            <option value="@v">@PlatformLabel(v)</option>
-                        }
-                    </InputSelect>
-                </div>
-            </div>
-            <InputFile OnChange="OnCsvFileSelectedAsync" accept=".csv" disabled="@_csvImporting" />
-            @if (_csvImporting)
-            {
-                <p class="text-muted small mt-2 mb-0"><em>@L["Importando…"]</em></p>
-            }
-            else if (_csvImportSummary is not null)
-            {
-                <p class="small mt-2 mb-0">
-                    @L["Importados:"] <strong>@_csvImportSummary.Imported</strong> ·
-                    @L["Omitidos (ya importados):"] <strong>@_csvImportSummary.Skipped</strong>
-                    @if (_csvImportSummary.Errors.Count > 0)
-                    {
-                        <text> · <span class="text-danger">@L["{0} fila(s) con error", _csvImportSummary.Errors.Count]</span></text>
-                    }
-                </p>
-                @if (_csvImportSummary.Errors.Count > 0)
+                @if (_account.Trades.Count == 0)
                 {
-                    <ul class="small text-danger mb-0">
-                        @foreach (var err in _csvImportSummary.Errors.Take(10))
-                        {
-                            <li>@err</li>
-                        }
-                    </ul>
+                    <p class="text-muted">@L["Sin trades registrados todavía."]</p>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>@L["Fecha"]</th>
+                                    <th>@L["Símbolo"]</th>
+                                    <th>Dir.</th>
+                                    <th>@L["Cant."]</th>
+                                    <th>@L["Setup"]</th>
+                                    <th class="text-end">@L["Riesgo"]</th>
+                                    <th class="text-end">R</th>
+                                    <th class="text-end">MAE</th>
+                                    <th class="text-end">MFE</th>
+                                    <th class="text-end">P&L</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var t in _account.Trades)
+                                {
+                                    <tr>
+                                        <td>@t.ClosedAt.ToString("d")</td>
+                                        <td style="font-family:var(--font-mono)">@t.Symbol</td>
+                                        <td class="@(t.Direction == TradeDirection.Long ? "text-success" : "text-danger")">@t.Direction</td>
+                                        <td>@t.Quantity</td>
+                                        <td>
+                                            <select class="form-select form-select-sm" style="min-width:9rem"
+                                                    @onchange="@(e => UpdateTradeSetupAsync(t, e.Value?.ToString()))">
+                                                <option value="" selected="@string.IsNullOrEmpty(t.Tags)">—</option>
+                                                @foreach (var s in _setups ?? [])
+                                                {
+                                                    <option value="@s.Name" selected="@(s.Name == t.Tags)">@s.Name</option>
+                                                }
+                                                @if (!string.IsNullOrEmpty(t.Tags) && _setups?.Any(s => s.Name == t.Tags) != true)
+                                                {
+                                                    <option value="@t.Tags" selected>@t.Tags</option>
+                                                }
+                                            </select>
+                                        </td>
+                                        <td class="text-end" style="width:100px">
+                                            <input type="number" step="0.01" class="form-control form-control-sm text-end" value="@t.RiskedAmount"
+                                                   @onchange="@(e => UpdateTradeRiskAsync(t, decimal.TryParse(e.Value?.ToString(), System.Globalization.NumberStyles.Number, System.Globalization.CultureInfo.InvariantCulture, out var v) ? v : (decimal?)null))" />
+                                        </td>
+                                        <td class="text-end" style="font-family:var(--font-mono)">@(t.RMultiple?.ToString("0.00") ?? "—")</td>
+                                        <td class="text-end text-danger">
+                                            @(t.MaxAdverseExcursion is { } mae ? Currency.Format(-mae) : "—")
+                                            @if (t.MaeR is { } maeR)
+                                            {
+                                                <small class="text-muted">(@maeR.ToString("0.00")R)</small>
+                                            }
+                                        </td>
+                                        <td class="text-end text-success">
+                                            @(t.MaxFavorableExcursion is { } mfe ? Currency.Format(mfe) : "—")
+                                            @if (t.MfeR is { } mfeR)
+                                            {
+                                                <small class="text-muted">(@mfeR.ToString("0.00")R)</small>
+                                            }
+                                        </td>
+                                        <td class="text-end @(t.NetPnL >= 0 ? "text-success" : "text-danger")" style="font-family:var(--font-mono)">@Currency.Format(t.NetPnL)</td>
+                                        <td><button class="btn btn-sm btn-link text-danger" @onclick="() => DeleteTradeAsync(t.Id)">✕</button></td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
                 }
             }
         </div>
     </div>
-
-    <EditForm Model="_tradeForm" OnValidSubmit="AddTradeAsync" class="row g-2 align-items-end mb-2">
-        <div class="col-md-1">
-            <label class="form-label">@L["Símbolo"]</label>
-            <InputText class="form-control" @bind-Value="_tradeForm.Symbol" placeholder="MES" />
-        </div>
-        <div class="col-md-1">
-            <label class="form-label">Dir.</label>
-            <InputSelect class="form-select" @bind-Value="_tradeForm.Direction">
-                @foreach (var v in Enum.GetValues<TradeDirection>())
-                {
-                    <option value="@v">@v</option>
-                }
-            </InputSelect>
-        </div>
-        <div class="col-md-1">
-            <label class="form-label">@L["Cant."]</label>
-            <InputNumber class="form-control" @bind-Value="_tradeForm.Quantity" />
-        </div>
-        <div class="col-md-2">
-            <label class="form-label">@L["Fecha cierre"]</label>
-            <InputDate class="form-control" @bind-Value="_tradeForm.ClosedOn" />
-        </div>
-        <div class="col-md-2">
-            <label class="form-label">@L["P&L bruto"]</label>
-            <InputNumber class="form-control" @bind-Value="_tradeForm.GrossPnL" />
-        </div>
-        <div class="col-md-2">
-            <label class="form-label">@L["Comisiones"]</label>
-            <InputNumber class="form-control" @bind-Value="_tradeForm.Commissions" />
-        </div>
-        <div class="col-md-2">
-            <label class="form-label">@L["Riesgo (R)"]</label>
-            <InputNumber class="form-control" @bind-Value="_tradeForm.RiskedAmount" />
-        </div>
-        <div class="col-md-2">
-            <label class="form-label">Tags (setup)</label>
-            <InputText class="form-control" @bind-Value="_tradeForm.Tags" placeholder="breakout, news" />
-        </div>
-        <div class="col-md-2">
-            <label class="form-label small">@L["Pérdida flotante máx. (opcional)"]</label>
-            <InputNumber class="form-control form-control-sm" @bind-Value="_tradeForm.MaxAdverseExcursion" placeholder="0" />
-        </div>
-        <div class="col-md-2">
-            <label class="form-label small">@L["Ganancia flotante máx. (opcional)"]</label>
-            <InputNumber class="form-control form-control-sm" @bind-Value="_tradeForm.MaxFavorableExcursion" placeholder="0" />
-        </div>
-        <div class="col-md-1">
-            <button type="submit" class="btn btn-primary w-100">+</button>
-        </div>
-    </EditForm>
-    <p class="text-muted small mt-1 mb-2">
-        @L["\"Pérdida/ganancia flotante máxima\": cuánto llegaste a estar en contra/a favor mientras el trade seguía abierto, antes de cerrarlo. Registrarlo habilita el análisis de MAE/MFE (calidad de ejecución)."]
-    </p>
-
-    @if (_account.Trades.Count == 0)
-    {
-        <p class="text-muted">@L["Sin trades registrados todavía."]</p>
-    }
-    else
-    {
-        <div class="table-responsive">
-            <table class="table table-sm">
-                <thead>
-                    <tr>
-                        <th>@L["Fecha"]</th>
-                        <th>@L["Símbolo"]</th>
-                        <th>Dir.</th>
-                        <th>@L["Cant."]</th>
-                        <th>@L["Setup"]</th>
-                        <th class="text-end">@L["Riesgo"]</th>
-                        <th class="text-end">R</th>
-                        <th class="text-end">MAE</th>
-                        <th class="text-end">MFE</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var t in _account.Trades)
-                    {
-                        <tr>
-                            <td>@t.ClosedAt.ToString("d")</td>
-                            <td>@t.Symbol</td>
-                            <td>@t.Direction</td>
-                            <td>@t.Quantity</td>
-                            <td>
-                                <select class="form-select form-select-sm" style="min-width:9rem"
-                                        @onchange="@(e => UpdateTradeSetupAsync(t, e.Value?.ToString()))">
-                                    <option value="" selected="@string.IsNullOrEmpty(t.Tags)">—</option>
-                                    @foreach (var s in _setups ?? [])
-                                    {
-                                        <option value="@s.Name" selected="@(s.Name == t.Tags)">@s.Name</option>
-                                    }
-                                    @if (!string.IsNullOrEmpty(t.Tags) && _setups?.Any(s => s.Name == t.Tags) != true)
-                                    {
-                                        <option value="@t.Tags" selected>@t.Tags</option>
-                                    }
-                                </select>
-                            </td>
-                            <td class="text-end" style="width:100px">
-                                <input type="number" step="0.01" class="form-control form-control-sm text-end" value="@t.RiskedAmount"
-                                       @onchange="@(e => UpdateTradeRiskAsync(t, decimal.TryParse(e.Value?.ToString(), System.Globalization.NumberStyles.Number, System.Globalization.CultureInfo.InvariantCulture, out var v) ? v : (decimal?)null))" />
-                            </td>
-                            <td class="text-end">@(t.RMultiple?.ToString("0.00") ?? "—")</td>
-                            <td class="text-end text-danger">
-                                @(t.MaxAdverseExcursion is { } mae ? Currency.Format(-mae) : "—")
-                                @if (t.MaeR is { } maeR)
-                                {
-                                    <small class="text-muted">(@maeR.ToString("0.00")R)</small>
-                                }
-                            </td>
-                            <td class="text-end text-success">
-                                @(t.MaxFavorableExcursion is { } mfe ? Currency.Format(mfe) : "—")
-                                @if (t.MfeR is { } mfeR)
-                                {
-                                    <small class="text-muted">(@mfeR.ToString("0.00")R)</small>
-                                }
-                            </td>
-                            <td><button class="btn btn-sm btn-link text-danger" @onclick="() => DeleteTradeAsync(t.Id)">✕</button></td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
-    }
 }
+
+<script src="js/account-detail.js"></script>
 
 @code {
     [Parameter] public Guid AccountId { get; set; }
 
+    private static readonly CultureInfo Inv = CultureInfo.InvariantCulture;
+
     private TradingAccountDetailDto? _account;
     private ConfirmDialog? _confirmDialog;
+    private string _activeTab = "resumen";
 
     private decimal TotalCosts => _account?.Costs.Sum(c => c.Amount) ?? 0m;
     private decimal TotalPayouts => _account?.Payouts.Sum(p => p.AmountReceived) ?? 0m;
+    private decimal NetPnL => TotalPayouts - TotalCosts;
+    private decimal TradesNetPnL => _account?.Trades.Sum(t => t.NetPnL) ?? 0m;
+
+    private decimal ProfitTargetValue => _account is null ? 0m
+        : (_account.EffectiveProfitTarget > 0 ? _account.EffectiveProfitTarget : _account.ProfitTarget);
+    private double ProfitPct => ProfitTargetValue <= 0 ? 0 : Math.Clamp((double)(TradesNetPnL / ProfitTargetValue), 0, 1);
+    private int ProfitPctInt => (int)Math.Round(ProfitPct * 100);
+
+    private decimal DrawdownUsed
+    {
+        get
+        {
+            if (_account is null) return 0m;
+            decimal equity = 0m, peak = 0m, maxDd = 0m;
+            foreach (var t in _account.Trades.OrderBy(t => t.ClosedAt))
+            {
+                equity += t.NetPnL;
+                if (equity > peak) peak = equity;
+                var dd = peak - equity;
+                if (dd > maxDd) maxDd = dd;
+            }
+            return Math.Min(maxDd, _account.MaxDrawdown);
+        }
+    }
+    private decimal DrawdownMargin => Math.Max(0m, (_account?.MaxDrawdown ?? 0m) - DrawdownUsed);
+    private double DrawdownUsedPct => (_account?.MaxDrawdown ?? 0m) <= 0 ? 0
+        : Math.Clamp((double)(DrawdownUsed / _account.MaxDrawdown), 0, 1);
+    private string DrawdownHealthClass => DrawdownUsedPct >= 1 ? "is-danger" : DrawdownUsedPct >= 0.8 ? "is-warn" : "is-good";
+    private string DrawdownHealthLabel => DrawdownUsedPct >= 1 ? L["peligro"] : DrawdownUsedPct >= 0.8 ? L["atención"] : L["saludable"];
 
     private bool CanRequestPayout => _account is { Stage: AccountStage.Funded }
         && (_account.NextPayoutEligibleOn is not { } d || d.DayNumber <= DateOnly.FromDateTime(DateTime.Today).DayNumber);
+
+    private string RingOffsetStr() => (414.7 * (1 - ProfitPct)).ToString("0.0", Inv);
+    private static string CssPct(double frac) => (frac * 100).ToString("0.0", Inv) + "%";
+    private static string CssRatio(decimal value, decimal max) =>
+        max <= 0 ? "0%" : (Math.Clamp((double)(value / max), 0, 1) * 100).ToString("0.0", Inv) + "%";
+
+    private string Money(decimal v) => (v >= 0 ? "+" : "−") + Currency.Format(Math.Abs(v), 0);
+
+    private static string HeatBg(decimal pnl)
+    {
+        if (pnl > 0) { var a = 0.14 + Math.Min(1, (double)pnl / 500) * 0.42; return $"rgba(63,185,80,{a.ToString("0.00", Inv)})"; }
+        if (pnl < 0) { var a = 0.12 + Math.Min(1, (double)Math.Abs(pnl) / 500) * 0.40; return $"rgba(248,81,73,{a.ToString("0.00", Inv)})"; }
+        return "var(--surface-raised)";
+    }
+
+    private (int Year, int Month) HeatMonth()
+    {
+        if (_account is { Trades.Count: > 0 })
+        {
+            var last = _account.Trades.Max(t => t.ClosedAt);
+            return (last.Year, last.Month);
+        }
+        var now = DateTime.Today;
+        return (now.Year, now.Month);
+    }
+
+    private string HeatTitle()
+    {
+        var (y, m) = HeatMonth();
+        return new DateTime(y, m, 1).ToString("MMMM yyyy");
+    }
+
+    private string HeatTooltip(HeatCell c)
+    {
+        var (y, m) = HeatMonth();
+        var d = new DateTime(y, m, c.Day).ToString("d MMM");
+        return c.Count == 0 ? L["{0} · sin trades", d].Value : $"{d} · {Money(c.Pnl)} · {(c.Count == 1 ? L["1 trade"].Value : L["{0} trades", c.Count].Value)}";
+    }
+
+    private record HeatCell(bool Empty, int Day, decimal Pnl, int Count);
+
+    private List<HeatCell> BuildHeat()
+    {
+        var (y, m) = HeatMonth();
+        var byDay = _account!.Trades
+            .Where(t => t.ClosedAt.Year == y && t.ClosedAt.Month == m)
+            .GroupBy(t => t.ClosedAt.Day)
+            .ToDictionary(g => g.Key, g => (Pnl: g.Sum(t => t.NetPnL), Count: g.Count()));
+
+        var first = new DateTime(y, m, 1);
+        int offset = ((int)first.DayOfWeek + 6) % 7; // lunes = 0
+        int days = DateTime.DaysInMonth(y, m);
+
+        var cells = new List<HeatCell>();
+        for (int i = 0; i < offset; i++) cells.Add(new HeatCell(true, 0, 0m, 0));
+        for (int d = 1; d <= days; d++)
+        {
+            byDay.TryGetValue(d, out var v);
+            cells.Add(new HeatCell(false, d, v.Pnl, v.Count));
+        }
+        return cells;
+    }
+
+    private record TimelineItem(string Label, DateTimeOffset Date, bool IsPayout);
+
+    private IEnumerable<TimelineItem> Timeline()
+    {
+        if (_account is null) yield break;
+        var items = new List<TimelineItem>();
+        foreach (var e in _account.Events)
+            items.Add(new TimelineItem($"{e.FromStage} → {e.ToStage}", e.OccurredAt, false));
+        foreach (var p in _account.Payouts)
+            items.Add(new TimelineItem($"Payout · +{Currency.Format(p.AmountReceived, 0)}", new DateTimeOffset(p.RequestedOn.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero), true));
+        foreach (var i in items.OrderBy(i => i.Date))
+            yield return i;
+    }
 
     private TransitionFormModel _transition = new();
     private CostFormModel _costForm = new();
@@ -582,12 +846,20 @@ else
 
     private static string StageBadgeClass(AccountStage stage) => stage switch
     {
-        AccountStage.Evaluation => "text-bg-secondary",
-        AccountStage.Funded => "text-bg-success",
-        AccountStage.Failed => "text-bg-danger",
-        AccountStage.Withdrawn => "text-bg-dark",
-        AccountStage.Expired => "text-bg-warning",
-        _ => "text-bg-light",
+        AccountStage.Evaluation => "s-secondary",
+        AccountStage.Funded => "s-success",
+        AccountStage.Failed => "s-danger",
+        AccountStage.Withdrawn => "s-dark",
+        AccountStage.Expired => "s-warning",
+        _ => "s-secondary",
+    };
+
+    private static string PayoutBadgeClass(PayoutStatus status) => status switch
+    {
+        PayoutStatus.Paid => "s-success",
+        PayoutStatus.Requested => "s-warning",
+        PayoutStatus.Rejected => "s-danger",
+        _ => "s-secondary",
     };
 
     private class TransitionFormModel
