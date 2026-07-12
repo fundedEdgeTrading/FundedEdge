@@ -150,32 +150,35 @@ else
                     }
                 </div>
             }
-            <EditForm Model="_payoutForm" OnValidSubmit="AddPayoutAsync" class="row g-2 align-items-end mb-2">
-                <div class="col-3">
-                    <label class="form-label">@L["Solicitado"]</label>
-                    <InputNumber class="form-control" @bind-Value="_payoutForm.AmountRequested" />
-                </div>
-                <div class="col-3">
-                    <label class="form-label">@L["Recibido"]</label>
-                    <InputNumber class="form-control" @bind-Value="_payoutForm.AmountReceived" />
-                </div>
-                <div class="col-3">
-                    <label class="form-label">@L["Fecha solicitud"]</label>
-                    <InputDate class="form-control" @bind-Value="_payoutForm.RequestedOn" />
-                </div>
-                <div class="col-2">
-                    <label class="form-label">@L["Estado"]</label>
-                    <InputSelect class="form-select" @bind-Value="_payoutForm.Status">
-                        @foreach (var v in Enum.GetValues<PayoutStatus>())
-                        {
-                            <option value="@v">@v</option>
-                        }
-                    </InputSelect>
-                </div>
-                <div class="col-1">
-                    <button type="submit" class="btn btn-primary">+</button>
-                </div>
-            </EditForm>
+            @if (CanRequestPayout)
+            {
+                <EditForm Model="_payoutForm" OnValidSubmit="AddPayoutAsync" class="row g-2 align-items-end mb-2">
+                    <div class="col-3">
+                        <label class="form-label">@L["Solicitado"]</label>
+                        <InputNumber class="form-control" @bind-Value="_payoutForm.AmountRequested" />
+                    </div>
+                    <div class="col-3">
+                        <label class="form-label">@L["Recibido"]</label>
+                        <InputNumber class="form-control" @bind-Value="_payoutForm.AmountReceived" />
+                    </div>
+                    <div class="col-3">
+                        <label class="form-label">@L["Fecha solicitud"]</label>
+                        <InputDate class="form-control" @bind-Value="_payoutForm.RequestedOn" />
+                    </div>
+                    <div class="col-2">
+                        <label class="form-label">@L["Estado"]</label>
+                        <InputSelect class="form-select" @bind-Value="_payoutForm.Status">
+                            @foreach (var v in Enum.GetValues<PayoutStatus>())
+                            {
+                                <option value="@v">@v</option>
+                            }
+                        </InputSelect>
+                    </div>
+                    <div class="col-1">
+                        <button type="submit" class="btn btn-primary">+</button>
+                    </div>
+                </EditForm>
+            }
             <ul class="list-group mb-4">
                 @foreach (var payout in _account.Payouts)
                 {
@@ -377,6 +380,9 @@ else
 
     private decimal TotalCosts => _account?.Costs.Sum(c => c.Amount) ?? 0m;
     private decimal TotalPayouts => _account?.Payouts.Sum(p => p.AmountReceived) ?? 0m;
+
+    private bool CanRequestPayout => _account is { Stage: AccountStage.Funded }
+        && (_account.NextPayoutEligibleOn is not { } d || d.DayNumber <= DateOnly.FromDateTime(DateTime.Today).DayNumber);
 
     private TransitionFormModel _transition = new();
     private CostFormModel _costForm = new();
