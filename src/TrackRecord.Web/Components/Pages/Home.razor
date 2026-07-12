@@ -189,10 +189,10 @@ else
     private int _pendingEmotionCount;
     private IReadOnlyList<AccountComplianceStatusDto>? _compliance;
 
-    private PeriodPreset _preset = PeriodPreset.Month;
+    private PeriodPreset _preset = PeriodPreset.All;
     private DateOnly _customStart = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-30));
     private DateOnly _customEnd = DateOnly.FromDateTime(DateTime.UtcNow);
-    private DateOnly _periodStart;
+    private DateOnly? _periodStart;
     private DateOnly _periodEnd;
     private PeriodKpis? _periodKpis;
     private PeriodKpis? _previousPeriodKpis;
@@ -211,7 +211,7 @@ else
 
     private string RangeLabel => _preset == PeriodPreset.All
         ? L["Todo"]
-        : $"{PresetDisplayName(_preset)} · {_periodStart:d MMM} – {_periodEnd:d MMM}";
+        : $"{PresetDisplayName(_preset)} · {_periodStart!.Value:d MMM} – {_periodEnd:d MMM}";
 
     [CascadingParameter]
     private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthState { get; set; }
@@ -269,9 +269,10 @@ else
 
         if (_preset != PeriodPreset.All)
         {
-            var days = _periodEnd.DayNumber - _periodStart.DayNumber + 1;
-            var prevStart = _periodStart.AddDays(-days);
-            var prevEnd = _periodStart.AddDays(-1);
+            var periodStart = _periodStart!.Value;
+            var days = _periodEnd.DayNumber - periodStart.DayNumber + 1;
+            var prevStart = periodStart.AddDays(-days);
+            var prevEnd = periodStart.AddDays(-1);
             _previousPeriodKpis = await KpiService.GetPeriodKpisAsync(prevStart, prevEnd);
         }
         else
@@ -285,7 +286,7 @@ else
         _evalDelta = ComputeDelta(_periodKpis.EvaluationsPurchased, _previousPeriodKpis?.EvaluationsPurchased, higherIsBetter: false);
     }
 
-    private static (DateOnly Start, DateOnly End) ResolvePeriod(PeriodPreset preset, DateOnly customStart, DateOnly customEnd)
+    private static (DateOnly? Start, DateOnly End) ResolvePeriod(PeriodPreset preset, DateOnly customStart, DateOnly customEnd)
     {
         var today = DateOnly.FromDateTime(DateTime.UtcNow.Date);
         return preset switch
@@ -294,7 +295,7 @@ else
             PeriodPreset.Month => (new DateOnly(today.Year, today.Month, 1), today),
             PeriodPreset.Quarter => (new DateOnly(today.Year, ((today.Month - 1) / 3) * 3 + 1, 1), today),
             PeriodPreset.Year => (new DateOnly(today.Year, 1, 1), today),
-            PeriodPreset.All => (DateOnly.MinValue, today),
+            PeriodPreset.All => (null, today),
             PeriodPreset.Custom => (customStart, customEnd),
             _ => (today.AddDays(-6), today),
         };
