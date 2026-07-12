@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: fundededge-web
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    region: frankfurt          # misma región que tu PostgreSQL
+    plan: starter
+    branch: main               # rama que dispara el auto-deploy
+    autoDeploy: true           # deploy automático en cada push a main
+    healthCheckPath: /
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: DataProtection__KeysPath
+        value: /var/dataprotection-keys   # debe coincidir con el mountPath del disco
+      - key: ConnectionStrings__Default
+        sync: false            # secreto: se rellena a mano en Render, no se versiona
+    disk:                      # persiste los keys de Data Protection (disco no efímero)
+      name: dataprotection-keys
+      mountPath: /var/dataprotection-keys
+      sizeGB: 1
