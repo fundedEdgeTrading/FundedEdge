@@ -173,6 +173,13 @@ public class AccountProgressService(
 
         var minDaysOk = program.FundedMinTradingDays is null || fundedTradingDays >= program.FundedMinTradingDays.Value;
 
+        // Mejor día para la regla de consistencia (fase fondeada)
+        var fundedBestDayPnL = tradesAfterFunding
+            .GroupBy(t => DateOnly.FromDateTime(t.ClosedAt.Date))
+            .Select(g => g.Sum(t => t.GrossPnL - t.Commissions))
+            .DefaultIfEmpty(0m)
+            .Max();
+
         DateOnly? nextPayoutEligibleOn = null;
         if (program.PayoutMinDaysBetween.HasValue)
         {
@@ -203,7 +210,9 @@ public class AccountProgressService(
             isPayoutEligible,
             isPayoutEligible ? null : nextPayoutEligibleOn,
             fundedTradingDays,
-            program.FundedMinTradingDays);
+            program.FundedMinTradingDays,
+            program.ConsistencyMaxDayFraction,
+            fundedBestDayPnL);
     }
 
     // ── Helpers ─────────────────────────────────────────────────────────────────────────────
