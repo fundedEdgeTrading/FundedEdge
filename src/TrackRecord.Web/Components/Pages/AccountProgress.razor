@@ -35,17 +35,32 @@ else
 
         <div class="row g-3 mb-4">
             <div class="col-12">
+                @{
+                    var epRequired = ep.ConsistencyMaxDayFraction is { } epF && epF > 0m
+                        ? ConsistencyGoal(epF, ep.BestDayPnL, ep.CurrentPnL).RequiredProfit
+                        : 0m;
+                    var epEffectiveTarget = Math.Max(ep.ProfitTarget, epRequired);
+                    var epEffectivePct = epEffectiveTarget > 0m ? (double)(ep.CurrentPnL / epEffectiveTarget) : 0d;
+                    var epConsistencyRaises = epRequired > ep.ProfitTarget;
+                }
                 <div class="card">
                     <div class="card-body">
                         <h5 class="card-title">🎯 Profit Target</h5>
                         <div class="d-flex justify-content-between mb-1">
-                            <span>@Currency.Format(ep.CurrentPnL) / @Currency.Format(ep.ProfitTarget)</span>
-                            <span class="@(ep.ProfitTargetPct >= 1 ? "text-success fw-bold" : "")">@ep.ProfitTargetPct.ToString("P1")</span>
+                            <span>@Currency.Format(ep.CurrentPnL) / @Currency.Format(epEffectiveTarget)</span>
+                            <span class="@(epEffectivePct >= 1 ? "text-success fw-bold" : "")">@epEffectivePct.ToString("P1")</span>
                         </div>
                         <div class="progress" style="height:12px">
-                            <div class="progress-bar @(ep.ProfitTargetPct >= 1 ? "bg-success" : "bg-primary")"
-                                 style="width:@(Math.Min(ep.ProfitTargetPct * 100, 100).ToString("F1", System.Globalization.CultureInfo.InvariantCulture))%"></div>
+                            <div class="progress-bar @(epEffectivePct >= 1 ? "bg-success" : "bg-primary")"
+                                 style="width:@(Math.Min(epEffectivePct * 100, 100).ToString("F1", System.Globalization.CultureInfo.InvariantCulture))%"></div>
                         </div>
+                        @if (epConsistencyRaises)
+                        {
+                            <p class="mb-0 mt-2 text-muted small">
+                                @L["Objetivo base"]: @Currency.Format(ep.ProfitTarget) ·
+                                @L["elevado por la regla de consistencia a"] <span class="fw-bold">@Currency.Format(epEffectiveTarget)</span>
+                            </p>
+                        }
                     </div>
                 </div>
             </div>
@@ -97,7 +112,21 @@ else
                             <h6 class="card-title">📐 @L["Regla de consistencia"]</h6>
                             <p class="mb-1"><strong>@L["Mejor día"]:</strong> @Currency.Format(ep.BestDayPnL)</p>
                             <p class="mb-1">@L["Fracción"]: <span class="@(ep.BestDayFraction > (double)ep.ConsistencyMaxDayFraction.Value ? "text-danger fw-bold" : "")">@ep.BestDayFraction.ToString("P1")</span></p>
-                            <p class="mb-0 text-muted small">@L["Máximo permitido"]: @ep.ConsistencyMaxDayFraction.Value.ToString("P0")</p>
+                            <p class="mb-1 text-muted small">@L["Máximo permitido"]: @ep.ConsistencyMaxDayFraction.Value.ToString("P0")</p>
+                            @{
+                                var epGoal = ConsistencyGoal(ep.ConsistencyMaxDayFraction.Value, ep.BestDayPnL, ep.CurrentPnL);
+                            }
+                            <hr class="my-2" />
+                            <p class="mb-1"><strong>@L["Para cumplir con el equity actual"]:</strong></p>
+                            <p class="mb-1 small">@L["Días mínimos"]: <span class="fw-bold">@epGoal.MinDays</span></p>
+                            @if (epGoal.AdditionalNeeded > 0m)
+                            {
+                                <p class="mb-0 small">@L["Profit adicional"]: <span class="fw-bold text-warning">@Currency.Format(epGoal.AdditionalNeeded)</span> <span class="text-muted">(@L["total"] @Currency.Format(epGoal.RequiredProfit))</span></p>
+                            }
+                            else
+                            {
+                                <p class="mb-0 small"><span class="badge text-bg-success">@L["Profit suficiente ✓"]</span></p>
+                            }
                         </div>
                     </div>
                 </div>
@@ -222,6 +251,31 @@ else
                     </div>
                 </div>
             </div>
+
+            @if (fp.ConsistencyMaxDayFraction is { } fpFraction && fpFraction > 0m)
+            {
+                var fpGoal = ConsistencyGoal(fpFraction, fp.BestDayPnL, fp.ProfitSinceFunded);
+                <div class="col-md-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h6 class="card-title">📐 @L["Regla de consistencia"]</h6>
+                            <p class="mb-1"><strong>@L["Mejor día"]:</strong> @Currency.Format(fp.BestDayPnL)</p>
+                            <p class="mb-1 text-muted small">@L["Máximo permitido"]: @fpFraction.ToString("P0")</p>
+                            <hr class="my-2" />
+                            <p class="mb-1"><strong>@L["Para cumplir con el equity actual"]:</strong></p>
+                            <p class="mb-1 small">@L["Días mínimos"]: <span class="fw-bold">@fpGoal.MinDays</span></p>
+                            @if (fpGoal.AdditionalNeeded > 0m)
+                            {
+                                <p class="mb-0 small">@L["Profit adicional"]: <span class="fw-bold text-warning">@Currency.Format(fpGoal.AdditionalNeeded)</span> <span class="text-muted">(@L["total"] @Currency.Format(fpGoal.RequiredProfit))</span></p>
+                            }
+                            else
+                            {
+                                <p class="mb-0 small"><span class="badge text-bg-success">@L["Profit suficiente ✓"]</span></p>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
         </div>
     }
 
@@ -271,6 +325,18 @@ else
         >= 0.8 => "bg-warning",
         _      => "bg-success",
     };
+
+    // Objetivo de consistencia: para que el mejor día no supere la fracción f del profit total,
+    // el profit total debe ser al menos bestDay / f, y hacen falta como mínimo ⌈1/f⌉ días ganadores.
+    private static (int MinDays, decimal RequiredProfit, decimal AdditionalNeeded) ConsistencyGoal(
+        decimal fraction, decimal bestDayPnL, decimal currentProfit)
+    {
+        if (fraction <= 0m) return (0, 0m, 0m);
+        var minDays = (int)Math.Ceiling(1m / fraction);
+        var requiredProfit = bestDayPnL > 0m ? bestDayPnL / fraction : 0m;
+        var additionalNeeded = Math.Max(0m, requiredProfit - currentProfit);
+        return (minDays, requiredProfit, additionalNeeded);
+    }
 
     private static string PassProbabilityClass(double p) => p switch
     {

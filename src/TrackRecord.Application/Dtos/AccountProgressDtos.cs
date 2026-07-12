@@ -79,7 +79,13 @@ public record FundedProgressDto(
     DateOnly? NextPayoutEligibleOn,
     /// <summary>Días de trading en la fase fondeada completados.</summary>
     int FundedTradingDaysCompleted,
-    int? FundedMinTradingDays);
+    int? FundedMinTradingDays,
+
+    // ── Consistencia (null si el programa no tiene la regla) ─────────────────────
+    /// <summary>Fracción máxima del profit total que puede aportar un solo día (null = sin regla).</summary>
+    decimal? ConsistencyMaxDayFraction,
+    /// <summary>Beneficio del mejor día desde el fondeo.</summary>
+    decimal BestDayPnL);
 
 /// <summary>
 /// Wrapper que contiene el progreso de una cuenta. Solo uno de los dos campos de progreso
