@@ -206,6 +206,77 @@ public class KpiService(IDbContextFactory<TrackRecordDbContext> dbFactory, ICurr
         return result;
     }
 
+    public async Task<PeriodKpis> GetPeriodKpisAsync(DateOnly start, DateOnly end, CancellationToken ct = default)
+    {
+        var userId = await currentUser.RequireUserIdAsync();
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
+
+        var costs = await db.AccountCosts.AsNoTracking()
+            .Where(c => c.Account!.UserId == userId)
+            .Where(c => c.PaidOn >= start && c.PaidOn <= end)
+            .Select(c => new { c.PaidOn, c.Amount })
+            .ToListAsync(ct);
+
+        var payouts = await db.Payouts.AsNoTracking()
+            .Where(p => p.Account!.UserId == userId)
+            .Where(p => (p.PaidOn ?? p.RequestedOn) >= start && (p.PaidOn ?? p.RequestedOn) <= end)
+            .Select(p => new { Date = p.PaidOn ?? p.RequestedOn, p.AmountReceived })
+            .ToListAsync(ct);
+
+        var evaluationsPurchased = await db.TradingAccounts.AsNoTracking()
+            .Where(a => a.UserId == userId)
+            .Where(a => a.PurchasedOn >= start && a.PurchasedOn <= end)
+            .CountAsync(ct);
+
+        var totalCosts = costs.Sum(c => c.Amount);
+        var totalPayouts = payouts.Sum(p => p.AmountReceived);
+
+        var movements = costs.Select(c => (Date: c.PaidOn, Cost: c.Amount, Payout: 0m))
+            .Concat(payouts.Select(p => (Date: p.Date, Cost: 0m, Payout: p.AmountReceived)))
+            .ToList();
+
+        return new PeriodKpis(
+            Start: start,
+            End: end,
+            TotalCosts: totalCosts,
+            TotalPayouts: totalPayouts,
+            NetCashflow: totalPayouts - totalCosts,
+            EvaluationsPurchased: evaluationsPurchased,
+            Roi: totalCosts > 0 ? (double)((totalPayouts - totalCosts) / totalCosts) : null,
+            EquityCurve: BuildEquityCurve(start, end, movements));
+    }
+
+    // Agrega los movimientos (costes/payouts) del rango en clamp(días, 7, 26) bins uniformes, con
+    // el neto acumulado del periodo (no el histórico completo de la cuenta).
+    private static IReadOnlyList<EquityBinPoint> BuildEquityCurve(DateOnly start, DateOnly end, IReadOnlyList<(DateOnly Date, decimal Cost, decimal Payout)> movements)
+    {
+        var totalDays = end.DayNumber - start.DayNumber + 1;
+        var bins = Math.Clamp(totalDays, 7, 26);
+        var result = new List<EquityBinPoint>(bins);
+        decimal cumulative = 0m;
+
+        for (var i = 0; i < bins; i++)
+        {
+            var binStart = start.AddDays((int)((long)totalDays * i / bins));
+            var binEnd = i == bins - 1 ? end : start.AddDays((int)((long)totalDays * (i + 1) / bins) - 1);
+
+            decimal dayCost = 0m, dayPayout = 0m;
+            foreach (var m in movements)
+            {
+                if (m.Date >= binStart && m.Date <= binEnd)
+                {
+                    dayCost += m.Cost;
+                    dayPayout += m.Payout;
+                }
+            }
+
+            cumulative += dayPayout - dayCost;
+            result.Add(new EquityBinPoint(binEnd, cumulative, dayCost, dayPayout));
+        }
+
+        return result;
+    }
+
     public async Task<IReadOnlyList<TagPerformanceDto>> GetTagPerformanceAsync(CancellationToken ct = default)
     {
         var userId = await currentUser.RequireUserIdAsync();

@@ -1,0 +1,158 @@
+@* Curva de equidad (costes + payouts acumulados del periodo filtrado) — línea suavizada con
+   Bézier cúbica (a diferencia de CashflowChart, que usa polyline recta), área con gradiente y
+   tooltip "premium" por bin vía rects transparentes + @onmouseenter (sin JS interop). *@
+
+<div class="equity-wrap" @onmouseleave="ClearHover">
+    <svg class="chart-svg equity-svg" viewBox="0 0 @W @H" preserveAspectRatio="xMidYMid meet" role="img"
+         aria-label="@L["Curva de equidad: costes y payouts acumulados del periodo"]">
+        <defs>
+            <linearGradient id="equityFillGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#2fd6a3" stop-opacity="0.32" />
+                <stop offset="100%" stop-color="#2fd6a3" stop-opacity="0" />
+            </linearGradient>
+        </defs>
+
+        @foreach (var tick in _ticks)
+        {
+            <line class="chart-gridline @(tick == 0m ? "chart-zero" : "")"
+                  x1="@PadL" x2="@(W - PadR)" y1="@F(Y(tick))" y2="@F(Y(tick))" />
+            @SvgText("chart-tick", PadL - 8, Y(tick) + 3.5, "end", Compact(tick))
+        }
+
+        <path class="equity-area" d="@_areaPath" fill="url(#equityFillGrad)" stroke="none" />
+        <path class="equity-line" d="@_linePath" fill="none" />
+
+        @for (var i = 0; i < Points.Count; i++)
+        {
+            var idx = i;
+            var p = Points[idx];
+            var cx = SlotCenter(idx);
+            var cy = Y(p.Cumulative);
+
+            <rect class="equity-hit" x="@F(cx - SlotW / 2)" y="@PadT" width="@F(SlotW)" height="@F(H - PadT - PadB)"
+                  fill="transparent" @onmouseenter="() => SetHover(idx)" />
+
+            @if (ShowLabel(idx))
+            {
+                @SvgText("chart-tick", cx, H - 8, "middle", DateLabel(p.Date))
+            }
+
+            @if (_hoverIndex == idx)
+            {
+                <line class="equity-guide" x1="@F(cx)" x2="@F(cx)" y1="@PadT" y2="@F(H - PadB)" />
+                <circle class="equity-dot-halo" cx="@F(cx)" cy="@F(cy)" r="9" />
+                <circle class="equity-dot" cx="@F(cx)" cy="@F(cy)" r="4" />
+            }
+        }
+    </svg>
+
+    @if (_hoverIndex is { } hi)
+    {
+        var hp = Points[hi];
+        var leftPct = Math.Clamp((SlotCenter(hi) / W) * 100, 8, 92);
+        var topPct = Math.Clamp((Y(hp.Cumulative) / H) * 100, 8, 60);
+        <div class="equity-tooltip" style="left:@(F(leftPct))%; top:@(F(topPct))%;">
+            <div class="equity-tooltip-date">@FullDateLabel(hp.Date)</div>
+            <div class="equity-tooltip-value">@Currency.Format(hp.Cumulative, 0)</div>
+            <div class="equity-tooltip-row good"><span>@L["Payouts"]</span><span>@Currency.Format(hp.DayPayout, 0)</span></div>
+            <div class="equity-tooltip-row bad"><span>@L["Costes"]</span><span>@Currency.Format(hp.DayCost, 0)</span></div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<EquityBinPoint> Points { get; set; } = [];
+    [Parameter, EditorRequired] public CurrencyState Currency { get; set; } = null!;
+    [Inject] private IStringLocalizer<SharedResources> L { get; set; } = null!;
+
+    private const int W = 760, H = 260, PadL = 58, PadR = 20, PadT = 18, PadB = 32;
+
+    private decimal[] _ticks = [];
+    private decimal _maxUp, _maxDown;
+    private string _linePath = "";
+    private string _areaPath = "";
+    private int? _hoverIndex;
+
+    protected override void OnParametersSet()
+    {
+        _hoverIndex = null;
+        if (Points.Count == 0)
+        {
+            return;
+        }
+
+        _maxUp = Math.Max(Points.Max(p => p.Cumulative), 0m);
+        _maxDown = Math.Max(-Points.Min(p => p.Cumulative), 0m);
+        if (_maxUp == 0 && _maxDown == 0) { _maxUp = 1; }
+
+        var step = NiceStep((_maxUp + _maxDown) / 4m);
+        _maxUp = step * Math.Ceiling(_maxUp / step);
+        _maxDown = step * Math.Ceiling(_maxDown / step);
+
+        var ticks = new List<decimal>();
+        for (var t = -_maxDown; t <= _maxUp; t += step) { ticks.Add(t); }
+        _ticks = [.. ticks];
+
+        var pts = Enumerable.Range(0, Points.Count)
+            .Select(i => (X: SlotCenter(i), Y: Y(Points[i].Cumulative)))
+            .ToList();
+        _linePath = BuildSmoothPath(pts);
+        _areaPath = $"{_linePath} L{F(pts[^1].X)},{F(Y(0))} L{F(pts[0].X)},{F(Y(0))} Z";
+    }
+
+    private void SetHover(int index) => _hoverIndex = index;
+    private void ClearHover() => _hoverIndex = null;
+
+    private double SlotW => (double)(W - PadL - PadR) / Points.Count;
+    private double SlotCenter(int i) => PadL + SlotW * (i + 0.5);
+
+    private double Y(decimal value)
+    {
+        var domain = _maxUp + _maxDown;
+        return PadT + (double)((_maxUp - value) / domain) * (H - PadT - PadB);
+    }
+
+    private bool ShowLabel(int i) =>
+        Points.Count <= 6 || i % Math.Max(1, (int)Math.Ceiling(Points.Count / 6.0)) == 0 || i == Points.Count - 1;
+
+    private static string DateLabel(DateOnly d) => d.ToString("d MMM");
+    private static string FullDateLabel(DateOnly d) => d.ToString("d MMM yyyy");
+
+    // Curva Bézier cúbica entre puntos consecutivos: control points a mitad de camino en X, cada
+    // uno alineado en Y con su extremo — produce una curva suave sin overshoot entre bins.
+    private static string BuildSmoothPath(List<(double X, double Y)> pts)
+    {
+        if (pts.Count == 0) { return ""; }
+
+        var sb = new System.Text.StringBuilder($"M{F(pts[0].X)},{F(pts[0].Y)}");
+        for (var i = 0; i < pts.Count - 1; i++)
+        {
+            var (x0, y0) = pts[i];
+            var (x1, y1) = pts[i + 1];
+            var midX = (x0 + x1) / 2;
+            sb.Append($" C{F(midX)},{F(y0)} {F(midX)},{F(y1)} {F(x1)},{F(y1)}");
+        }
+        return sb.ToString();
+    }
+
+    private static decimal NiceStep(decimal rough)
+    {
+        if (rough <= 0) { return 1; }
+        var magnitude = (decimal)Math.Pow(10, Math.Floor(Math.Log10((double)rough)));
+        var residual = rough / magnitude;
+        return residual switch { <= 1 => magnitude, <= 2 => 2 * magnitude, <= 5 => 5 * magnitude, _ => 10 * magnitude };
+    }
+
+    private string Compact(decimal v)
+    {
+        var abs = Math.Abs(v);
+        var symbol = TrackRecord.Domain.Common.CurrencyFormatter.Symbol(Currency.Current);
+        return abs >= 1000 ? $"{symbol}{v / 1000m:0.#}k" : $"{symbol}{v:0}";
+    }
+
+    private static string F(double v) => v.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
+
+    // Razor reserva la etiqueta <text>, así que los textos SVG se emiten como marcado.
+    private static MarkupString SvgText(string cls, double x, double y, string anchor, string content) =>
+        new($"<text class=\"{cls}\" x=\"{F(x)}\" y=\"{F(y)}\" text-anchor=\"{anchor}\">{System.Net.WebUtility.HtmlEncode(content)}</text>");
+}

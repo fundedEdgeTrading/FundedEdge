@@ -2292,4 +2292,49 @@
   <data name="Bankroll" xml:space="preserve">
     <value>Bankroll</value>
   </data>
+  <data name="Periodo" xml:space="preserve">
+    <value>Period</value>
+  </data>
+  <data name="Personalizado" xml:space="preserve">
+    <value>Custom</value>
+  </data>
+  <data name="Desde" xml:space="preserve">
+    <value>From</value>
+  </data>
+  <data name="Hasta" xml:space="preserve">
+    <value>To</value>
+  </data>
+  <data name="Aplicar" xml:space="preserve">
+    <value>Apply</value>
+  </data>
+  <data name="Última semana" xml:space="preserve">
+    <value>Last week</value>
+  </data>
+  <data name="Mes actual" xml:space="preserve">
+    <value>This month</value>
+  </data>
+  <data name="Trimestre" xml:space="preserve">
+    <value>Quarter</value>
+  </data>
+  <data name="Año actual" xml:space="preserve">
+    <value>This year</value>
+  </data>
+  <data name="Todo" xml:space="preserve">
+    <value>All</value>
+  </data>
+  <data name="Total costes" xml:space="preserve">
+    <value>Total costs</value>
+  </data>
+  <data name="Evaluaciones compradas" xml:space="preserve">
+    <value>Evaluations purchased</value>
+  </data>
+  <data name="sobre {0} evaluaciones en el periodo" xml:space="preserve">
+    <value>over {0} evaluations in the period</value>
+  </data>
+  <data name="{0} fondeadas · {1} quemadas (histórico)" xml:space="preserve">
+    <value>{0} funded · {1} burned (all-time)</value>
+  </data>
+  <data name="Curva de equidad: costes y payouts acumulados del periodo" xml:space="preserve">
+    <value>Equity curve: cumulative costs and payouts for the period</value>
+  </data>
 </root>
