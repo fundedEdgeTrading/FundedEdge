@@ -58,7 +58,7 @@ else
     <div class="kpi-grid mt-3">
         <KpiCard Title="@L["Costes totales"]" Value="@Currency.Format(TotalCosts)" />
         <KpiCard Title="@L["Payouts recibidos"]" Value="@Currency.Format(TotalPayouts)" />
-        <KpiCard Title="Profit target" Value="@Currency.Format(_account.ProfitTarget, 0)" />
+        <KpiCard Title="Profit target" Value="@Currency.Format(_account.EffectiveProfitTarget > 0 ? _account.EffectiveProfitTarget : _account.ProfitTarget, 0)" />
         <KpiCard Title="Max drawdown" Value="@Currency.Format(_account.MaxDrawdown, 0)" />
     </div>
 

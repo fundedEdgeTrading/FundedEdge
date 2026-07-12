@@ -50,8 +50,11 @@
     [Parameter] public AccountComplianceStatusDto? Compliance { get; set; }
     [Parameter] public EventCallback<Guid> OnOpen { get; set; }
 
-    private int TargetPct => Account.ProfitTarget <= 0 ? 0
-        : (int)Math.Clamp(Math.Round(Account.NetPnL / Account.ProfitTarget * 100), 0, 100);
+    // Objetivo efectivo: incluye la elevación por la regla de consistencia si aplica.
+    private decimal EffectiveTarget => Account.EffectiveProfitTarget > 0 ? Account.EffectiveProfitTarget : Account.ProfitTarget;
+
+    private int TargetPct => EffectiveTarget <= 0 ? 0
+        : (int)Math.Clamp(Math.Round(Account.NetPnL / EffectiveTarget * 100), 0, 100);
 
     // Fracción consumida del colchón de drawdown: mismo cálculo que el semáforo de reglas
     // (RuleComplianceService), aquí solo para el color/ancho del medidor de la tarjeta.

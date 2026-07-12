@@ -155,7 +155,10 @@ h6.card-title {
 .content {
     padding-top: 1.9rem;
     padding-bottom: 3.5rem;
-    max-width: 1280px;
+    /* Sin cap de ancho: el contenido aprovecha todo el espacio disponible a la derecha en
+       pantallas grandes. El responsive lo mantienen el padding lateral y los grids fluidos. */
+    max-width: none;
+    width: 100%;
 }
 
 /* ---------- Cards ---------- */
