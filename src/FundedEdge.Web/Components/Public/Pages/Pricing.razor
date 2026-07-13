@@ -75,30 +75,34 @@
     // Instancia (no static) porque las features salen del localizador de la petición actual.
     private PublicPlan[] Catalog =>
     [
-        new("Starter", L["Gratis"], null, L["Para probar la app"],
+        new("Starter", L["Gratis"], null, L["Para empezar y ver la verdad de tus números"],
         [
             L["{0} cuentas activas", PlanLimits.For(PlanTier.Starter).MaxActiveAccounts!],
+            L["Dashboard de KPIs de negocio y trading"],
+            L["Diario de trades y diario emocional"],
             L["Firm Fit: tu mejor programa"],
             L["Semáforo EV básico"],
             L["{0} informe IA cada {1} días", PlanLimits.For(PlanTier.Starter).AiReportsPerWindow, PlanLimits.For(PlanTier.Starter).AiReportWindowDays],
             L["{0} preguntas IA al mes", PlanLimits.For(PlanTier.Starter).AiQuestionsPerMonth!],
         ], false),
-        new("Pro", "14,99 €/mes", 149m, L["Para el trader con varias cuentas"],
+        new("Pro", "14,99 €/mes", 149m, L["Para el trader con varias cuentas que va en serio"],
         [
             L["{0} cuentas activas", PlanLimits.For(PlanTier.Pro).MaxActiveAccounts!],
-            L["Importación de CSV (Tradovate / NinjaTrader 8)"],
-            L["Firm Fit completo: ranking, reglas y plan de compra"],
+            L["Sincronización automática (Tradovate / NinjaTrader)"],
+            L["Firm Fit completo: ranking, sensibilidad a reglas y plan de compra"],
             L["Módulo de riesgo completo (Monte Carlo, EV, Kelly)"],
-            L["{0} informe IA cada {1} días", PlanLimits.For(PlanTier.Pro).AiReportsPerWindow, PlanLimits.For(PlanTier.Pro).AiReportWindowDays],
+            L["Alertas de drawdown"],
+            L["Informe IA semanal automático"],
             L["{0} preguntas IA al mes", PlanLimits.For(PlanTier.Pro).AiQuestionsPerMonth!],
+            L["Export PDF del track record"],
         ], true),
-        new("Elite", "29,99 €/mes", 299m, L["Para el operador serio"],
+        new("Elite", "29,99 €/mes", 299m, L["Para el operador multi-cuenta que quiere ventaja"],
         [
-            L["Cuentas activas ilimitadas"],
-            L["Firm Fit completo: ranking, reglas y plan de compra"],
-            L["{0} informe IA cada {1} día (modelo avanzado)", PlanLimits.For(PlanTier.Elite).AiReportsPerWindow, PlanLimits.For(PlanTier.Elite).AiReportWindowDays],
-            L["Preguntas IA ilimitadas"],
-            L["Track record público"],
+            L["Cuentas activas ilimitadas · todo lo de Pro"],
+            L["IA con el modelo más avanzado (Opus): análisis mucho más profundo"],
+            L["1 informe IA al día · preguntas IA ilimitadas"],
+            L["Track record público verificado"],
+            L["Perfiles Elite: benchmarking e inspiración IA de los mejores"],
         ], false),
     ];
 }

@@ -2337,4 +2337,52 @@
   <data name="Curva de equidad: costes y payouts acumulados del periodo" xml:space="preserve">
     <value>Equity curve: cumulative costs and payouts for the period</value>
   </data>
+  <data name="Para empezar y ver la verdad de tus números" xml:space="preserve">
+    <value>To get started and see the truth of your numbers</value>
+  </data>
+  <data name="Para el trader con varias cuentas que va en serio" xml:space="preserve">
+    <value>For the trader with several accounts who means business</value>
+  </data>
+  <data name="Para el operador multi-cuenta que quiere ventaja" xml:space="preserve">
+    <value>For the multi-account operator who wants an edge</value>
+  </data>
+  <data name="Dashboard de KPIs de negocio y trading" xml:space="preserve">
+    <value>Business and trading KPI dashboard</value>
+  </data>
+  <data name="Diario de trades y diario emocional" xml:space="preserve">
+    <value>Trade journal and emotional diary</value>
+  </data>
+  <data name="Firm Fit completo: ranking, sensibilidad a reglas y plan de compra" xml:space="preserve">
+    <value>Full Firm Fit: ranking, rule sensitivity and purchase plan</value>
+  </data>
+  <data name="Alertas de drawdown" xml:space="preserve">
+    <value>Drawdown alerts</value>
+  </data>
+  <data name="Informe IA semanal automático" xml:space="preserve">
+    <value>Automatic weekly AI report</value>
+  </data>
+  <data name="Export PDF del track record" xml:space="preserve">
+    <value>PDF export of your track record</value>
+  </data>
+  <data name="Cuentas activas ilimitadas · todo lo de Pro" xml:space="preserve">
+    <value>Unlimited active accounts · everything in Pro</value>
+  </data>
+  <data name="IA con el modelo más avanzado (Opus): análisis mucho más profundo" xml:space="preserve">
+    <value>AI with the most advanced model (Opus): far deeper analysis</value>
+  </data>
+  <data name="1 informe IA al día · preguntas IA ilimitadas" xml:space="preserve">
+    <value>1 AI report per day · unlimited AI questions</value>
+  </data>
+  <data name="Track record público verificado" xml:space="preserve">
+    <value>Verified public track record</value>
+  </data>
+  <data name="Perfiles Elite: benchmarking e inspiración IA de los mejores" xml:space="preserve">
+    <value>Elite profiles: benchmarking and AI inspiration from the best</value>
+  </data>
+  <data name="1 informe IA al mes · 3 preguntas IA al mes" xml:space="preserve">
+    <value>1 AI report per month · 3 AI questions per month</value>
+  </data>
+  <data name="Informe IA semanal automático · 30 preguntas IA al mes" xml:space="preserve">
+    <value>Automatic weekly AI report · 30 AI questions per month</value>
+  </data>
 </root>

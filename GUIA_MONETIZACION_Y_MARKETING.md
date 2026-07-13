@@ -32,6 +32,8 @@
    - [F5 — Features de crecimiento](#f5--features-de-crecimiento)
 7. [Convenciones obligatorias del repo](#7-convenciones-obligatorias-del-repo)
 8. [Métricas de éxito (KPIs SaaS)](#8-métricas-de-éxito-kpis-saas)
+9. [Ruta de ventas — playbook para vender mucho](#9-ruta-de-ventas--playbook-para-vender-mucho)
+10. [Plan financiero y escenarios](#10-plan-financiero-y-escenarios)
 
 ---
 
@@ -85,18 +87,25 @@ en journaling: **ganamos siendo el CFO del trader de fondeo.**
 > rentable, cuánto bankroll necesitas y qué arreglar primero — con tus datos, no con
 > promesas."**
 
-### 2.2 Los 4 diferenciadores a explotar (ya existen en el producto)
+### 2.2 Los diferenciadores a explotar (ya existen en el producto)
 
-1. **KPIs de negocio de fondeo** (pass rate, coste por cuenta fondeada, ROI, cashflow
+1. **Firm Fit** (`/firm-fit`): el motor prescriptivo que cruza TU distribución de PnL con
+   las reglas de cada programa y te dice **qué evaluación comprar** — ranking por EV, no por
+   precio. Es la feature que convierte la app de contable en asesor de compras y el foso a
+   largo plazo (ver `GUIA_FEATURE_DIFERENCIADORA.md`).
+2. **KPIs de negocio de fondeo** (pass rate, coste por cuenta fondeada, ROI, cashflow
    neto mensual) — nadie más los tiene como ciudadano de primera clase.
-2. **Módulo de riesgo cuantitativo** (`/risk`): Monte Carlo de ruina del bankroll,
+3. **Módulo de riesgo cuantitativo** (`/risk`): Monte Carlo de ruina del bankroll,
    bankroll mínimo recomendado, EV por evaluación con intervalo de confianza, Kelly.
    Es material de nivel institucional aplicado al fondeo retail.
-3. **Analista IA** (`/ai`): informes que citan las métricas exactas del usuario y su
-   viabilidad — no un chatbot genérico. Con límites por plan se convierte en el motor
-   principal de upgrade.
-4. **Sync automático** (Tradovate + AddOn NinjaTrader 8): elimina la fricción nº 1
+4. **Analista IA** (`/ai`): informes que citan las métricas exactas del usuario y su
+   viabilidad — no un chatbot genérico. Con límites por plan (y modelo Opus en Elite) es el
+   motor principal de upgrade.
+5. **Sync automático** (Tradovate + AddOn NinjaTrader 8): elimina la fricción nº 1
    (picar trades a mano) que mata la retención en todos los journals.
+6. **Psicología / diario emocional** (`/psychology`): check-in diario y diario emocional
+   cruzados con la operativa real. Coste IA cero, crea hábito diario (retención) y es un
+   ángulo que ningún journal de fondeo trabaja en serio.
 
 ### 2.3 Qué NO somos (anti-posicionamiento para el copy)
 
@@ -108,40 +117,71 @@ en journaling: **ganamos siendo el CFO del trader de fondeo.**
 
 ## 3. Modelo de suscripciones (pricing)
 
-Tres planes. El gratuito existe para adquisición y para alimentar el funnel de upgrade;
-el medio es donde debe caer la mayoría; el superior monetiza la IA intensiva y el multi-
-cuenta serio. **Estos nombres, límites y precios son la fuente de verdad para el código**
-(enum `PlanTier` y récord `PlanLimits`, ver F1).
+Tres planes con un trabajo comercial distinto cada uno:
 
-| | **Starter** (gratis) | **Pro** — 14,99 €/mes o 149 €/año | **Elite** — 29,99 €/mes o 299 €/año |
+- **Starter (gratis)** = adquisición y funnel. Debe ser lo bastante útil para engancharse
+  (ver la verdad de tus números) y lo bastante limitado para que crecer duela.
+- **Pro (14,99 €)** = el plano donde debe caer la mayoría. Elimina la fricción nº1 (picar
+  trades) y da el motor prescriptivo completo. Es un "sí" fácil para quien ya gasta
+  100–500 €/mes en evaluaciones.
+- **Elite (29,99 €)** = monetiza la IA intensiva (modelo Opus) y el foso competitivo
+  (benchmarking entre pares). Para el que opera una *granja* de cuentas como un fondo.
+
+**Estos nombres, límites y precios son la fuente de verdad para el código** (enum
+`PlanTier` y récord `PlanLimits`, ver F1). La tabla de abajo refleja 1:1 lo que aplican
+`PlanLimits.For(tier)` y lo que muestran `/bienvenida`, `/precios` y `/plan`.
+
+| | **Starter** (gratis) | **Pro** — 14,99 €/mes · 149 €/año | **Elite** — 29,99 €/mes · 299 €/año |
 |---|---|---|---|
+| *Para quién* | Empezar y ver la verdad de tus números | El trader con varias cuentas que va en serio | El operador multi-cuenta que quiere ventaja |
 | Cuentas de fondeo activas | 2 | 10 | Ilimitadas |
-| Firms | Ilimitadas | Ilimitadas | Ilimitadas |
-| Trades manuales + importación CSV | ✔ | ✔ | ✔ |
-| Sync automático Tradovate / NT8 | ✖ | ✔ | ✔ |
-| KPIs de negocio y trading (dashboard) | ✔ | ✔ | ✔ |
+| Firms del catálogo | Ilimitadas | Ilimitadas | Ilimitadas |
+| Dashboard de KPIs de negocio y trading | ✔ | ✔ | ✔ |
+| Diario de trades (manual + importación CSV) | ✔ | ✔ | ✔ |
+| Diario emocional / psicología | ✔ | ✔ | ✔ |
 | Gráficas (cashflow, equity) | ✔ | ✔ | ✔ |
-| Módulo de riesgo `/risk` (Monte Carlo, EV, Kelly) | Solo semáforo EV | ✔ completo | ✔ completo |
-| **Informes IA completos** | 1 al mes | 1 por semana | 1 al día |
-| **Preguntas IA ad-hoc** | 3 al mes | 30 al mes | Ilimitadas* |
-| Modelo IA | Haiku (esfuerzo bajo) | Haiku (esfuerzo medio) | Opus (esfuerzo alto) |
-| Informe semanal IA automático | ✖ | ✔ | ✔ |
 | Divisa EUR/USD | ✔ | ✔ | ✔ |
-| Export PDF del track record (F5) | ✖ | ✔ | ✔ |
-| Página pública de track record (F5) | ✖ | ✖ | ✔ |
-| Alertas de drawdown/payout (F5) | ✖ | ✖ | ✔ |
-| Perfiles Elite: ranking por ROI + informe de inspiración IA (F5.6) | ✖ | ✖ | ✔ |
+| Sync automático Tradovate / NT8 | ✖ | ✔ | ✔ |
+| Firm Fit | Tu mejor programa + semáforo EV | Completo: ranking + sensibilidad a reglas + plan de compra | Completo + benchmarks agregados |
+| Módulo de riesgo `/risk` (Monte Carlo, EV, Kelly) | Solo semáforo EV | ✔ completo | ✔ completo |
+| Alertas de drawdown | ✖ | ✔ | ✔ |
+| **Informes IA completos** | 1 al mes | 1 semanal (automático + email) | 1 al día |
+| **Preguntas IA ad-hoc** | 3 al mes | 30 al mes | Ilimitadas* |
+| Modelo IA | Haiku (esfuerzo bajo) | Haiku (esfuerzo medio) | **Opus (esfuerzo alto)** |
+| Export PDF del track record | ✖ | ✔ | ✔ |
+| Track record público verificado (`/t/{slug}`) | ✖ | ✖ | ✔ |
+| Perfiles Elite: ranking por ROI + inspiración IA (`/peers`) | ✖ | ✖ | ✔ |
 
 \* "Ilimitadas" con un tope técnico anti-abuso de 50/día (constante en `PlanLimits`, no
 se comunica en la web salvo en la letra pequeña de términos).
 
+### 3.1 Qué cambió al "quitar ruido y subir el valor percibido"
+
+Revisión de producto/marketing (julio 2026) para que cada plan se venda solo:
+
+1. **Corregido el diferenciador de Pro.** Las páginas anunciaban "Importación de CSV" como
+   ventaja Pro, pero el CSV está en **los tres** planes; el verdadero salto es la
+   **sincronización automática**. Ese era el mayor ruido: infravaloraba Starter y difuminaba
+   por qué pagar Pro. Ahora Pro dice "Sincronización automática".
+2. **Se hace visible valor ya construido pero invisible en los planes:** dashboard completo,
+   **diario emocional/psicología** (diferenciación única, coste IA cero, motor de hábito
+   diario → retención) y **alertas de drawdown**. Estaban en el producto y en ningún plan.
+3. **Firm Fit se vende como prescriptivo**, no como "reglas": *ranking + sensibilidad a
+   reglas + plan de compra* (es el asesor de compras, el foso del producto).
+4. **Elite lidera con el modelo Opus** ("IA mucho más profunda") y con "todo lo de Pro +
+   ilimitado", para que el salto 14,99 → 29,99 tenga una razón obvia, más el track record
+   público verificado (marketing personal) y los Perfiles Elite (lo único que nadie puede
+   copiar sin la base de datos).
+
 **Reglas de degradación** (importante para F1): si un usuario baja de plan y excede el
 nuevo límite de cuentas, **no se borra nada** — las cuentas más recientes por encima del
 límite pasan a *solo lectura* (se ven, no se pueden editar ni añadirles trades) hasta que
-archive/eliminel el exceso o vuelva a subir de plan.
+archive/elimine el exceso o vuelva a subir de plan.
 
 **Prueba gratuita:** 14 días de Pro al registrarse (sin tarjeta). Al expirar, cae a
-Starter automáticamente.
+Starter automáticamente. Es la palanca nº1 de conversión: durante el trial el usuario ve
+el sync, el Firm Fit completo y el informe IA — y perder eso al caer a Starter es lo que
+empuja el pago.
 
 ---
 
@@ -577,6 +617,103 @@ simple" cuando no está cubierto explícitamente):
 > Cuando se implemente analítica de producto, preferir eventos propios en BD (tabla
 > `ProductEvents`) antes que un tercero, por privacidad y por coherencia con el
 > posicionamiento "tus datos son tuyos".
+
+---
+
+## 9. Ruta de ventas — playbook para vender mucho
+
+> Objetivo de esta sección: una ruta **operativa** (qué hacer cada semana y por qué) para
+> convertir el producto ya construido en ingresos recurrentes. Complementa el §5 (canales)
+> y `GUIA_SEO_MARKETING_REBRANDING.md` (SEO y captación). Aquí está el **motor de conversión
+> y monetización**, no los canales.
+
+### 9.1 El funnel y sus 5 palancas (dónde se gana o se pierde el dinero)
+
+```
+Visita ──(A)──► Registro ──(B)──► Activación ──(C)──► Fin de trial ──(D)──► Pago ──(E)──► Retención/Upsell
+```
+
+| Palanca | Métrica | Objetivo | Cómo se mueve (con lo que YA existe) |
+|---|---|---|---|
+| **A. Visita→Registro** | % registro | 3–6 % | Calculadora pública `/calculadora` (imán), track records públicos `/t/{slug}`, CTA "Empieza gratis — 14 días de Pro" |
+| **B. Registro→Activación** | ≥1 cuenta + ≥10 trades en 7 días | 40 % | Onboarding: importar CSV/sync + crear 1 cuenta el día 0. Es el momento "ajá" (ve sus KPIs reales) |
+| **C. Activación→uso de valor** | usa Firm Fit + genera 1 informe IA en el trial | 60 % de activados | Email día 3 "conecta Tradovate", día 7 "tu primer informe IA", día 10 "qué evaluación comprar" |
+| **D. Fin trial→Pago** | conversión trial→pago | 8–12 % | Perder el sync, el Firm Fit completo y el informe IA al caer a Starter. Email día 13 con lo que pierde |
+| **E. Retención/Upsell** | churn < 6 %, Pro→Elite | — | Informe semanal IA (ya existe), alertas de drawdown, y el salto a Opus/ilimitado/peers para el multi-cuenta |
+
+**Regla de oro:** no se trata de subir *una* palanca, sino de que ninguna esté rota. Una
+conversión trial→pago del 10 % con activación del 20 % vende la mitad que con activación
+del 40 %. **Prioridad de arreglo: B (activación) > D (conversión) > A (tráfico).** El
+tráfico sin activación es tirar dinero.
+
+### 9.2 Psicología de precio (por qué 0 / 14,99 / 29,99 vende)
+
+- **Ancla y señuelo:** Elite (29,99 €) hace que Pro (14,99 €) parezca la opción sensata —
+  el "más elegido" marcado en la web es deliberado (efecto de arrastre al plan medio).
+- **Anual con −17 %:** 149 €/299 € cobra por adelantado (mejora caja y reduce churn). Empuja
+  el anual en el 2º mes de vida del cliente, no en el registro.
+- **Umbral de dolor:** el ICP ya gasta 100–500 €/mes en evaluaciones; 14,99 € es "ruido" a
+  su lado si le ahorra **una** compra de evaluación mala al trimestre (y el Firm Fit lo hace).
+  El copy debe traducir el precio a esa unidad: *"cuesta menos que un reset"*.
+- **Gratis con propósito:** Starter no es una demo capada al azar; da la *verdad* (KPIs +
+  1 firma recomendada + hábito diario) y limita justo lo que un negocio en serio necesita
+  (sync, multi-cuenta, IA frecuente).
+
+### 9.3 Argumentario por segmento (qué decir para cerrar)
+
+- **Novato / 1ª cuenta:** "Antes de comprar otra evaluación, mira si la anterior fue EV+.
+  Gratis." → engancha en Starter, madura hacia Pro cuando abre 3ª cuenta.
+- **Trader con 3–10 cuentas (el que paga Pro):** "Deja de picar trades y de decidir qué
+  firma por intuición. Sync + Firm Fit + informe semanal, por menos que un reset."
+- **Operador de granja / vende formación (Elite):** "Opéralo como un fondo: cuentas
+  ilimitadas, la IA más profunda (Opus) sin límite, y un track record público verificado
+  que es tu carta de presentación. Además, compárate con los mejores."
+
+### 9.4 Plan 30 / 60 / 90 días (monetización)
+
+- **Días 1–30 — Instrumentar y no perder registros.** Activar Stripe en producción; UTMs en
+  todo enlace; los 4 emails de trial (día 0/3/7/13); medir A–E con eventos propios en BD.
+  Meta: primeros 10 pagos, funnel visible.
+- **Días 31–60 — Subir activación (palanca B).** Onboarding guiado (crear 1ª cuenta +
+  importar en el minuto 1), banner "conecta tu Tradovate", y el CTA de la calculadora
+  pública apuntando a registro con el cálculo pre-rellenado. Meta: activación ≥ 35 %.
+- **Días 61–90 — Escalar lo que convierte.** Doblar el canal con mejor CAC (normalmente el
+  loop de track records + comunidades), lanzar Product Hunt, y empezar el upsell Pro→Elite
+  por email a los que topan límites (10 cuentas, 30 preguntas). Meta: MRR ~500–800 €,
+  conversión trial→pago ≥ 8 %.
+
+### 9.5 Errores que matan la venta (evitarlos)
+
+1. Vender features en vez de resultados ("Monte Carlo" no vende; "cuánto bankroll necesitas
+   para no quebrar" sí).
+2. Prometer rentabilidad — rompe el anti-posicionamiento y la confianza (y es la mejor baza:
+   "estadística honesta"). Ver §2.3.
+3. Capar Starter de más (sin valor no hay boca-oreja) o de menos (sin dolor no hay upgrade).
+4. Gastar en ads antes de tener activación ≥ 35 % y conversión ≥ 8 % medidas.
+
+---
+
+## 10. Plan financiero y escenarios
+
+El modelo económico completo (evolución mes a mes de registros, mezcla de planes, MRR,
+costes de **publicidad, hosting/mantenimiento, IA y comisiones Stripe**, e ingresos netos)
+vive en **`PLAN_NEGOCIO_ESCENARIOS.html`** (abrir en el navegador), con cuatro escenarios a
+24 meses: **peor, intermedia-peor, intermedia-mejor y mejor**.
+
+Supuestos base (editables en el propio HTML):
+
+- **Precios:** Pro 14,99 €/mes · Elite 29,99 €/mes (mezcla realista 70 % Pro / 30 % Elite
+  entre los de pago); comisión Stripe ~1,5 % + 0,25 € por cobro.
+- **Coste IA:** informe Haiku ~0,01–0,03 €, informe Opus ~0,15–0,30 €; el gating por plan
+  (§3) mantiene el coste marginal por usuario controlado. Es el coste que **escala con uso**.
+- **Hosting/mantenimiento:** Render + base de datos gestionada + dominio/email
+  transaccional; arranca en ~25–60 €/mes y sube por escalones, no linealmente.
+- **Publicidad:** 0 € en el peor escenario (solo canales gratuitos del §5 y del SEO), hasta
+  un presupuesto que se activa **solo cuando activación y conversión están sanas** (§9.5).
+
+Lectura ejecutiva: el negocio es **muy sensible a la conversión trial→pago y al churn**, y
+**poco sensible al coste de IA** mientras el gating de §3 siga vigente. Por eso el playbook
+(§9) prioriza activación y conversión sobre tráfico y sobre optimizar céntimos de IA.
 
 ---
 
