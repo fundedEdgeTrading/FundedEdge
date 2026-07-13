@@ -1,4 +1,4 @@
-# TrackRecord — Guía de Monetización, Marketing e Implementación por Fases
+# FundedEdge — Guía de Monetización, Marketing e Implementación por Fases
 
 > **Qué es este documento.** Análisis de mercado del nicho (trackers/journals para traders
 > de cuentas de fondeo), estrategia de monetización y rebranding, y un **roadmap de
@@ -148,7 +148,7 @@ Starter automáticamente.
 
 ### 4.1 Diagnóstico del nombre actual
 
-"TrackRecord" describe bien el producto pero es **genérico** (imposible de posicionar en
+"FundedEdge" describe bien el producto pero es **genérico** (imposible de posicionar en
 SEO, difícil de registrar como marca, decenas de productos homónimos). Sirve para el MVP;
 para vender, conviene una marca propietaria.
 
@@ -164,7 +164,7 @@ para vender, conviene una marca propietaria.
 
 **Recomendación del análisis:** *PropLedger* para posicionamiento serio/contable o
 *Evalio* para un tono más producto-consumo. Mientras no se decida, **todo el código debe
-dejar de hardcodear "TrackRecord"** (ver F3, tarea de centralización de marca) para que
+dejar de hardcodear "FundedEdge"** (ver F3, tarea de centralización de marca) para que
 el rebranding final sea un cambio de una sola línea.
 
 ### 4.3 Identidad visual
@@ -172,7 +172,7 @@ el rebranding final sea un cambio de una sola línea.
 Ya existe una base sólida (tema oscuro fintech, gradiente azul→violeta, chips de
 instrumentos en el login). Reglas para mantener coherencia:
 
-- **Tokens**: todos los colores viven en `:root` de `src/TrackRecord.Web/wwwroot/app.css`.
+- **Tokens**: todos los colores viven en `:root` de `src/FundedEdge.Web/wwwroot/app.css`.
   Prohibido introducir colores hex sueltos en componentes; añade un token si hace falta.
 - **Tono del copy**: honesto, cuantitativo, sin promesas de rentabilidad. Segunda persona
   ("tu funnel", "tus payouts"). Español neutro.
@@ -218,35 +218,35 @@ selector oculto de administración).
 
 | Archivo | Contenido |
 |---|---|
-| `src/TrackRecord.Domain/Enums/PlanTier.cs` | `public enum PlanTier { Starter = 0, Pro = 1, Elite = 2 }` (int explícito: se persiste) |
-| `src/TrackRecord.Application/Abstractions/PlanLimits.cs` | Récord inmutable con: `MaxActiveAccounts (int?; null = ilimitado)`, `AutoSyncEnabled (bool)`, `FullRiskModule (bool)`, `AiReportsPerWindow (int)`, `AiReportWindowDays (int)`, `AiQuestionsPerMonth (int?)`, `AiDailyHardCap (int)`, `WeeklyAiReportEnabled (bool)`. Incluye `static PlanLimits For(PlanTier tier)` con los valores EXACTOS de la tabla de §3 |
-| `src/TrackRecord.Application/Abstractions/IPlanService.cs` | `Task<PlanTier> GetTierAsync(CancellationToken ct = default)` (del usuario actual), `Task<PlanLimits> GetLimitsAsync(...)`, `Task<bool> CanCreateAccountAsync(...)`, `Task<bool> CanUseAutoSyncAsync(...)` |
-| `src/TrackRecord.Infrastructure/Services/PlanService.cs` | Implementación: resuelve el usuario con `ICurrentUserAccessor` (patrón idéntico a `CurrencyPreferenceService`), lee `ApplicationUser.PlanTier` vía `IDbContextFactory<TrackRecordDbContext>`, cuenta cuentas activas para `CanCreateAccountAsync` |
-| `tests/TrackRecord.Application.Tests/PlanServiceTests.cs` | Ver DoD |
+| `src/FundedEdge.Domain/Enums/PlanTier.cs` | `public enum PlanTier { Starter = 0, Pro = 1, Elite = 2 }` (int explícito: se persiste) |
+| `src/FundedEdge.Application/Abstractions/PlanLimits.cs` | Récord inmutable con: `MaxActiveAccounts (int?; null = ilimitado)`, `AutoSyncEnabled (bool)`, `FullRiskModule (bool)`, `AiReportsPerWindow (int)`, `AiReportWindowDays (int)`, `AiQuestionsPerMonth (int?)`, `AiDailyHardCap (int)`, `WeeklyAiReportEnabled (bool)`. Incluye `static PlanLimits For(PlanTier tier)` con los valores EXACTOS de la tabla de §3 |
+| `src/FundedEdge.Application/Abstractions/IPlanService.cs` | `Task<PlanTier> GetTierAsync(CancellationToken ct = default)` (del usuario actual), `Task<PlanLimits> GetLimitsAsync(...)`, `Task<bool> CanCreateAccountAsync(...)`, `Task<bool> CanUseAutoSyncAsync(...)` |
+| `src/FundedEdge.Infrastructure/Services/PlanService.cs` | Implementación: resuelve el usuario con `ICurrentUserAccessor` (patrón idéntico a `CurrencyPreferenceService`), lee `ApplicationUser.PlanTier` vía `IDbContextFactory<FundedEdgeDbContext>`, cuenta cuentas activas para `CanCreateAccountAsync` |
+| `tests/FundedEdge.Application.Tests/PlanServiceTests.cs` | Ver DoD |
 
 **Archivos a modificar:**
 
-1. `src/TrackRecord.Infrastructure/Identity/ApplicationUser.cs`: añadir
+1. `src/FundedEdge.Infrastructure/Identity/ApplicationUser.cs`: añadir
    `public PlanTier PlanTier { get; set; } = PlanTier.Starter;` y
    `public DateTimeOffset? TrialEndsAt { get; set; }` (el trial de Pro se activa en el
    registro: en `Register.razor` y `ExternalLogin.razor`, al crear el usuario, poner
    `TrialEndsAt = DateTimeOffset.UtcNow.AddDays(14)`). Regla de resolución del tier
    efectivo (impleméntala en `PlanService`, único sitio):
    `if (TrialEndsAt > now && PlanTier == Starter) → tratar como Pro`.
-2. `src/TrackRecord.Infrastructure/DependencyInjection.cs`: registrar
+2. `src/FundedEdge.Infrastructure/DependencyInjection.cs`: registrar
    `services.AddScoped<IPlanService, PlanService>();`.
-3. `src/TrackRecord.Infrastructure/Services/TradingAccountService.cs` (`CreateAsync`):
+3. `src/FundedEdge.Infrastructure/Services/TradingAccountService.cs` (`CreateAsync`):
    si `!await planService.CanCreateAccountAsync(ct)` lanzar
    `InvalidOperationException("Tu plan actual no permite más cuentas activas. Mejora a Pro o Elite en /plan.")`.
-4. `src/TrackRecord.Infrastructure/Services/TradeSyncOrchestrator.cs`: en
+4. `src/FundedEdge.Infrastructure/Services/TradeSyncOrchestrator.cs`: en
    `SyncAllAccountsForUserAsync`, saltar (return 0 + log información) a los usuarios cuyo
    plan no tenga `AutoSyncEnabled`.
-5. Página nueva `src/TrackRecord.Web/Components/Pages/Plan.razor` (`@page "/plan"`):
+5. Página nueva `src/FundedEdge.Web/Components/Pages/Plan.razor` (`@page "/plan"`):
    muestra el plan actual, los límites de la tabla §3 y el uso actual (n.º de cuentas
    activas). Botones de upgrade **deshabilitados** con texto "Próximamente" (se activan
    en F4). Enlazarla en `NavMenu.razor`, sección "Sistema".
 6. **Migración EF Core** (obligatoria, columnas nuevas en `AspNetUsers`):
-   `dotnet ef migrations add AddUserPlanTier --project src/TrackRecord.Infrastructure --startup-project src/TrackRecord.Infrastructure`
+   `dotnet ef migrations add AddUserPlanTier --project src/FundedEdge.Infrastructure --startup-project src/FundedEdge.Infrastructure`
    (requiere `~/.dotnet/tools` en el PATH).
 
 **DoD F1:** ✅ Completada (ver PR correspondiente).
@@ -272,7 +272,7 @@ esfuerzo según plan.
 - **No hace falta tabla nueva para contar informes**: `AiReports` ya persiste
   `UserId`, `Kind` (`Analysis` / `AdHocQuestion`) y `CreatedAt`. Contar con un `CountAsync`
   filtrado es suficiente y transaccionalmente honesto.
-- El servicio a tocar es `src/TrackRecord.Infrastructure/Ai/ClaudeTradingAnalystService.cs`.
+- El servicio a tocar es `src/FundedEdge.Infrastructure/Ai/ClaudeTradingAnalystService.cs`.
   Hoy tiene el modelo hardcodeado (`Model.ClaudeHaiku4_5`, `Effort.Low` — se puso barato
   a propósito para desarrollo). Esta fase lo hace **dependiente del plan**:
   Starter → Haiku/`Effort.Low`; Pro → Haiku/`Effort.Medium`; Elite → Opus
@@ -329,9 +329,9 @@ landing + página de precios públicas, y la marca centralizada para el futuro r
   `AuthVisualPanel`, guarda `prefers-reduced-motion`).
 
 **Pasos:**
-1. **Centralizar la marca**: crear `src/TrackRecord.Domain/Common/Brand.cs` con
-   `public static class Brand { public const string Name = "TrackRecord"; public const string Tagline = "El copiloto financiero del trader de fondeo"; }`
-   y sustituir el texto "TrackRecord" hardcodeado en: `NavMenu.razor`, `AuthCard.razor`,
+1. **Centralizar la marca**: crear `src/FundedEdge.Domain/Common/Brand.cs` con
+   `public static class Brand { public const string Name = "FundedEdge"; public const string Tagline = "El copiloto financiero del trader de fondeo"; }`
+   y sustituir el texto "FundedEdge" hardcodeado en: `NavMenu.razor`, `AuthCard.razor`,
    los `<PageTitle>` de todas las páginas y `App.razor`. (Los documentos MD no se tocan.)
 2. `Public/PublicLayout.razor` + `Public/Pages/_Imports.razor` (patrón descrito arriba).
 3. `Public/Pages/Landing.razor` (`/bienvenida`), secciones en este orden:
@@ -348,9 +348,9 @@ landing + página de precios públicas, y la marca centralizada para el futuro r
 
 **DoD F3:** ✅ Completada.
 - [x] `/bienvenida` y `/precios` cargan **sin sesión** (200, no 302) con CSS aplicado.
-- [x] Todo texto de marca sale de `Brand.Name`/`Brand.Tagline`; `grep -rn "TrackRecord"
-      src/TrackRecord.Web --include=*.razor` solo devuelve usos vía `@Brand.Name` (los
-      namespaces C# y el archivo `TrackRecord.Web.styles.css` no cuentan).
+- [x] Todo texto de marca sale de `Brand.Name`/`Brand.Tagline`; `grep -rn "FundedEdge"
+      src/FundedEdge.Web --include=*.razor` solo devuelve usos vía `@Brand.Name` (los
+      namespaces C# y el archivo `FundedEdge.Web.styles.css` no cuentan).
 - [x] Los precios de `/precios` coinciden con §3 (calculados desde `PlanLimits.For(tier)`,
       no hardcodeados dos veces).
 
@@ -372,7 +372,7 @@ landing + página de precios públicas, y la marca centralizada para el futuro r
 actualiza `PlanTier`, y portal de cliente para cancelar/cambiar.
 
 **Puntos técnicos clave:**
-- Paquete NuGet `Stripe.net` en `TrackRecord.Web`.
+- Paquete NuGet `Stripe.net` en `FundedEdge.Web`.
 - **Secretos SOLO por user-secrets/entorno** (regla §7): `Stripe:SecretKey`,
   `Stripe:WebhookSecret`, `Stripe:Prices:ProMonthly`, `Stripe:Prices:ProYearly`,
   `Stripe:Prices:EliteMonthly`, `Stripe:Prices:EliteYearly`. Si faltan, la app arranca
@@ -380,7 +380,7 @@ actualiza `PlanTier`, y portal de cliente para cancelar/cambiar.
   patrón condicional que Google OAuth en `Program.cs`).
 - Guardar `StripeCustomerId` (string?) en `ApplicationUser` → **migración**
   `AddStripeCustomerId`.
-- Endpoints minimal-API nuevos en `src/TrackRecord.Web/Endpoints/BillingEndpoints.cs`
+- Endpoints minimal-API nuevos en `src/FundedEdge.Web/Endpoints/BillingEndpoints.cs`
   (patrón de `NinjaTraderIngestEndpoints.cs`):
   - `POST /api/billing/checkout` (requiere sesión): crea sesión de Stripe Checkout
     (mode=subscription, price según parámetro validado contra la lista blanca de 4
@@ -439,7 +439,7 @@ actualiza `PlanTier`, y portal de cliente para cancelar/cambiar.
    dos veces. Fase grande: planificarla como serie de PRs por área.
 
 **DoD F5.x:** cada sub-feature con sus tests (los simuladores ya tienen patrón de test en
-`tests/TrackRecord.Domain.Tests`), gates de plan verificados, y para F5.2/F5.3 verificación
+`tests/FundedEdge.Domain.Tests`), gates de plan verificados, y para F5.2/F5.3 verificación
 explícita de que NO se filtra ningún dato sensible (revisar el DTO expuesto campo a campo).
 
 **DoD F5:** ✅ Completada (F5.1–F5.4). F5.5 diferida explícitamente (ver nota).
@@ -529,11 +529,11 @@ simple" cuando no está cubierto explícitamente):
 4. **Aislamiento por usuario:** todo servicio que lea/escriba datos de usuario recibe
    `ICurrentUserAccessor` y filtra/estampa `UserId`. Datos compartidos entre usuarios:
    SOLO PropFirms e Instruments. Tests: `FakeCurrentUserAccessor` (en
-   `tests/TrackRecord.Application.Tests/TestHelpers.cs`).
+   `tests/FundedEdge.Application.Tests/TestHelpers.cs`).
 5. **EF Core:** los tests usan el proveedor **InMemory** ⇒ **prohibido**
    `ExecuteUpdateAsync`/`ExecuteDeleteAsync` en servicios (usar entidades rastreadas +
    `SaveChangesAsync`). Cambios de esquema ⇒ migración con
-   `dotnet ef migrations add <Nombre> --project src/TrackRecord.Infrastructure --startup-project src/TrackRecord.Infrastructure`
+   `dotnet ef migrations add <Nombre> --project src/FundedEdge.Infrastructure --startup-project src/FundedEdge.Infrastructure`
    (el binario está en `~/.dotnet/tools`; añadir al PATH si no se encuentra). `Program.cs`
    aplica migraciones al arrancar — no usar `EnsureCreated` en código de producción.
 6. **Blazor:** la interactividad se declara en la raíz (`Routes` con

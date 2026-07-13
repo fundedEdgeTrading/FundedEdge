@@ -1,0 +1,270 @@
+@page "/emotion-survey"
+@rendermode InteractiveServer
+@using FundedEdge.Web.Support
+@inject IPsychologyService PsychologyService
+@inject IStringLocalizer<SharedResources> L
+
+<PageTitle>@L["Diario emocional"] — @Brand.Name</PageTitle>
+
+<h1>@L["Diario emocional"]</h1>
+<p class="text-muted">
+    @L["Menos de un minuto por trade. Ninguna respuesta es \"correcta\" — las emociones no son el enemigo, operar desde ellas sin saberlo sí lo es."]
+</p>
+
+@if (_loading)
+{
+    <div class="card" aria-label="@L["Cargando…"]">
+        <div class="card-body">
+            <div class="skeleton skeleton-label mb-2" style="width:45%"></div>
+            <div class="skeleton skeleton-label mb-2" style="width:80%"></div>
+            <div class="skeleton skeleton-label" style="width:65%"></div>
+        </div>
+    </div>
+}
+else if (_stage == Stage.CheckIn)
+{
+    <div class="form-card mt-3">
+        <div class="form-head">
+            <h3 class="form-title">@L["¿Cómo llegas hoy al mercado?"]</h3>
+        </div>
+
+        <fieldset class="fgroup">
+            <legend>@L["Estado de partida"]</legend>
+            <div class="mb-3">
+                <label class="form-label">@L["Calidad de sueño"]: @_checkIn.SleepQuality/5</label>
+                <input type="range" min="1" max="5" class="form-range" @bind="_checkIn.SleepQuality" @bind:event="oninput" />
+            </div>
+            <div class="mb-3">
+                <label class="form-label">@L["Estrés externo (vida/trabajo)"]: @_checkIn.ExternalStress/5</label>
+                <input type="range" min="1" max="5" class="form-range" @bind="_checkIn.ExternalStress" @bind:event="oninput" />
+            </div>
+            <div class="mb-3">
+                <label class="form-label">@L["Foco pre-mercado"]: @_checkIn.PreMarketFocus/5</label>
+                <input type="range" min="1" max="5" class="form-range" @bind="_checkIn.PreMarketFocus" @bind:event="oninput" />
+            </div>
+            <div>
+                <label class="form-label">@L["Emoción dominante ahora mismo"]</label>
+                <div class="emotion-chip-group">
+                    @foreach (var emotion in EmotionDisplay.All)
+                    {
+                        <button type="button" class="btn btn-sm @(emotion == _checkIn.DominantEmotion ? "btn-primary" : "btn-outline-secondary")"
+                                @onclick="() => _checkIn.DominantEmotion = emotion">
+                            @EmotionDisplay.Emoji(emotion) @EmotionDisplay.Label(emotion)
+                        </button>
+                    }
+                </div>
+            </div>
+        </fieldset>
+
+        <div class="form-foot">
+            <button class="btn btn-link" @onclick="SkipCheckInAsync">@L["Saltar por hoy"]</button>
+            <div class="actions">
+                <button class="btn btn-primary" @onclick="SubmitCheckInAsync">@L["Continuar"]</button>
+            </div>
+        </div>
+    </div>
+}
+else if (_stage == Stage.Trades && _currentIndex < _pending.Count)
+{
+    var trade = _pending[_currentIndex];
+    var progressPct = (int)Math.Round(_currentIndex * 100.0 / _pending.Count);
+    <div class="mb-3">
+        <div class="meter-cap">
+            <span>@L["Trade {0} de {1}", _currentIndex + 1, _pending.Count]</span>
+            <span class="mono">@progressPct%</span>
+        </div>
+        <div class="track"><div class="fill fill-target" style="width:@(progressPct)%"></div></div>
+    </div>
+
+    <div class="form-card">
+        <div class="form-head d-flex justify-content-between align-items-start gap-2">
+            <h3 class="form-title">@trade.Symbol · @trade.OpenedAt.LocalDateTime.ToString("d MMM HH:mm")</h3>
+            <span class="stage @(trade.NetPnL >= 0 ? "stage-funded" : "stage-failed")">
+                @(trade.RMultiple is null ? trade.NetPnL.ToString("0.##") : $"{trade.RMultiple:0.00}R")
+            </span>
+        </div>
+
+        <fieldset class="fgroup">
+            <legend>@L["Emociones"]</legend>
+            <div class="mb-3">
+                <label class="form-label">@L["¿Qué sentías al entrar?"] <span class="text-muted small">(@L["máx. 3"])</span></label>
+                <EmotionChipPicker Selected="_beforeEntry" MaxSelections="3" OnChanged="StateHasChanged" />
+            </div>
+            <div>
+                <label class="form-label">@L["¿Y durante / al salir?"] <span class="text-muted small">(@L["opcional"])</span></label>
+                <EmotionChipPicker Selected="_afterExit" MaxSelections="3" OnChanged="StateHasChanged" />
+            </div>
+        </fieldset>
+
+        <fieldset class="fgroup">
+            <legend>@L["Disciplina"]</legend>
+            <div class="row g-3 align-items-end mb-3">
+                <div class="col-md-5">
+                    <label class="form-label">@L["¿Seguiste tu plan?"]</label>
+                    <div class="currency-toggle seg-block" role="group" aria-label="@L["¿Seguiste tu plan?"]">
+                        @foreach (var option in AdherenceOptions)
+                        {
+                            <button type="button" class="currency-option @(option == _adherence ? "active" : null)"
+                                    @onclick="() => _adherence = option">
+                                @AdherenceLabel(option)
+                            </button>
+                        }
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="impulsive" @bind="_wasImpulsive" />
+                        <label class="form-check-label" for="impulsive">@L["¿Entrada impulsiva?"]</label>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <label class="form-label">@L["Nota (opcional)"]</label>
+                <textarea class="form-control" rows="2" maxlength="500" @bind="_note"></textarea>
+            </div>
+
+            @if (_errorMessage is not null)
+            {
+                <div class="alert alert-danger mt-3 mb-0">@_errorMessage</div>
+            }
+        </fieldset>
+
+        <div class="form-foot">
+            <button class="btn btn-link" @onclick="SkipCurrentTradeAsync">@L["Saltar este trade"]</button>
+            <div class="actions">
+                <button class="btn btn-primary" disabled="@(_beforeEntry.Count == 0 || _saving)" @onclick="SaveCurrentTradeAsync">
+                    @(_saving ? L["Guardando…"] : L["Guardar y siguiente"])
+                </button>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="card">
+        <div class="card-body text-center py-5">
+            <h3>@L["¡Diario completado!"]</h3>
+            <p class="text-muted">@L["Racha de registro: {0} día(s) seguido(s).", _streakDays]</p>
+            <a class="btn btn-primary" href="psychology">@L["Ver mi psicología"]</a>
+        </div>
+    </div>
+}
+
+@code {
+    private enum Stage { CheckIn, Trades, Done }
+
+    private Stage _stage = Stage.CheckIn;
+    private bool _loading = true;
+    private bool _saving;
+    private string? _errorMessage;
+    private int _streakDays;
+
+    private CheckInModel _checkIn = new();
+    private List<PendingEmotionTradeDto> _pending = [];
+    private int _currentIndex;
+
+    private Dictionary<EmotionType, int> _beforeEntry = new();
+    private Dictionary<EmotionType, int> _afterExit = new();
+    private PlanAdherence _adherence = PlanAdherence.FollowedPlan;
+    private bool _wasImpulsive;
+    private string? _note;
+
+    private static readonly PlanAdherence[] AdherenceOptions =
+        [PlanAdherence.FollowedPlan, PlanAdherence.PartialDeviation, PlanAdherence.NoPlan];
+
+    protected override async Task OnInitializedAsync()
+    {
+        var today = DateOnly.FromDateTime(DateTime.UtcNow.Date);
+        var existingCheckIn = await PsychologyService.GetDailyCheckInAsync(today);
+        if (existingCheckIn is not null)
+        {
+            _stage = Stage.Trades;
+        }
+
+        _pending = (await PsychologyService.GetPendingAsync(today.AddDays(-14), today)).ToList();
+        _loading = false;
+    }
+
+    private async Task SubmitCheckInAsync()
+    {
+        var today = DateOnly.FromDateTime(DateTime.UtcNow.Date);
+        await PsychologyService.SaveDailyCheckInAsync(new DailyCheckInDto(
+            today, _checkIn.SleepQuality, _checkIn.ExternalStress, _checkIn.PreMarketFocus, _checkIn.DominantEmotion, null));
+        AdvanceFromCheckIn();
+    }
+
+    private void SkipCheckInAsync() => AdvanceFromCheckIn();
+
+    private void AdvanceFromCheckIn() => _stage = _pending.Count > 0 ? Stage.Trades : Stage.Done;
+
+    private async Task SaveCurrentTradeAsync()
+    {
+        if (_beforeEntry.Count == 0) return;
+
+        _saving = true;
+        _errorMessage = null;
+        try
+        {
+            var trade = _pending[_currentIndex];
+            await PsychologyService.SaveTradeEmotionsAsync(new SaveTradeEmotionsRequest(
+                trade.TradeId,
+                _beforeEntry.Select(kv => new EmotionEntryDto(kv.Key, kv.Value)).ToList(),
+                _afterExit.Select(kv => new EmotionEntryDto(kv.Key, kv.Value)).ToList(),
+                _adherence,
+                _wasImpulsive,
+                string.IsNullOrWhiteSpace(_note) ? null : _note));
+
+            await AdvanceToNextTradeAsync();
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = ex.Message;
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+
+    private async Task SkipCurrentTradeAsync() => await AdvanceToNextTradeAsync();
+
+    private async Task AdvanceToNextTradeAsync()
+    {
+        _currentIndex++;
+        ResetTradeForm();
+
+        if (_currentIndex >= _pending.Count)
+        {
+            // Cambiar de etapa ANTES del await: el await repinta y, con el índice ya
+            // fuera de rango, el render de Stage.Trades lanzaría ArgumentOutOfRange.
+            _stage = Stage.Done;
+            var today = DateOnly.FromDateTime(DateTime.UtcNow.Date);
+            var metrics = await PsychologyService.GetMetricsAsync(today.AddDays(-30), today);
+            _streakDays = metrics.JournalStreakDays;
+        }
+    }
+
+    private void ResetTradeForm()
+    {
+        _beforeEntry = new();
+        _afterExit = new();
+        _adherence = PlanAdherence.FollowedPlan;
+        _wasImpulsive = false;
+        _note = null;
+    }
+
+    private string AdherenceLabel(PlanAdherence adherence) => adherence switch
+    {
+        PlanAdherence.FollowedPlan => L["Sí"],
+        PlanAdherence.PartialDeviation => L["En parte"],
+        _ => L["No tenía plan"],
+    };
+
+    private class CheckInModel
+    {
+        public int SleepQuality { get; set; } = 3;
+        public int ExternalStress { get; set; } = 3;
+        public int PreMarketFocus { get; set; } = 3;
+        public EmotionType DominantEmotion { get; set; } = EmotionType.Calm;
+    }
+}

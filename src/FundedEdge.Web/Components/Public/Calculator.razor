@@ -1,0 +1,131 @@
+@page "/calculadora"
+@rendermode InteractiveServer
+@attribute [AllowAnonymous]
+@layout PublicLayout
+@using System.Globalization
+@using Microsoft.AspNetCore.Authorization
+@using FundedEdge.Domain.Risk
+@inject IStringLocalizer<SharedResources> L
+
+<SeoHead Title="@SeoTitle" Description="@SeoDescription" />
+
+<h1>@L["¿Es rentable tu negocio de evaluaciones?"]</h1>
+<p class="public-lead">
+    @L["Calcula la esperanza matemática (EV) por evaluación y la probabilidad de ruina de tu bankroll con tus propios supuestos — el mismo motor de Monte Carlo que usa {0} con tus datos reales una vez registrado.", Brand.Name]
+</p>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <EditForm Model="_form" OnValidSubmit="Calculate">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">@L["Coste de evaluación ($)"]</label>
+                    <InputNumber class="form-control" @bind-Value="_form.EvaluationCost" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">@L["Coste de activación ($)"]</label>
+                    <InputNumber class="form-control" @bind-Value="_form.ActivationCost" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">@L["Payout medio esperado ($)"]</label>
+                    <InputNumber class="form-control" @bind-Value="_form.AvgPayout" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">@L["Pass rate estimado (%)"]</label>
+                    <InputNumber class="form-control" @bind-Value="_form.PassRatePercent" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">@L["Bankroll disponible ($)"]</label>
+                    <InputNumber class="form-control" @bind-Value="_form.Bankroll" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">@L["Evaluaciones/mes"]</label>
+                    <InputNumber class="form-control" @bind-Value="_form.MonthlyBudget" />
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary mt-3">@L["Calcular"]</button>
+        </EditForm>
+    </div>
+</div>
+
+@if (_ev is not null)
+{
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card h-100"><div class="card-body">
+                <h5 class="card-title">@L["EV por evaluación"]</h5>
+                <p class="fs-4 fw-bold @(_ev.Value >= 0 ? "text-success" : "text-danger")">@Usd(_ev.Value)</p>
+                <p class="text-muted small mb-0">@(_ev.Value >= 0 ? L["Cada evaluación que compras, en promedio, gana."] : L["Cada evaluación que compras, en promedio, pierde."])</p>
+            </div></div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100"><div class="card-body">
+                <h5 class="card-title">@L["Fracción de Kelly"]</h5>
+                <p class="fs-4 fw-bold">@(_kelly is null ? L["Sin edge"].Value : $"{_kelly:P0}")</p>
+                <p class="text-muted small mb-0">@L["Orientativa — opera a ½ Kelly como máximo."]</p>
+            </div></div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100"><div class="card-body">
+                <h5 class="card-title">@L["P(ruina) del bankroll"]</h5>
+                <p class="fs-4 fw-bold @(_simulation!.ProbabilityOfRuin < 0.05 ? "text-success" : "text-danger")">@_simulation.ProbabilityOfRuin.ToString("P0")</p>
+                <p class="text-muted small mb-0">@L["A 12 meses, con tu presupuesto mensual."]</p>
+            </div></div>
+        </div>
+    </div>
+
+    <p class="text-muted small">
+        @L["Bankroll final: mediana {0}, P5 {1}, P95 {2}.", Usd(_simulation.MedianFinalBankroll, 0), Usd(_simulation.P5FinalBankroll, 0), Usd(_simulation.P95FinalBankroll, 0)]
+        @(_simulation.MedianMonthsToBreakeven is { } m ? L["Breakeven mediano en el mes {0}.", m] : L["La mediana de caminos no recupera el bankroll inicial en 12 meses."])
+    </p>
+}
+
+<div class="public-section public-anti mt-5">
+    <p>
+        @L["Esto es una simulación con 2.000 iteraciones y tus supuestos manuales. Regístrate y conecta tus cuentas para calcularlo con tu pass rate y tu distribución real de payouts."]
+    </p>
+    <a class="btn btn-primary btn-lg" href="Account/Register">@L["Regístrate para usar tus datos reales"]</a>
+</div>
+
+@code {
+    private string SeoTitle => $"{L["Calculadora de riesgo de fondeo"]} — {Brand.Name}";
+    private string SeoDescription => L["Calcula la esperanza matemática (EV) por evaluación y la probabilidad de ruina de tu bankroll con tus propios supuestos — el mismo motor de Monte Carlo que usa {0} con tus datos reales una vez registrado.", Brand.Name];
+
+    private readonly CalculatorForm _form = new();
+    private decimal? _ev;
+    private double? _kelly;
+    private RuinSimulationResult? _simulation;
+
+    // Los importes de la calculadora son dólares (precios de evaluaciones de prop firms):
+    // símbolo explícito e independiente de la cultura de la petición.
+    private static string Usd(decimal value, int decimals = 2) =>
+        value.ToString(decimals <= 0 ? "C0" : "C2", CultureInfo.GetCultureInfo("en-US"));
+
+    private void Calculate()
+    {
+        var passRate = Math.Clamp(_form.PassRatePercent / 100.0, 0, 1);
+
+        _ev = EvCalculator.ComputeEvPerEvaluation(passRate, _form.AvgPayout, _form.EvaluationCost, _form.ActivationCost);
+        _kelly = EvCalculator.KellyFraction(passRate, _form.AvgPayout, _form.EvaluationCost, _form.ActivationCost);
+
+        _simulation = BankrollSimulator.Simulate(new RuinSimulationInput(
+            Bankroll: _form.Bankroll,
+            EvaluationCost: _form.EvaluationCost,
+            ActivationCost: _form.ActivationCost,
+            PassRate: passRate,
+            HistoricalPayoutsPerFundedAccount: [_form.AvgPayout],
+            MonthlyEvaluationBudget: _form.MonthlyBudget,
+            Months: 12,
+            Iterations: 2_000));
+    }
+
+    private sealed class CalculatorForm
+    {
+        public decimal EvaluationCost { get; set; } = 150m;
+        public decimal ActivationCost { get; set; } = 100m;
+        public decimal AvgPayout { get; set; } = 1500m;
+        public double PassRatePercent { get; set; } = 20;
+        public decimal Bankroll { get; set; } = 2000m;
+        public int MonthlyBudget { get; set; } = 2;
+    }
+}

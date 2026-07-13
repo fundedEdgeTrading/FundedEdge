@@ -1,6 +1,6 @@
 # Guía de despliegue automático en Render con PostgreSQL
 
-Esta guía explica, de principio a fin, cómo llevar el código de **FundedEdge / TrackRecord**
+Esta guía explica, de principio a fin, cómo llevar el código de **FundedEdge / FundedEdge**
 desde la rama `main` de GitHub hasta una aplicación desplegada y funcionando en **Render**,
 usando la instancia de **PostgreSQL** que ya está creada en Render.
 
@@ -17,9 +17,9 @@ Cubre dos planos:
 |---|---|
 | Framework | .NET 10 (`net10.0`) |
 | Tipo de app | ASP.NET Core + **Blazor Server** (`AddInteractiveServerComponents`) |
-| Proyecto de arranque | `src/TrackRecord.Web` |
+| Proyecto de arranque | `src/FundedEdge.Web` |
 | ORM | Entity Framework Core con **Npgsql** (PostgreSQL) |
-| Contexto de datos | `TrackRecordDbContext` (registrado con `AddDbContextFactory`) |
+| Contexto de datos | `FundedEdgeDbContext` (registrado con `AddDbContextFactory`) |
 | Cadena de conexión | `ConnectionStrings:Default` |
 | Migraciones | **Automáticas al arrancar** (`db.Database.MigrateAsync()`), salvo que `Database:AutoMigrate=false` |
 
@@ -71,8 +71,8 @@ COPY *.slnx ./
 COPY src/ ./src/
 COPY tests/ ./tests/
 
-RUN dotnet restore src/TrackRecord.Web/TrackRecord.Web.csproj
-RUN dotnet publish src/TrackRecord.Web/TrackRecord.Web.csproj \
+RUN dotnet restore src/FundedEdge.Web/FundedEdge.Web.csproj
+RUN dotnet publish src/FundedEdge.Web/FundedEdge.Web.csproj \
     -c Release -o /app/publish --no-restore
 
 # ---- Runtime ----
@@ -85,7 +85,7 @@ ENV ASPNETCORE_HTTP_PORTS=""
 ENV ASPNETCORE_URLS=http://0.0.0.0:${PORT}
 
 EXPOSE 10000
-ENTRYPOINT ["dotnet", "TrackRecord.Web.dll"]
+ENTRYPOINT ["dotnet", "FundedEdge.Web.dll"]
 ```
 
 > **Puerto:** Render expone un único puerto y comunica su número por la variable de entorno
@@ -259,7 +259,7 @@ Sin arreglarlo, tras cada deploy se invalidan cookies de sesión y valores cifra
   apunta ahí la persistencia de keys, p. ej. montándolo en `/home/app/.dataprotection-keys` y
   configurando `PersistKeysToFileSystem` a esa ruta (o vía variable de entorno que la app lea).
 - **Persistir los keys en la propia base de datos** con
-  `PersistKeysToDbContext<TrackRecordDbContext>()` (paquete
+  `PersistKeysToDbContext<FundedEdgeDbContext>()` (paquete
   `Microsoft.AspNetCore.DataProtection.EntityFrameworkCore`).
 
 ---
@@ -274,7 +274,7 @@ Sin arreglarlo, tras cada deploy se invalidan cookies de sesión y valores cifra
   (por ejemplo un *pre-deploy command* o un job), con:
 
   ```
-  dotnet ef database update --project src/TrackRecord.Infrastructure --startup-project src/TrackRecord.Web
+  dotnet ef database update --project src/FundedEdge.Infrastructure --startup-project src/FundedEdge.Web
   ```
 
 ---

@@ -1,4 +1,4 @@
-# TrackRecord — secretos y datos locales
+# FundedEdge — secretos y datos locales
 appsettings.*.local.json
 *.db
 *.sqlite
