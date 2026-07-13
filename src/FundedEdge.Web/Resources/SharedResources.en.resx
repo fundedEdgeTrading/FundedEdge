@@ -2385,4 +2385,82 @@
   <data name="Informe IA semanal automático · 30 preguntas IA al mes" xml:space="preserve">
     <value>Automatic weekly AI report · 30 AI questions per month</value>
   </data>
+  <data name="Informe fiscal" xml:space="preserve">
+    <value>Tax report</value>
+  </data>
+  <data name="Payouts cobrados y costes pagados por año natural, en criterio de caja — listo para tu gestoría." xml:space="preserve">
+    <value>Payouts received and costs paid per calendar year, on a cash basis — ready for your accountant.</value>
+  </data>
+  <data name="Año" xml:space="preserve">
+    <value>Year</value>
+  </data>
+  <data name="Exportar CSV" xml:space="preserve">
+    <value>Export CSV</value>
+  </data>
+  <data name="Todavía no hay payouts cobrados ni costes registrados. Registra la actividad de tus cuentas y aquí tendrás el resumen anual para tu declaración." xml:space="preserve">
+    <value>No payouts received or costs recorded yet. Log your accounts' activity and you'll get the yearly summary for your tax return here.</value>
+  </data>
+  <data name="Payouts cobrados" xml:space="preserve">
+    <value>Payouts received</value>
+  </data>
+  <data name="Costes pagados" xml:space="preserve">
+    <value>Costs paid</value>
+  </data>
+  <data name="movimientos" xml:space="preserve">
+    <value>entries</value>
+  </data>
+  <data name="Resultado neto del año" xml:space="preserve">
+    <value>Net result for the year</value>
+  </data>
+  <data name="Payouts menos costes" xml:space="preserve">
+    <value>Payouts minus costs</value>
+  </data>
+  <data name="Resumen por trimestre" xml:space="preserve">
+    <value>Quarterly summary</value>
+  </data>
+  <data name="Sin payouts cobrados este año." xml:space="preserve">
+    <value>No payouts received this year.</value>
+  </data>
+  <data name="Sin costes registrados este año." xml:space="preserve">
+    <value>No costs recorded this year.</value>
+  </data>
+  <data name="Los importes se muestran tal cual se registraron, sin conversión de divisa. Este informe es un resumen operativo, no asesoramiento fiscal." xml:space="preserve">
+    <value>Amounts are shown exactly as recorded, with no currency conversion. This report is an operational summary, not tax advice.</value>
+  </data>
+  <data name="País" xml:space="preserve">
+    <value>Country</value>
+  </data>
+  <data name="Activa" xml:space="preserve">
+    <value>Active</value>
+  </data>
+  <data name="En observación" xml:space="preserve">
+    <value>Under watch</value>
+  </data>
+  <data name="Cerrada" xml:space="preserve">
+    <value>Closed</value>
+  </data>
+  <data name="Estado de salud" xml:space="preserve">
+    <value>Health status</value>
+  </data>
+  <data name="Notas de salud (cambios de reglas, retrasos de payout…)" xml:space="preserve">
+    <value>Health notes (rule changes, payout delays…)</value>
+  </data>
+  <data name="Al guardar un cambio de estado se avisa por email a los usuarios con cuentas activas en esta firma." xml:space="preserve">
+    <value>Saving a status change emails every user with active accounts at this firm.</value>
+  </data>
+  <data name="Tiempo de pago" xml:space="preserve">
+    <value>Payout speed</value>
+  </data>
+  <data name="Días entre solicitar y cobrar un payout, agregado anónimo de la comunidad (mediana / P90)" xml:space="preserve">
+    <value>Days between requesting and receiving a payout, anonymous community aggregate (median / P90)</value>
+  </data>
+  <data name="{0} payouts de {1} traders" xml:space="preserve">
+    <value>{0} payouts from {1} traders</value>
+  </data>
+  <data name="{0} / {1} días" xml:space="preserve">
+    <value>{0} / {1} days</value>
+  </data>
+  <data name="Sin muestra suficiente en la comunidad todavía" xml:space="preserve">
+    <value>Not enough community sample yet</value>
+  </data>
 </root>
