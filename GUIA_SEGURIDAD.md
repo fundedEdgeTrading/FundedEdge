@@ -1,6 +1,6 @@
-# Guía funcional y técnica de seguridad — TrackRecord
+# Guía funcional y técnica de seguridad — FundedEdge
 
-> **Objetivo.** Servir de plan de acción, revisable y accionable, para llevar TrackRecord de un MVP
+> **Objetivo.** Servir de plan de acción, revisable y accionable, para llevar FundedEdge de un MVP
 > funcional a una aplicación web endurecida y lista para producción multiusuario. Documenta las
 > vulnerabilidades y brechas detectadas en el código actual, su impacto, su ubicación exacta y la
 > solución concreta (con código .NET listo para pegar), organizadas **por fases** de prioridad
@@ -37,7 +37,7 @@
 
 ## Resumen ejecutivo
 
-TrackRecord parte de una base **más sólida de lo habitual en un MVP**: el aislamiento de datos por
+FundedEdge parte de una base **más sólida de lo habitual en un MVP**: el aislamiento de datos por
 usuario está aplicado de forma consistente (toda consulta filtra por `UserId`), los secretos de
 integración se cifran con `IDataProtector`, el antiforgery está activo globalmente, el contenido
 generado por IA se renderiza con HTML deshabilitado, y las comparaciones de API key son en tiempo
@@ -218,7 +218,7 @@ conexión de base de datos.
 en el servidor SQL. La cadena de producción va por variable de entorno (nunca en `appsettings.json`):
 
 ```
-ConnectionStrings__Default=Server=tu-sql;Database=TrackRecord;User Id=trackrecord_app;Password=...;Encrypt=True;TrustServerCertificate=False
+ConnectionStrings__Default=Server=tu-sql;Database=FundedEdge;User Id=trackrecord_app;Password=...;Encrypt=True;TrustServerCertificate=False
 ```
 
 Deja el `TrustServerCertificate=True` **solo** en el `appsettings.Development.json` local si hace falta.
@@ -349,12 +349,12 @@ un reinicio/escalado (justo el fallo que el `catch (CryptographicException)` enm
 ```csharp
 // Producción (ejemplo Azure). Ajusta al proveedor real.
 services.AddDataProtection()
-    .SetApplicationName("TrackRecord")
+    .SetApplicationName("FundedEdge")
     .PersistKeysToAzureBlobStorage(blobUri, credential)     // almacén compartido y persistente
     .ProtectKeysWithAzureKeyVault(keyVaultKeyId, credential); // cifrado en reposo con KMS
 ```
 
-Alternativas equivalentes: `PersistKeysToDbContext<TrackRecordDbContext>()` (comparte vía la propia
+Alternativas equivalentes: `PersistKeysToDbContext<FundedEdgeDbContext>()` (comparte vía la propia
 BD) + `ProtectKeysWithCertificate(cert)`; o en Linux/K8s, un volumen persistente cifrado + certificado.
 Deja el `PersistKeysToFileSystem` sin protección **solo** para desarrollo local.
 
@@ -567,7 +567,7 @@ Markdig, Microsoft.AspNetCore.*) ni en las librerías de `wwwroot/lib`.
 
 ## Checklist de despliegue a producción
 
-Puerta de salida antes de exponer TrackRecord a Internet. No marques “listo” hasta que **todas** las
+Puerta de salida antes de exponer FundedEdge a Internet. No marques “listo” hasta que **todas** las
 casillas 🔴/🟠 estén verdes.
 
 **Autenticación y acceso**

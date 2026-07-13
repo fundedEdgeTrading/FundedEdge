@@ -1,0 +1,146 @@
+@* Barras divergentes mensuales (payouts arriba, costes abajo) + línea de neto acumulado.
+   SVG nativo sin dependencias JS: la identidad la lleva la posición respecto al eje cero
+   (el color es redundante) y cada mes tiene tooltip nativo con el detalle. *@
+
+@inject IStringLocalizer<SharedResources> L
+
+<div class="chart-legend">
+    <span class="legend-chip"><span class="legend-dot" style="background: var(--good)"></span>Payouts</span>
+    <span class="legend-chip"><span class="legend-dot" style="background: var(--danger)"></span>@L["Costes"]</span>
+    <span class="legend-chip"><span class="legend-line" style="background: var(--accent-strong)"></span>@L["Neto acumulado"]</span>
+</div>
+
+<svg class="chart-svg" viewBox="0 0 @W @H" preserveAspectRatio="xMidYMid meet" role="img"
+     aria-label="@L["Cashflow mensual: payouts, costes y neto acumulado"]">
+    @* Gridlines *@
+    @foreach (var tick in _ticks)
+    {
+        <line class="chart-gridline @(tick == 0m ? "chart-zero" : "")"
+              x1="@PadL" x2="@(W - PadR)" y1="@F(Y(tick))" y2="@F(Y(tick))" />
+        @SvgText("chart-tick", PadL - 7, Y(tick) + 3.5, "end", Compact(tick))
+    }
+
+    @* Barras + etiquetas de mes *@
+    @for (var i = 0; i < Points.Count; i++)
+    {
+        var p = Points[i];
+        var cx = SlotCenter(i);
+
+        @if (p.Payouts > 0)
+        {
+            <rect class="chart-bar chart-bar-up" x="@F(cx - BarW / 2)" y="@F(Y(p.Payouts))"
+                  width="@F(BarW)" height="@F(Y(0) - Y(p.Payouts))" rx="2.5" />
+        }
+        @if (p.Costs > 0)
+        {
+            <rect class="chart-bar chart-bar-down" x="@F(cx - BarW / 2)" y="@F(Y(0))"
+                  width="@F(BarW)" height="@F(Y(-p.Costs) - Y(0))" rx="2.5" />
+        }
+
+        @if (ShowLabel(i))
+        {
+            @SvgText("chart-tick", cx, H - 8, "middle", MonthLabel(p))
+        }
+
+        @* Zona de hover con tooltip nativo por mes *@
+        <rect class="chart-hover" x="@F(SlotCenter(i) - SlotW / 2)" y="@PadT"
+              width="@F(SlotW)" height="@(H - PadT - PadB)">
+            <title>@MonthLabel(p): payouts @Money(p.Payouts) · @L["Costes"] @Money(p.Costs) · @L["Neto acumulado"] @Money(_cumulative[i])</title>
+        </rect>
+    }
+
+    @* Línea de neto acumulado *@
+    <polyline class="chart-line" pathLength="1" points="@_linePoints" />
+    <circle class="chart-line-dot" cx="@F(SlotCenter(Points.Count - 1))" cy="@F(Y(_cumulative[^1]))" r="3.5" />
+    @SvgText($"chart-end-label {(_cumulative[^1] >= 0 ? "chart-end-good" : "chart-end-bad")}",
+             Math.Min(SlotCenter(Points.Count - 1) + 8, W - 2), EndLabelY(),
+             SlotCenter(Points.Count - 1) + 60 > W - PadR ? "end" : "start", Compact(_cumulative[^1]))
+</svg>
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<MonthlyCashflowPoint> Points { get; set; } = [];
+    [Parameter] public Currency Currency { get; set; } = Currency.Usd;
+
+    private const int W = 720, H = 250, PadL = 48, PadR = 16, PadT = 14, PadB = 26;
+
+    private decimal[] _cumulative = [];
+    private decimal[] _ticks = [];
+    private decimal _maxUp, _maxDown;
+    private string _linePoints = "";
+
+    protected override void OnParametersSet()
+    {
+        if (Points.Count == 0)
+        {
+            return;
+        }
+
+        _cumulative = new decimal[Points.Count];
+        decimal running = 0;
+        for (var i = 0; i < Points.Count; i++)
+        {
+            running += Points[i].Net;
+            _cumulative[i] = running;
+        }
+
+        _maxUp = Math.Max(Points.Max(p => p.Payouts), Math.Max(_cumulative.Max(), 0m));
+        _maxDown = Math.Max(Points.Max(p => p.Costs), Math.Max(-_cumulative.Min(), 0m));
+        if (_maxUp == 0 && _maxDown == 0) { _maxUp = 1; }
+
+        var step = NiceStep((_maxUp + _maxDown) / 4m);
+        _maxUp = step * Math.Ceiling(_maxUp / step);
+        _maxDown = step * Math.Ceiling(_maxDown / step);
+
+        var ticks = new List<decimal>();
+        for (var t = -_maxDown; t <= _maxUp; t += step) { ticks.Add(t); }
+        _ticks = [.. ticks];
+
+        _linePoints = string.Join(" ", Enumerable.Range(0, Points.Count)
+            .Select(i => $"{F(SlotCenter(i))},{F(Y(_cumulative[i]))}"));
+    }
+
+    private double SlotW => (double)(W - PadL - PadR) / Points.Count;
+    private double BarW => Math.Min(SlotW * 0.5, 34);
+    private double SlotCenter(int i) => PadL + SlotW * (i + 0.5);
+
+    private double Y(decimal value)
+    {
+        var domain = _maxUp + _maxDown;
+        return PadT + (double)((_maxUp - value) / domain) * (H - PadT - PadB);
+    }
+
+    private double EndLabelY()
+    {
+        var y = Y(_cumulative[^1]);
+        return Math.Clamp(y + 3.5, PadT + 9, H - PadB - 3);
+    }
+
+    private bool ShowLabel(int i) =>
+        Points.Count <= 9 || i % Math.Max(1, (int)Math.Ceiling(Points.Count / 9.0)) == 0;
+
+    private static string MonthLabel(MonthlyCashflowPoint p) =>
+        new DateTime(p.Year, p.Month, 1).ToString("MMM yy");
+
+    private static decimal NiceStep(decimal rough)
+    {
+        if (rough <= 0) { return 1; }
+        var magnitude = (decimal)Math.Pow(10, Math.Floor(Math.Log10((double)rough)));
+        var residual = rough / magnitude;
+        return residual switch { <= 1 => magnitude, <= 2 => 2 * magnitude, <= 5 => 5 * magnitude, _ => 10 * magnitude };
+    }
+
+    private string Compact(decimal v)
+    {
+        var abs = Math.Abs(v);
+        var symbol = FundedEdge.Domain.Common.CurrencyFormatter.Symbol(Currency);
+        return abs >= 1000 ? $"{symbol}{v / 1000m:0.#}k" : $"{symbol}{v:0}";
+    }
+
+    private string Money(decimal v) => FundedEdge.Domain.Common.CurrencyFormatter.Format(v, Currency, decimals: 0);
+
+    private static string F(double v) => v.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
+
+    // Razor reserva la etiqueta <text>, así que los textos SVG se emiten como marcado.
+    private static MarkupString SvgText(string cls, double x, double y, string anchor, string content) =>
+        new($"<text class=\"{cls}\" x=\"{F(x)}\" y=\"{F(y)}\" text-anchor=\"{anchor}\">{System.Net.WebUtility.HtmlEncode(content)}</text>");
+}

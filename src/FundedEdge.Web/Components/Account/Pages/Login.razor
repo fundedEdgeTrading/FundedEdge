@@ -1,0 +1,141 @@
+@page "/Account/Login"
+
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Authentication
+@using Microsoft.AspNetCore.Identity
+@using FundedEdge.Infrastructure.Identity
+
+@inject SignInManager<ApplicationUser> SignInManager
+@inject ILogger<Login> Logger
+@inject IdentityRedirectManager RedirectManager
+@inject IStringLocalizer<SharedResources> L
+
+<PageTitle>@L["Iniciar sesión"] — @Brand.Name</PageTitle>
+
+<div class="auth-shell">
+    <AuthCard Title="@L["Iniciar sesión"]">
+        <Subtitle>@L["Accede a tu track record de trading y cuentas de fondeo."]</Subtitle>
+
+        <ChildContent>
+            <StatusMessage Message="@errorMessage" />
+
+            @if (emailNotConfirmed)
+            {
+                <p class="auth-footer">
+                    <a href="Account/ResendEmailConfirmation">@L["Reenviar el email de confirmación"]</a>
+                </p>
+            }
+
+            <ExternalLoginPicker />
+
+            <div class="auth-divider"><span>@L["o con tu email"]</span></div>
+
+            <EditForm EditContext="editContext" method="post" OnSubmit="LoginUser" FormName="login">
+                <DataAnnotationsValidator />
+                <ValidationSummary class="text-danger" role="alert" />
+                <div class="mb-3 auth-field">
+                    <label for="Input.Email" class="form-label">Email</label>
+                    <InputText @bind-Value="Input.Email" id="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="tu@email.com" />
+                    <ValidationMessage For="() => Input.Email" class="text-danger" />
+                </div>
+                <div class="mb-3 auth-field">
+                    <label for="Input.Password" class="form-label">@L["Contraseña"]</label>
+                    <InputText type="password" @bind-Value="Input.Password" id="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="••••••••" />
+                    <ValidationMessage For="() => Input.Password" class="text-danger" />
+                </div>
+                <div class="form-check mb-3">
+                    <InputCheckbox @bind-Value="Input.RememberMe" class="form-check-input" id="Input.RememberMe" />
+                    <label class="form-check-label" for="Input.RememberMe">@L["Recordarme"]</label>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">@L["Iniciar sesión"]</button>
+            </EditForm>
+
+            <p class="auth-footer">
+                <a href="Account/ForgotPassword">@L["¿Has olvidado tu contraseña?"]</a>
+            </p>
+            <p class="auth-footer">
+                @L["¿No tienes cuenta?"] <a href="@(NavigationManager.GetUriWithQueryParameters("Account/Register", new Dictionary<string, object?> { ["ReturnUrl"] = ReturnUrl }))">@L["Regístrate"]</a>
+            </p>
+        </ChildContent>
+    </AuthCard>
+</div>
+
+@code {
+    private string? errorMessage;
+    private bool emailNotConfirmed;
+    private EditContext editContext = default!;
+
+    [Inject]
+    private NavigationManager NavigationManager { get; set; } = default!;
+
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!;
+
+    [SupplyParameterFromForm]
+    private InputModel Input { get; set; } = default!;
+
+    [SupplyParameterFromQuery]
+    private string? ReturnUrl { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Input ??= new();
+        editContext = new EditContext(Input);
+
+        if (HttpMethods.IsGet(HttpContext.Request.Method))
+        {
+            // Limpia la cookie externa temporal para empezar un login limpio.
+            await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
+        }
+    }
+
+    public async Task LoginUser()
+    {
+        if (!editContext.Validate())
+        {
+            return;
+        }
+
+        // lockoutOnFailure:true — cada fallo cuenta hacia el bloqueo temporal configurado en
+        // AddIdentityCore (5 intentos → 15 min). Frena la fuerza bruta de contraseñas. [SEC-01]
+        var result = await SignInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: true);
+
+        if (result.Succeeded)
+        {
+            Logger.LogInformation("Usuario autenticado.");
+            RedirectManager.RedirectTo(ReturnUrl);
+        }
+        else if (result.IsLockedOut)
+        {
+            Logger.LogWarning("Cuenta bloqueada temporalmente.");
+            RedirectManager.RedirectTo("Account/Lockout");
+        }
+        else if (result.IsNotAllowed)
+        {
+            // RequireConfirmedAccount: la cuenta existe pero el email sigue sin confirmar.
+            emailNotConfirmed = true;
+            errorMessage = L["Error: confirma tu email antes de iniciar sesión."];
+        }
+        else
+        {
+            // Auditoría de seguridad [SEC-13]: se registra la IP (no el email, para no volcar PII)
+            // para poder detectar y correlacionar fuerza bruta. El mensaje al usuario es genérico.
+            Logger.LogWarning("Inicio de sesión fallido desde {RemoteIp}.", HttpContext.Connection.RemoteIpAddress);
+            errorMessage = L["Error: email o contraseña incorrectos."];
+        }
+    }
+
+    private sealed class InputModel
+    {
+        [Required]
+        [EmailAddress]
+        public string Email { get; set; } = "";
+
+        [Required]
+        [DataType(DataType.Password)]
+        public string Password { get; set; } = "";
+
+        [Display(Name = "Recordarme")]
+        public bool RememberMe { get; set; }
+    }
+}

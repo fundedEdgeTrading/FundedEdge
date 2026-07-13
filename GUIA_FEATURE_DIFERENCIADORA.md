@@ -1,4 +1,4 @@
-# TrackRecord — Feature diferenciadora: «Firm Fit» (motor de decisión de compra de evaluaciones)
+# FundedEdge — Feature diferenciadora: «Firm Fit» (motor de decisión de compra de evaluaciones)
 
 > Análisis de mercado y guía de implementación de la funcionalidad con mayor potencial de
 > diferenciación frente a la competencia. Formato compatible con el roadmap de
@@ -16,7 +16,7 @@ El software alrededor del funded trading se divide hoy en dos familias, y ningun
 | Journals de trading | TraderSync, Tradezella, Edgewonk, TradesViz | Analizan tus trades (win rate, expectancy, setups) | Ignoran la **economía del negocio de evaluaciones**: costes, pass rate, payouts, reglas de firma |
 | Comparadores de prop firms | PropFirmMatch, agregadores de descuentos | Comparan precios y reglas **genéricas** de las firmas | No saben **nada de ti**: te recomiendan lo mismo que a cualquiera |
 
-TrackRecord ya tiene lo que ninguna de las dos familias tiene a la vez: **la distribución real
+FundedEdge ya tiene lo que ninguna de las dos familias tiene a la vez: **la distribución real
 de PnL por trade del usuario Y la economía observada de su negocio** (pass rate, costes,
 payouts por firma). La feature diferenciadora es cruzarlos con las **reglas concretas de cada
 programa de evaluación** para responder la única pregunta que de verdad mueve dinero:

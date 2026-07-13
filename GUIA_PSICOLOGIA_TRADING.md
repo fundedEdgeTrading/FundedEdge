@@ -78,7 +78,7 @@ etiquetas distintas:
 
 ## 3. Modelo de dominio
 
-Nuevos tipos en `src/TrackRecord.Domain` siguiendo las convenciones existentes (`Entity`,
+Nuevos tipos en `src/FundedEdge.Domain` siguiendo las convenciones existentes (`Entity`,
 enums en `Domain/Enums`):
 
 ```csharp
@@ -149,7 +149,7 @@ public class DailyMindsetCheckIn : Entity
 
 ## 4. Capa de aplicación
 
-`src/TrackRecord.Application/Psychology/`:
+`src/FundedEdge.Application/Psychology/`:
 
 ```csharp
 public interface IPsychologyService
@@ -236,7 +236,7 @@ trades concretos como evidencia. **Testables unitariamente** con datos sintétic
 
 ## 7. Página de Psicología (R5) — `/psychology`
 
-Nueva página Blazor `Psychology.razor` en `src/TrackRecord.Web/Components/Pages/` (con entrada
+Nueva página Blazor `Psychology.razor` en `src/FundedEdge.Web/Components/Pages/` (con entrada
 en el menú de navegación, requiere usuario autenticado como el resto).
 
 **Layout propuesto (de arriba abajo):**

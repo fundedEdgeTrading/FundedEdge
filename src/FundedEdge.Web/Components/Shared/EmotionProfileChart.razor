@@ -1,0 +1,44 @@
+@* Perfil emocional del período: distribución de frecuencia por emoción (barras en vez de radar
+   polar — mismo contenido informativo, más fiable de renderizar sin depender de JS). *@
+@using FundedEdge.Web.Support
+@inject IStringLocalizer<SharedResources> L
+
+@if (_ranked.Count == 0)
+{
+    <EmptyState Title="@L["Sin datos suficientes"]" Text="@L["Registra emociones en tus trades para ver tu perfil emocional."]" />
+}
+else
+{
+    <div class="emotion-perf-list">
+        @foreach (var (emotion, count) in _ranked)
+        {
+            var pct = _total == 0 ? 0 : (double)count / _total * 100;
+            <div class="emotion-perf-row">
+                <div class="emotion-perf-label">@EmotionDisplay.Emoji(emotion) @EmotionDisplay.Label(emotion)</div>
+                <div class="emotion-perf-track">
+                    <div class="emotion-perf-bar bar-good" style="width:@F(pct)%"></div>
+                </div>
+                <div class="emotion-perf-value">@F(pct)%</div>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<FundedEdge.Application.Dtos.EmotionFrequencyPoint> Points { get; set; } = [];
+
+    private List<(FundedEdge.Domain.Enums.EmotionType Emotion, int Count)> _ranked = [];
+    private int _total;
+
+    protected override void OnParametersSet()
+    {
+        _ranked = Points
+            .GroupBy(p => p.Emotion)
+            .Select(g => (g.Key, g.Sum(p => p.Count)))
+            .OrderByDescending(x => x.Item2)
+            .ToList();
+        _total = _ranked.Sum(x => x.Count);
+    }
+
+    private static string F(double v) => v.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture);
+}

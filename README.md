@@ -25,10 +25,10 @@ Aplicación .NET 10 (Blazor Server) para registrar cuentas de fondeo (Lucid Trad
 3. Arranca la app:
 
    ```powershell
-   dotnet run --project src/TrackRecord.Web
+   dotnet run --project src/FundedEdge.Web
    ```
 
-   Al arrancar, `Program.cs` aplica automáticamente las migraciones pendientes (`db.Database.MigrateAsync()`), crea la base de datos `TrackRecord` si no existe, y siembra las firmas Lucid Trading, Tradeify y Apex Trader Funding además de un catálogo de instrumentos comunes (ES, MES, NQ, MNQ, GC, CL).
+   Al arrancar, `Program.cs` aplica automáticamente las migraciones pendientes (`db.Database.MigrateAsync()`), crea la base de datos `FundedEdge` si no existe, y siembra las firmas Lucid Trading, Tradeify y Apex Trader Funding además de un catálogo de instrumentos comunes (ES, MES, NQ, MNQ, GC, CL).
 
 4. Abre `https://localhost:5001` (o el puerto que indique la consola).
 
@@ -37,13 +37,13 @@ Aplicación .NET 10 (Blazor Server) para registrar cuentas de fondeo (Lucid Trad
 Por defecto (`appsettings.json`):
 
 ```
-Server=localhost\SQLEXPRESS;Database=TrackRecord;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=true
+Server=localhost\SQLEXPRESS;Database=FundedEdge;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=true
 ```
 
 Si tu instancia de SQL Server Express tiene otro nombre, autenticación SQL, o corre en otra máquina, sobrescribe `ConnectionStrings:Default` en `appsettings.Development.json` (no versionado) o vía variable de entorno:
 
 ```powershell
-$env:ConnectionStrings__Default = "Server=MIPC\SQLEXPRESS;Database=TrackRecord;User Id=sa;Password=...;TrustServerCertificate=True"
+$env:ConnectionStrings__Default = "Server=MIPC\SQLEXPRESS;Database=FundedEdge;User Id=sa;Password=...;TrustServerCertificate=True"
 ```
 
 ## Autenticación y datos por usuario
@@ -81,8 +81,8 @@ también el botón "Iniciar sesión con Google":
 3. Configura el Client ID y el Client Secret vía User Secrets (nunca en `appsettings.json`):
 
    ```powershell
-   dotnet user-secrets set "Authentication:Google:ClientId" "..." --project src/TrackRecord.Web
-   dotnet user-secrets set "Authentication:Google:ClientSecret" "..." --project src/TrackRecord.Web
+   dotnet user-secrets set "Authentication:Google:ClientId" "..." --project src/FundedEdge.Web
+   dotnet user-secrets set "Authentication:Google:ClientSecret" "..." --project src/FundedEdge.Web
    ```
 
 El botón de Google solo aparece en `/Account/Login` y `/Account/Register` si ambos valores están
@@ -96,15 +96,15 @@ un aviso explícito). Para que se envíe un email de verdad, configura vía User
 `appsettings.json`):
 
 ```powershell
-dotnet user-secrets set "Email:SmtpHost" "smtp.tuservidor.com" --project src/TrackRecord.Web
-dotnet user-secrets set "Email:SmtpPort" "587" --project src/TrackRecord.Web
-dotnet user-secrets set "Email:SmtpUser" "usuario" --project src/TrackRecord.Web
-dotnet user-secrets set "Email:SmtpPassword" "..." --project src/TrackRecord.Web
-dotnet user-secrets set "Email:From" "no-reply@tudominio.com" --project src/TrackRecord.Web
+dotnet user-secrets set "Email:SmtpHost" "smtp.tuservidor.com" --project src/FundedEdge.Web
+dotnet user-secrets set "Email:SmtpPort" "587" --project src/FundedEdge.Web
+dotnet user-secrets set "Email:SmtpUser" "usuario" --project src/FundedEdge.Web
+dotnet user-secrets set "Email:SmtpPassword" "..." --project src/FundedEdge.Web
+dotnet user-secrets set "Email:From" "no-reply@tudominio.com" --project src/FundedEdge.Web
 ```
 
 Solo `Email:SmtpHost` y `Email:From` son obligatorios para activarlo; `Email:FromName` es opcional
-(por defecto "TrackRecord"). El envío usa [MailKit](https://github.com/jstedfast/MailKit) por
+(por defecto "FundedEdge"). El envío usa [MailKit](https://github.com/jstedfast/MailKit) por
 STARTTLS (puerto 587 típico). Cualquier proveedor SMTP transaccional (SendGrid, Mailgun, Amazon SES
 vía SMTP, etc.) funciona con estas 5 claves.
 
@@ -116,13 +116,13 @@ usó el selector ES/EN de la barra lateral o del pie de las páginas públicas) 
 (`/culture/set?culture=en&redirectUri=...`) para que el circuito de Blazor Server arranque ya con
 la cultura correcta. Las claves de traducción son el propio texto en español
 (`IStringLocalizer<SharedResources>`); el inglés vive en
-`src/TrackRecord.Web/Resources/SharedResources.en.resx`. Para añadir un idioma nuevo: crear
+`src/FundedEdge.Web/Resources/SharedResources.en.resx`. Para añadir un idioma nuevo: crear
 `SharedResources.{cultura}.resx` con las mismas claves y añadir la cultura a la lista de
 `supportedCultures` en `Program.cs`.
 
 ## Planes de suscripción y pagos (Stripe)
 
-TrackRecord tiene 3 planes (Starter/Pro/Elite — ver `/precios` y
+FundedEdge tiene 3 planes (Starter/Pro/Elite — ver `/precios` y
 [`GUIA_MONETIZACION_Y_MARKETING.md`](./GUIA_MONETIZACION_Y_MARKETING.md) §3). Todo nuevo registro
 recibe automáticamente 14 días de Pro sin tarjeta; al terminar, cae a Starter. Sin Stripe
 configurado, cada usuario se queda en el plan que tenga en base de datos indefinidamente y los
@@ -137,12 +137,12 @@ botones de upgrade en `/plan` aparecen deshabilitados con "Pagos no configurados
 3. Configura los 6 secretos vía User Secrets (nunca en `appsettings.json`):
 
    ```powershell
-   dotnet user-secrets set "Stripe:SecretKey" "sk_test_..." --project src/TrackRecord.Web
-   dotnet user-secrets set "Stripe:WebhookSecret" "whsec_..." --project src/TrackRecord.Web
-   dotnet user-secrets set "Stripe:Prices:ProMonthly" "price_..." --project src/TrackRecord.Web
-   dotnet user-secrets set "Stripe:Prices:ProYearly" "price_..." --project src/TrackRecord.Web
-   dotnet user-secrets set "Stripe:Prices:EliteMonthly" "price_..." --project src/TrackRecord.Web
-   dotnet user-secrets set "Stripe:Prices:EliteYearly" "price_..." --project src/TrackRecord.Web
+   dotnet user-secrets set "Stripe:SecretKey" "sk_test_..." --project src/FundedEdge.Web
+   dotnet user-secrets set "Stripe:WebhookSecret" "whsec_..." --project src/FundedEdge.Web
+   dotnet user-secrets set "Stripe:Prices:ProMonthly" "price_..." --project src/FundedEdge.Web
+   dotnet user-secrets set "Stripe:Prices:ProYearly" "price_..." --project src/FundedEdge.Web
+   dotnet user-secrets set "Stripe:Prices:EliteMonthly" "price_..." --project src/FundedEdge.Web
+   dotnet user-secrets set "Stripe:Prices:EliteYearly" "price_..." --project src/FundedEdge.Web
    ```
 
 4. Configura un webhook apuntando a `https://tu-dominio/api/billing/webhook`, suscrito a
@@ -176,13 +176,13 @@ Elige una de estas dos vías (nunca pegues la key en `appsettings.json`, que sí
 
 ```powershell
 $env:ANTHROPIC_API_KEY = "sk-ant-..."
-dotnet run --project src/TrackRecord.Web
+dotnet run --project src/FundedEdge.Web
 ```
 
 **Opción B — User Secrets** (recomendado si desarrollas en la misma máquina de forma continuada; el proyecto ya tiene `UserSecretsId` configurado):
 
 ```powershell
-dotnet user-secrets set "Ai:ApiKey" "sk-ant-..." --project src/TrackRecord.Web
+dotnet user-secrets set "Ai:ApiKey" "sk-ant-..." --project src/FundedEdge.Web
 ```
 
 La app resuelve la key en este orden: `Ai:ApiKey` (configuración) → `ANTHROPIC_API_KEY` (entorno). El modelo usado es `claude-haiku-4-5` (esfuerzo bajo) para mantener el coste por informe mínimo — ideal para probar la funcionalidad; cámbialo en `ClaudeTradingAnalystService` por `claude-opus-4-8`/esfuerzo alto si quieres análisis más profundos en producción.
@@ -261,15 +261,15 @@ El seed es idempotente (si el usuario ya existe no hace nada) y no debe activars
 ## Estructura de la solución
 
 ```
-TrackRecord.slnx
+FundedEdge.slnx
 ├── src/
-│   ├── TrackRecord.Domain          # Entidades y lógica de dominio (sin dependencias externas)
-│   ├── TrackRecord.Application     # Interfaces de servicio, DTOs, definición de KPIs
-│   ├── TrackRecord.Infrastructure  # EF Core + SQL Server, implementación de servicios, migraciones
-│   └── TrackRecord.Web             # Blazor Server: dashboard y páginas CRUD
+│   ├── FundedEdge.Domain          # Entidades y lógica de dominio (sin dependencias externas)
+│   ├── FundedEdge.Application     # Interfaces de servicio, DTOs, definición de KPIs
+│   ├── FundedEdge.Infrastructure  # EF Core + SQL Server, implementación de servicios, migraciones
+│   └── FundedEdge.Web             # Blazor Server: dashboard y páginas CRUD
 └── tests/
-    ├── TrackRecord.Domain.Tests       # Ciclo de vida, TradeBuilder FIFO, simuladores Monte Carlo/EV
-    └── TrackRecord.Application.Tests  # KPIs, importación CSV (Tradovate/NT8), settings, riesgo — EF Core InMemory
+    ├── FundedEdge.Domain.Tests       # Ciclo de vida, TradeBuilder FIFO, simuladores Monte Carlo/EV
+    └── FundedEdge.Application.Tests  # KPIs, importación CSV (Tradovate/NT8), settings, riesgo — EF Core InMemory
 ```
 
 ## Qué incluye esta versión (Fases 1–3 completas)
@@ -297,7 +297,7 @@ TrackRecord.slnx
 ### Trades manuales y la entidad `Execution`
 
 El journal manual de trades **no** escribe directamente un `Trade` suelto: `ManualTradeFactory`
-(en `TrackRecord.Domain.Trades`) construye el `Trade` junto con las dos `Execution` (entrada y
+(en `FundedEdge.Domain.Trades`) construye el `Trade` junto con las dos `Execution` (entrada y
 salida) que lo representan — la misma entidad que usa la importación de CSV
 (`Source = CsvImport`). Un trade manual y uno importado son indistinguibles a nivel de
 almacenamiento; solo cambia el origen de sus `Execution`.
@@ -315,6 +315,6 @@ dotnet test
 
 ```powershell
 dotnet tool install --global dotnet-ef
-dotnet ef migrations add NombreMigracion --project src/TrackRecord.Infrastructure --startup-project src/TrackRecord.Infrastructure
-dotnet ef database update --project src/TrackRecord.Infrastructure --startup-project src/TrackRecord.Infrastructure
+dotnet ef migrations add NombreMigracion --project src/FundedEdge.Infrastructure --startup-project src/FundedEdge.Infrastructure
+dotnet ef database update --project src/FundedEdge.Infrastructure --startup-project src/FundedEdge.Infrastructure
 ```
