@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/FundedEdge.Application/FundedEdge.Application.csproj" />
+    <Project Path="src/FundedEdge.Domain/FundedEdge.Domain.csproj" />
+    <Project Path="src/FundedEdge.Infrastructure/FundedEdge.Infrastructure.csproj" />
+    <Project Path="src/FundedEdge.Web/FundedEdge.Web.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/FundedEdge.Application.Tests/FundedEdge.Application.Tests.csproj" />
+    <Project Path="tests/FundedEdge.Domain.Tests/FundedEdge.Domain.Tests.csproj" />
+  </Folder>
+</Solution>

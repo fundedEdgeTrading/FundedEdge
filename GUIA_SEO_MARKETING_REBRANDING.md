@@ -12,7 +12,7 @@
 
 ### 1.1 Decisión: el producto pasa a llamarse **FundedEdge**
 
-"TrackRecord" era un nombre de trabajo: genérico, imposible de posicionar (la SERP la
+"FundedEdge" era un nombre de trabajo: genérico, imposible de posicionar (la SERP la
 dominan el término contable y decenas de homónimos) y no registrable. De los candidatos
 del §4.2 de la guía de monetización y nuevas opciones, la decisión es **FundedEdge**:
 
@@ -38,7 +38,7 @@ del §4.2 de la guía de monetización y nuevas opciones, la decisión es **Fund
 4. SERP: googlear "FundedEdge" — no debe existir un competidor activo con ese nombre.
 
 **Migración técnica (el código ya está preparado):**
-- [ ] `Brand.Name = "FundedEdge"` en `src/TrackRecord.Domain/Common/Brand.cs` — cambio de
+- [ ] `Brand.Name = "FundedEdge"` en `src/FundedEdge.Domain/Common/Brand.cs` — cambio de
   una línea; todo el producto (títulos, emails, PDF, landing) lo hereda.
 - [ ] Dominio nuevo con **redirects 301** desde el dominio antiguo si ya hubiera tráfico,
   y `App:BaseUrl` actualizado (Stripe, emails).

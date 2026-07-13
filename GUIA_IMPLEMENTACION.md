@@ -1,4 +1,4 @@
-# TrackRecord — Guía de Implementación
+# FundedEdge — Guía de Implementación
 
 > Aplicación en **.NET 10** para registrar y analizar cuentas de fondeo (prop firms de futuros), importar trades automáticamente desde **Tradovate** y **NinjaTrader 8**, y disponer de un dashboard de track record personal con análisis asistido por IA (Claude API).
 
@@ -61,7 +61,7 @@ Operar cuentas de fondeo es un negocio de **riesgo asimétrico**: pagas una eval
 | Autenticación | ASP.NET Core Identity (un solo usuario al inicio, pero deja la puerta abierta) | |
 | Logs | Serilog + seq/console | Trazabilidad de los sync jobs |
 
-> **Decisión Blazor vs MVC**: si en algún momento quieres exponer los datos a una app móvil o a terceros, añade un proyecto `TrackRecord.Api` (Minimal APIs) sobre la misma capa de aplicación. Blazor Server y la API comparten los mismos servicios.
+> **Decisión Blazor vs MVC**: si en algún momento quieres exponer los datos a una app móvil o a terceros, añade un proyecto `FundedEdge.Api` (Minimal APIs) sobre la misma capa de aplicación. Blazor Server y la API comparten los mismos servicios.
 
 ---
 
@@ -70,20 +70,20 @@ Operar cuentas de fondeo es un negocio de **riesgo asimétrico**: pagas una eval
 Arquitectura por capas ligera (no hace falta CQRS/DDD completo para un proyecto personal, pero sí separar integraciones):
 
 ```
-TrackRecord.sln
+FundedEdge.sln
 ├── src/
-│   ├── TrackRecord.Domain/            # Entidades, enums, lógica de dominio pura
-│   ├── TrackRecord.Application/       # Servicios de aplicación, cálculo de KPIs, interfaces (puertos)
-│   ├── TrackRecord.Infrastructure/    # Implementaciones (adaptadores)
+│   ├── FundedEdge.Domain/            # Entidades, enums, lógica de dominio pura
+│   ├── FundedEdge.Application/       # Servicios de aplicación, cálculo de KPIs, interfaces (puertos)
+│   ├── FundedEdge.Infrastructure/    # Implementaciones (adaptadores)
 │   │   ├── Persistence/               #   EF Core, DbContext, migraciones, repositorios
 │   │   ├── Integrations/
 │   │   │   ├── Tradovate/             #   Cliente REST + WebSocket de Tradovate
 │   │   │   └── NinjaTrader/           #   Receptor de ejecuciones + importador CSV
 │   │   └── Ai/                        #   Cliente Claude, prompts, análisis
-│   └── TrackRecord.Web/               # Blazor Web App (UI + endpoints internos)
+│   └── FundedEdge.Web/               # Blazor Web App (UI + endpoints internos)
 └── tests/
-    ├── TrackRecord.Domain.Tests/
-    └── TrackRecord.Application.Tests/
+    ├── FundedEdge.Domain.Tests/
+    └── FundedEdge.Application.Tests/
 ```
 
 Flujo de datos:
@@ -94,7 +94,7 @@ flowchart LR
         TV[Tradovate API<br/>REST + WebSocket]
         NT[NinjaTrader 8<br/>AddOn / CSV]
     end
-    subgraph TrackRecord
+    subgraph FundedEdge
         SYNC[Sync Service<br/>BackgroundService]
         DB[(PostgreSQL)]
         KPI[Motor de KPIs]
@@ -112,7 +112,7 @@ flowchart LR
 
 Principios:
 
-- **El dominio no conoce las integraciones.** `TrackRecord.Application` define `ITradeSource`; Tradovate y NinjaTrader son dos implementaciones.
+- **El dominio no conoce las integraciones.** `FundedEdge.Application` define `ITradeSource`; Tradovate y NinjaTrader son dos implementaciones.
 - **Idempotencia en la importación.** Cada trade importado guarda su `ExternalId` + `SourceType`; reimportar nunca duplica.
 - **Los KPIs se calculan desde los datos crudos** (fills/trades), no se almacenan resultados que puedan quedar obsoletos — salvo snapshots diarios materializados por rendimiento.
 
@@ -259,7 +259,7 @@ public class Instrument
 }
 ```
 
-> **Reconstrucción de trades**: el `TradeBuilder` de `TrackRecord.Application` empareja fills por cuenta+símbolo con lógica FIFO de posición neta (posición pasa por 0 ⇒ trade cerrado). Cubre escalados de entrada/salida y flips (long→short en un fill: cierra un trade y abre otro).
+> **Reconstrucción de trades**: el `TradeBuilder` de `FundedEdge.Application` empareja fills por cuenta+símbolo con lógica FIFO de posición neta (posición pasa por 0 ⇒ trade cerrado). Cubre escalados de entrada/salida y flips (long→short en un fill: cierra un trade y abre otro).
 
 ### Nota sobre las tres empresas
 
@@ -290,7 +290,7 @@ POST /auth/accesstokenrequest
 {
   "name": "usuario",
   "password": "contraseña",
-  "appId": "TrackRecord",
+  "appId": "FundedEdge",
   "appVersion": "1.0",
   "cid": <int>,       // de tu API key
   "sec": "<secret>",
@@ -341,11 +341,11 @@ NinjaTrader 8 **no tiene API REST en la nube**: es una aplicación de escritorio
 
 ### Opción A (recomendada): AddOn NinjaScript que empuja ejecuciones
 
-Un AddOn en C# dentro de NT8 que se suscribe a las ejecuciones de todas las cuentas conectadas (Rithmic incluido) y las envía por HTTP a la API local de TrackRecord.
+Un AddOn en C# dentro de NT8 que se suscribe a las ejecuciones de todas las cuentas conectadas (Rithmic incluido) y las envía por HTTP a la API local de FundedEdge.
 
 ```csharp
-// Dentro de NT8: Documents\NinjaTrader 8\bin\Custom\AddOns\TrackRecordExporter.cs
-public class TrackRecordExporter : AddOnBase
+// Dentro de NT8: Documents\NinjaTrader 8\bin\Custom\AddOns\FundedEdgeExporter.cs
+public class FundedEdgeExporter : AddOnBase
 {
     private HttpClient _http = null!;
 
@@ -353,7 +353,7 @@ public class TrackRecordExporter : AddOnBase
     {
         if (State == State.SetDefaults)
         {
-            Name = "TrackRecord Exporter";
+            Name = "FundedEdge Exporter";
         }
         else if (State == State.Configure)
         {
@@ -390,7 +390,7 @@ public class TrackRecordExporter : AddOnBase
 }
 ```
 
-En TrackRecord, un endpoint mínimo protegido por API key local:
+En FundedEdge, un endpoint mínimo protegido por API key local:
 
 ```csharp
 app.MapPost("/api/ingest/ninjatrader/executions",
@@ -404,7 +404,7 @@ app.MapPost("/api/ingest/ninjatrader/executions",
 
 Ventajas: tiempo real, cubre **cualquier broker/feed conectado a NT8** (Rithmic para Apex/Lucid). Desventaja: NT8 debe estar abierto (ya lo está mientras operas).
 
-> **Resiliencia**: si TrackRecord no está levantado cuando llega un fill, el AddOn debe encolar en disco (archivo JSONL local) y reintentar. Alternativa simple: además del push, un importador de respaldo (opción B) que reconcilia a fin de día.
+> **Resiliencia**: si FundedEdge no está levantado cuando llega un fill, el AddOn debe encolar en disco (archivo JSONL local) y reintentar. Alternativa simple: además del push, un importador de respaldo (opción B) que reconcilia a fin de día.
 
 ### Opción B: importación de CSV (fallback y carga histórica)
 
@@ -525,7 +525,7 @@ Casos de uso:
 ### 9.2 Setup
 
 ```bash
-dotnet add src/TrackRecord.Infrastructure package Anthropic
+dotnet add src/FundedEdge.Infrastructure package Anthropic
 ```
 
 La API key **nunca** en código: `ANTHROPIC_API_KEY` como variable de entorno o user-secrets (§11).
@@ -628,7 +628,7 @@ OutputConfig = new OutputConfig
 
 ## 10. Módulo de riesgo: bankroll, riesgo de ruina y EV
 
-Este módulo responde a la pregunta central: **¿es estadísticamente viable mi negocio de cuentas de fondeo, y cuánto bankroll necesito?** Todo se implementa en `TrackRecord.Application` con datos reales del usuario (nada de supuestos genéricos).
+Este módulo responde a la pregunta central: **¿es estadísticamente viable mi negocio de cuentas de fondeo, y cuánto bankroll necesito?** Todo se implementa en `FundedEdge.Application` con datos reales del usuario (nada de supuestos genéricos).
 
 ### 10.1 Esperanza matemática del negocio (EV por evaluación)
 
@@ -710,7 +710,7 @@ Con EV y varianza estimados, mostrar la fracción de Kelly del bankroll dedicabl
   "ConnectionStrings": { "Default": "Host=localhost;Database=trackrecord;..." },
   "Tradovate": {
     "BaseUrl": "https://live.tradovateapi.com/v1",
-    "AppId": "TrackRecord",
+    "AppId": "FundedEdge",
     "AppVersion": "1.0"
   },
   "Sync": { "IntervalMinutes": 10, "OverlapMinutes": 60 },

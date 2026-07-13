@@ -1,0 +1,78 @@
+@page "/Account/RegisterConfirmation"
+
+@using System.Text
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.WebUtilities
+@using FundedEdge.Infrastructure.Email
+@using FundedEdge.Infrastructure.Identity
+
+@inject UserManager<ApplicationUser> UserManager
+@inject IdentityRedirectManager RedirectManager
+@inject EmailOptions EmailOptions
+@inject IStringLocalizer<SharedResources> L
+
+<PageTitle>@L["Confirma tu email"] — @Brand.Name</PageTitle>
+
+<div class="auth-shell">
+    <AuthCard Title="@L["Confirma tu email"]" Centered="true">
+        <ChildContent>
+            <StatusMessage Message="@statusMessage" />
+
+            @if (emailConfirmationLink is not null)
+            {
+                @* Sin SMTP configurado (solo desarrollo) el enlace se enseña aquí para poder completar el flujo. *@
+                <div class="alert alert-warning text-start">
+                    @L["El envío de emails no está configurado (Email:SmtpHost / Email:From), así que el enlace de confirmación se muestra aquí. En producción, configura SMTP para que la verificación sea real — ver README."]
+                </div>
+                <p><a class="btn btn-primary" href="@emailConfirmationLink">@L["Confirmar mi cuenta"]</a></p>
+            }
+            else if (statusMessage is null)
+            {
+                <p class="text-muted">@L["Te hemos enviado un email con un enlace para confirmar tu cuenta. Revisa tu bandeja de entrada (y la carpeta de spam)."]</p>
+                <p class="auth-footer">
+                    @L["¿No te ha llegado?"] <a href="Account/ResendEmailConfirmation">@L["Reenviar el email de confirmación"]</a>
+                </p>
+            }
+        </ChildContent>
+    </AuthCard>
+</div>
+
+@code {
+    private string? emailConfirmationLink;
+    private string? statusMessage;
+
+    [Inject]
+    private NavigationManager NavigationManager { get; set; } = default!;
+
+    [SupplyParameterFromQuery]
+    private string? Email { get; set; }
+
+    [SupplyParameterFromQuery]
+    private string? ReturnUrl { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Email is null)
+        {
+            RedirectManager.RedirectTo("");
+            return;
+        }
+
+        var user = await UserManager.FindByEmailAsync(Email);
+        if (user is null)
+        {
+            statusMessage = L["Error: no existe ningún registro pendiente para ese email."];
+            return;
+        }
+
+        if (!EmailOptions.IsConfigured && !await UserManager.IsEmailConfirmedAsync(user))
+        {
+            var userId = await UserManager.GetUserIdAsync(user);
+            var code = await UserManager.GenerateEmailConfirmationTokenAsync(user);
+            code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+            emailConfirmationLink = NavigationManager.GetUriWithQueryParameters(
+                NavigationManager.ToAbsoluteUri("Account/ConfirmEmail").AbsoluteUri,
+                new Dictionary<string, object?> { ["userId"] = userId, ["code"] = code, ["returnUrl"] = ReturnUrl });
+        }
+    }
+}
