@@ -19,4 +19,7 @@ public enum AiReportKind
 
     /// <summary>Informe de consolidación disparado al cobrar el primer payout de una cuenta.</summary>
     FirstPayoutMilestone = 5,
+
+    /// <summary>Informe de inspiración sobre la operativa de otro trader Elite del ranking (F5.6): qué hace bien y qué puede replicar el usuario que lo pide.</summary>
+    PeerInspiration = 6,
 }

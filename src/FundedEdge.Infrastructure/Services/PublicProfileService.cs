@@ -19,7 +19,9 @@ public class PublicProfileService(
         await using var db = await dbFactory.CreateDbContextAsync(ct);
 
         var profile = await db.PublicProfiles.AsNoTracking().SingleOrDefaultAsync(p => p.UserId == userId, ct);
-        return new PublicProfileSettings(profile?.Slug, profile?.IsEnabled ?? false, limits.CanPublishPublicProfile);
+        return new PublicProfileSettings(
+            profile?.Slug, profile?.IsEnabled ?? false, limits.CanPublishPublicProfile,
+            profile?.ShareOperativa ?? false, profile?.ShareEmotions ?? false);
     }
 
     public async Task<PublicProfileSettings> EnableAsync(CancellationToken ct = default)
@@ -47,7 +49,27 @@ public class PublicProfileService(
 
         profile.IsEnabled = true;
         await db.SaveChangesAsync(ct);
-        return new PublicProfileSettings(profile.Slug, true, true);
+        return new PublicProfileSettings(profile.Slug, true, true, profile.ShareOperativa, profile.ShareEmotions);
+    }
+
+    public async Task<PublicProfileSettings> UpdateSharingAsync(bool shareOperativa, bool shareEmotions, CancellationToken ct = default)
+    {
+        var userId = await currentUser.RequireUserIdAsync();
+        var limits = await planService.GetLimitsAsync(userId, ct);
+        if (!limits.CanPublishPublicProfile)
+        {
+            throw new InvalidOperationException("Compartir tu operativa requiere el plan Elite.");
+        }
+
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
+        var profile = await db.PublicProfiles.SingleOrDefaultAsync(p => p.UserId == userId, ct)
+            ?? throw new InvalidOperationException("Activa primero tu página pública antes de compartir tu operativa.");
+
+        profile.ShareOperativa = shareOperativa;
+        // Compartir emociones no tiene sentido sin compartir la operativa base.
+        profile.ShareEmotions = shareOperativa && shareEmotions;
+        await db.SaveChangesAsync(ct);
+        return new PublicProfileSettings(profile.Slug, profile.IsEnabled, true, profile.ShareOperativa, profile.ShareEmotions);
     }
 
     public async Task DisableAsync(CancellationToken ct = default)

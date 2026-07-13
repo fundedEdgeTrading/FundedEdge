@@ -11,6 +11,12 @@ public interface IPublicProfileService
 
     Task DisableAsync(CancellationToken ct = default);
 
+    /// <summary>
+    /// Actualiza el opt-in de compartir operativa/emociones con el módulo de perfiles Elite.
+    /// Requiere que la página pública exista (activada previamente).
+    /// </summary>
+    Task<PublicProfileSettings> UpdateSharingAsync(bool shareOperativa, bool shareEmotions, CancellationToken ct = default);
+
     /// <summary>Vista pública por slug, o null si no existe/está deshabilitada/el dueño ya no es Elite.</summary>
     Task<PublicProfileView?> GetPublicViewAsync(string slug, CancellationToken ct = default);
 }

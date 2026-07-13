@@ -24,6 +24,14 @@ public interface ITradingAnalystService
     /// </summary>
     Task<AiReportDto> GenerateEventReportAsync(AiReportKind eventKind, string eventContext, CancellationToken ct = default);
 
+    /// <summary>
+    /// Informe de inspiración sobre la operativa de otro trader Elite del ranking (F5.6),
+    /// identificado por el slug de su página pública. Requiere que el usuario actual sea Elite y
+    /// que el dueño del perfil haya dado opt-in de compartir su operativa. El informe se persiste
+    /// a nombre del usuario que lo pide y consume su cupo de IA.
+    /// </summary>
+    Task<AiReportDto> GeneratePeerInspirationReportAsync(string peerSlug, CancellationToken ct = default);
+
     Task<IReadOnlyList<AiReportDto>> GetHistoryAsync(int take = 20, CancellationToken ct = default);
 
     /// <summary>Indica si hay una API key de Anthropic configurada (env var o appsettings), sin exponerla.</summary>

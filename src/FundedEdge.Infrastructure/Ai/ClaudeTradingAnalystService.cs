@@ -24,6 +24,7 @@ public class ClaudeTradingAnalystService(
     IPsychologyService psychologyService,
     ICurrentUserAccessor currentUser,
     IPlanService planService,
+    IPeerDiscoveryService peerDiscovery,
     IDbContextFactory<FundedEdgeDbContext> dbFactory) : ITradingAnalystService
 {
     private const string SystemPrompt =
@@ -84,6 +85,31 @@ public class ClaudeTradingAnalystService(
            orientativas, no definitivas, y anima a registrar más para afinarlas.
 
         Responde siempre en español y en Markdown.
+        """;
+
+    /// <summary>
+    /// Informe de inspiración sobre otro trader del ranking Elite (F5.6): perfila su edge a partir
+    /// de sus agregados para que el usuario que lo pide extraiga ideas replicables. No es coaching
+    /// del par ni un juicio sobre él; es ingeniería inversa constructiva de qué funciona y por qué.
+    /// </summary>
+    private const string PeerInspirationSystemPrompt =
+        """
+        Eres un analista cuantitativo de trading de futuros con cuentas de fondeo. Recibirás las
+        estadísticas AGREGADAS de otro trader (nunca sus trades individuales): KPIs de negocio
+        (ROI, cuentas fondeadas, pass rate), KPIs de trading (win rate, profit factor, R-múltiplo),
+        sus mejores setups y —si lo compartió— su patrón emocional agregado. El usuario que lee el
+        informe quiere INSPIRARSE en la operativa de este trader para mejorar la suya.
+
+        Tu trabajo:
+        1. Perfila el "edge" del trader: ¿de dónde sale su ROI? (¿selección de setups, gestión del
+           riesgo, consistencia, disciplina emocional?). Cita siempre la métrica que lo sustenta.
+        2. Destila 3-5 ideas concretas y replicables que el lector podría probar en su propia
+           operativa, cada una atada a una evidencia del contexto.
+        3. Señala con honestidad los límites de la lectura: si la muestra es pequeña o los datos no
+           están verificados (importados de broker), dilo — inspiración, no imitación ciega.
+
+        No inventes datos que no estén en el contexto. No juzgues al trader como persona ni des por
+        hecho su psicología si no viene el bloque correspondiente. Responde en español y en Markdown.
         """;
 
     public bool IsConfigured => options.IsApiKeyConfigured;
@@ -151,9 +177,60 @@ public class ClaudeTradingAnalystService(
         return await CallClaudeAndPersistAsync(eventKind, null, userContent, ct);
     }
 
+    public async Task<AiReportDto> GeneratePeerInspirationReportAsync(string peerSlug, CancellationToken ct = default)
+    {
+        var view = await peerDiscovery.GetPeerAnalysisAsync(peerSlug, ct);
+        if (view is null)
+        {
+            throw new InvalidOperationException(
+                "Este perfil no está disponible para análisis: requiere tu plan Elite y que el dueño comparta su operativa.");
+        }
+
+        await EnsureAllowedAsync(AiReportKind.PeerInspiration, ct);
+
+        var payload = JsonSerializer.Serialize(
+            new
+            {
+                trader = view.DisplayName,
+                verificado = view.IsVerified,
+                negocio = new { roi = view.BusinessRoi, cuentasFondeadas = view.AccountsFunded, passRate = view.PassRate },
+                trading = new { totalTrades = view.TotalTrades, winRate = view.WinRate, profitFactor = view.ProfitFactor, avgR = view.AvgRMultiple },
+                mejoresSetups = view.TopSetups.Select(s => new { setup = s.Tag, trades = s.TotalTrades, winRate = s.WinRate, profitFactor = s.ProfitFactor }),
+                psicologia = view.Emotions is null
+                    ? null
+                    : new
+                    {
+                        emocionesEntradaMasFrecuentes = view.Emotions.MostFrequentEntryEmotions.Select(e => new { emocion = e.Emotion, frecuencia = e.Count }),
+                        disciplinaPlanSeguidoPct = view.Emotions.FollowedPlanPct,
+                    },
+            },
+            new JsonSerializerOptions { WriteIndented = true });
+
+        var userContent = $"{payload}\n\nGenera un informe de inspiración sobre la operativa de este trader para el usuario que lo consulta.";
+        return await CallClaudeAndPersistAsync(AiReportKind.PeerInspiration, null, userContent, ct, PeerInspirationSystemPrompt);
+    }
+
     /// <summary>Lanza si el usuario ha agotado el cupo de IA de su plan (informes completos o preguntas ad-hoc).</summary>
     private async Task EnsureAllowedAsync(AiReportKind kind, CancellationToken ct)
     {
+        // Los informes de inspiración de pares (Elite) no consumen el cupo de informes propios;
+        // solo se sujetan al tope diario anti-abuso compartido por toda la IA.
+        if (kind == AiReportKind.PeerInspiration)
+        {
+            var userId = await currentUser.RequireUserIdAsync();
+            var limits = await planService.GetLimitsAsync(userId, ct);
+            var now = DateTimeOffset.UtcNow;
+            var dayStart = new DateTimeOffset(now.Year, now.Month, now.Day, 0, 0, 0, TimeSpan.Zero);
+            await using var db = await dbFactory.CreateDbContextAsync(ct);
+            var dailyUsed = await db.AiReports.CountAsync(r => r.UserId == userId && r.CreatedAt >= dayStart, ct);
+            if (dailyUsed >= limits.AiDailyHardCap)
+            {
+                throw new InvalidOperationException("Has alcanzado el límite diario de generaciones de IA. Inténtalo de nuevo mañana.");
+            }
+
+            return;
+        }
+
         var allowance = await planService.GetAiAllowanceAsync(ct);
 
         var isReportKind = kind is AiReportKind.Analysis or AiReportKind.PsychologyAnalysis
