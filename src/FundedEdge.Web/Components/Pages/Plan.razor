@@ -157,9 +157,9 @@ else
     // frente a 12 mensualidades, coherente con los Price Id de Stripe (Stripe:Prices:*Yearly).
     private static readonly (PlanTier Tier, decimal? MonthlyPrice, decimal? YearlyPrice, string[] Features)[] PlanCatalog =
     [
-        (PlanTier.Starter, null, null, ["2 cuentas activas", "Firm Fit: tu mejor programa", "Semáforo EV básico", "1 informe IA al mes", "3 preguntas IA al mes"]),
-        (PlanTier.Pro, 14.99m, 149m, ["10 cuentas activas", "Sincronización automática", "Firm Fit completo: ranking, reglas y plan de compra", "Módulo de riesgo completo", "1 informe IA a la semana", "30 preguntas IA al mes"]),
-        (PlanTier.Elite, 29.99m, 299m, ["Cuentas ilimitadas", "Firm Fit completo: ranking, reglas y plan de compra", "1 informe IA al día (modelo avanzado)", "Preguntas IA ilimitadas", "Track record público", "Perfiles Elite: analiza a los mejores e inspírate con IA"]),
+        (PlanTier.Starter, null, null, ["2 cuentas activas", "Dashboard de KPIs de negocio y trading", "Diario de trades y diario emocional", "Firm Fit: tu mejor programa", "1 informe IA al mes · 3 preguntas IA al mes"]),
+        (PlanTier.Pro, 14.99m, 149m, ["10 cuentas activas", "Sincronización automática (Tradovate / NinjaTrader)", "Firm Fit completo: ranking, sensibilidad a reglas y plan de compra", "Módulo de riesgo completo (Monte Carlo, EV, Kelly)", "Alertas de drawdown", "Informe IA semanal automático · 30 preguntas IA al mes", "Export PDF del track record"]),
+        (PlanTier.Elite, 29.99m, 299m, ["Cuentas activas ilimitadas · todo lo de Pro", "IA con el modelo más avanzado (Opus): análisis mucho más profundo", "1 informe IA al día · preguntas IA ilimitadas", "Track record público verificado", "Perfiles Elite: benchmarking e inspiración IA de los mejores"]),
     ];
 
     private bool _yearly;

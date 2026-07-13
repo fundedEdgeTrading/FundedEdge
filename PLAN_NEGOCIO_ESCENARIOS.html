@@ -1,0 +1,535 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>FundedEdge — Plan de negocio y escenarios financieros</title>
+<style>
+  :root{
+    --plane:#f4f5f2; --surface:#ffffff; --ink:#0b0e14; --ink2:#4a4f5a; --muted:#8a8f99;
+    --grid:#e6e7e2; --axis:#c9cbc4; --border:rgba(11,14,20,.10);
+    --accent:#12a97f; --accent-ink:#0c7d5e;
+    --good:#0ca30c; --danger:#d03b3b;
+    /* series (validated light) */
+    --s-blue:#2a78d6; --s-aqua:#1baf7a; --s-yellow:#eda100; --s-orange:#eb6834; --s-red:#e34948; --s-violet:#4a3aa7;
+    --shadow:0 1px 2px rgba(11,14,20,.06),0 8px 24px rgba(11,14,20,.05);
+  }
+  :root[data-theme="dark"]{
+    --plane:#0b0e14; --surface:#12151d; --ink:#f4f6fb; --ink2:#c3c7d1; --muted:#8a8f99;
+    --grid:#20242e; --axis:#333844; --border:rgba(255,255,255,.10);
+    --accent:#2fd6a3; --accent-ink:#5ce6ba;
+    --good:#3fb950; --danger:#f85149;
+    --s-blue:#3987e5; --s-aqua:#199e70; --s-yellow:#c98500; --s-orange:#d95926; --s-red:#e66767; --s-violet:#9085e9;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.35);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --plane:#0b0e14; --surface:#12151d; --ink:#f4f6fb; --ink2:#c3c7d1; --muted:#8a8f99;
+      --grid:#20242e; --axis:#333844; --border:rgba(255,255,255,.10);
+      --accent:#2fd6a3; --accent-ink:#5ce6ba;
+      --good:#3fb950; --danger:#f85149;
+      --s-blue:#3987e5; --s-aqua:#199e70; --s-yellow:#c98500; --s-orange:#d95926; --s-red:#e66767; --s-violet:#9085e9;
+      --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.35);
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--plane);color:var(--ink);
+    font-family:system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.5;
+    -webkit-font-smoothing:antialiased;font-size:15px}
+  .wrap{max-width:1120px;margin:0 auto;padding:28px 20px 80px}
+  header.top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:8px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:-.01em}
+  .brand .mark{width:26px;height:26px;border-radius:7px;background:linear-gradient(135deg,var(--accent),var(--s-blue));display:inline-block}
+  h1{font-size:clamp(1.5rem,3.4vw,2.15rem);line-height:1.12;letter-spacing:-.02em;margin:.4em 0 .15em}
+  .lead{color:var(--ink2);max-width:70ch;margin:0 0 8px}
+  .muted{color:var(--muted)}
+  .themebtn{border:1px solid var(--border);background:var(--surface);color:var(--ink2);
+    border-radius:999px;padding:7px 13px;font-size:.82rem;cursor:pointer;white-space:nowrap}
+  .themebtn:hover{color:var(--ink)}
+  .tabs{display:flex;gap:8px;flex-wrap:wrap;margin:20px 0 6px}
+  .tab{border:1px solid var(--border);background:var(--surface);color:var(--ink2);
+    border-radius:10px;padding:9px 14px;font-size:.9rem;font-weight:600;cursor:pointer;transition:.15s}
+  .tab .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:7px;vertical-align:middle}
+  .tab:hover{border-color:var(--accent)}
+  .tab[aria-selected="true"]{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,var(--surface));color:var(--ink)}
+  .tab-note{font-size:.85rem;color:var(--ink2);margin:2px 0 20px}
+  .grid-kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:6px 0 26px}
+  @media(max-width:760px){.grid-kpi{grid-template-columns:repeat(2,1fr)}}
+  .kpi{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 16px 14px;box-shadow:var(--shadow)}
+  .kpi .lab{font-size:.76rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+  .kpi .val{font-size:clamp(1.35rem,2.6vw,1.8rem);font-weight:700;letter-spacing:-.02em;margin-top:6px;font-variant-numeric:tabular-nums}
+  .kpi .sub{font-size:.82rem;color:var(--ink2);margin-top:3px}
+  .cards{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  @media(max-width:900px){.cards{grid-template-columns:1fr}}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px 18px 14px;box-shadow:var(--shadow)}
+  .card.wide{grid-column:1/-1}
+  .card-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:2px}
+  .card h3{font-size:1.02rem;margin:0;letter-spacing:-.01em}
+  .card .hint{font-size:.82rem;color:var(--muted)}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.82rem;color:var(--ink2);margin:6px 0 2px}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+  .legend i{width:11px;height:11px;border-radius:3px;display:inline-block}
+  .chartbox{position:relative}
+  .svgwrap svg{width:100%;height:auto;display:block;touch-action:none}
+  .tip{position:absolute;pointer-events:none;background:var(--surface);border:1px solid var(--border);
+    border-radius:10px;padding:8px 10px;font-size:.8rem;box-shadow:var(--shadow);min-width:150px;z-index:5;transform:translate(-50%,-108%)}
+  .tip .tm{font-weight:700;margin-bottom:4px;font-size:.82rem}
+  .tip .tr{display:flex;justify-content:space-between;gap:14px;font-variant-numeric:tabular-nums}
+  .tip .tr i{width:9px;height:9px;border-radius:2px;display:inline-block;margin-right:6px}
+  .tip .tk{color:var(--ink2)}
+  section.block{margin-top:34px}
+  section.block > h2{font-size:1.25rem;letter-spacing:-.01em;margin:0 0 4px}
+  section.block > p.sec-lead{color:var(--ink2);margin:0 0 16px;max-width:74ch}
+  table{width:100%;border-collapse:collapse;font-size:.86rem;font-variant-numeric:tabular-nums}
+  .tablewrap{overflow-x:auto;border:1px solid var(--border);border-radius:14px;background:var(--surface);box-shadow:var(--shadow)}
+  th,td{padding:9px 12px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--border)}
+  th:first-child,td:first-child{text-align:left}
+  thead th{font-size:.74rem;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:600;background:color-mix(in srgb,var(--accent) 6%,var(--surface))}
+  tbody tr:last-child td{border-bottom:none}
+  tbody tr.hl td{font-weight:700}
+  td.pos{color:var(--good)} td.neg{color:var(--danger)}
+  .assum{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  @media(max-width:820px){.assum{grid-template-columns:1fr}}
+  .assum .card ul{margin:6px 0 0;padding-left:18px} .assum .card li{margin:5px 0;color:var(--ink2)}
+  .assum .card li b{color:var(--ink);font-weight:600}
+  .pill{display:inline-block;font-size:.72rem;font-weight:700;padding:2px 9px;border-radius:999px;border:1px solid var(--border);color:var(--ink2)}
+  .callout{border:1px solid var(--border);border-left:3px solid var(--accent);background:color-mix(in srgb,var(--accent) 6%,var(--surface));
+    border-radius:12px;padding:14px 16px;margin-top:16px}
+  .callout b{color:var(--ink)}
+  footer{margin-top:48px;padding-top:18px;border-top:1px solid var(--border);color:var(--muted);font-size:.82rem}
+  .foot-scn{font-weight:700}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="brand"><span class="mark"></span> FundedEdge</div>
+      <h1>Plan de negocio y escenarios financieros</h1>
+      <p class="lead">Evolución mes a mes a 24 meses de registros, clientes de pago, ingresos (MRR) y los cuatro
+        bloques de coste — <b>publicidad, hosting y mantenimiento, IA y comisiones Stripe</b> — bajo cuatro escenarios.
+        Todos los supuestos son editables en el bloque de código de esta misma página.</p>
+    </div>
+    <button class="themebtn" id="themeBtn" type="button">◐ Tema</button>
+  </header>
+
+  <div class="tabs" id="tabs" role="tablist" aria-label="Escenario"></div>
+  <p class="tab-note" id="tabNote"></p>
+
+  <div class="grid-kpi" id="kpis"></div>
+
+  <div class="cards">
+    <div class="card wide" id="c-cum">
+      <div class="card-head">
+        <h3>Caja acumulada — comparación de los 4 escenarios</h3>
+        <span class="hint">línea de €0 = recuperación de la inversión (payback)</span>
+      </div>
+      <div class="legend" id="lg-cum"></div>
+      <div class="chartbox"><div class="svgwrap" id="sv-cum"></div><div class="tip" id="tip-cum" hidden></div></div>
+    </div>
+
+    <div class="card" id="c-rev">
+      <div class="card-head"><h3>Ingresos vs. costes vs. neto</h3><span class="hint" id="rev-scn"></span></div>
+      <div class="legend" id="lg-rev"></div>
+      <div class="chartbox"><div class="svgwrap" id="sv-rev"></div><div class="tip" id="tip-rev" hidden></div></div>
+    </div>
+
+    <div class="card" id="c-cost">
+      <div class="card-head"><h3>Desglose de costes mensuales</h3><span class="hint" id="cost-scn"></span></div>
+      <div class="legend" id="lg-cost"></div>
+      <div class="chartbox"><div class="svgwrap" id="sv-cost"></div><div class="tip" id="tip-cost" hidden></div></div>
+    </div>
+
+    <div class="card wide" id="c-cust">
+      <div class="card-head"><h3>Base de clientes — gratuitos, Pro y Elite</h3><span class="hint" id="cust-scn"></span></div>
+      <div class="legend" id="lg-cust"></div>
+      <div class="chartbox"><div class="svgwrap" id="sv-cust"></div><div class="tip" id="tip-cust" hidden></div></div>
+    </div>
+  </div>
+
+  <section class="block">
+    <h2>Detalle mensual — <span id="detail-scn" class="foot-scn"></span></h2>
+    <p class="sec-lead">Meses clave del escenario seleccionado. Importes en euros; clientes redondeados.</p>
+    <div class="tablewrap"><table id="detailTable"><thead></thead><tbody></tbody></table></div>
+  </section>
+
+  <section class="block">
+    <h2>Los 4 escenarios de un vistazo (mes 24)</h2>
+    <p class="sec-lead">Misma estructura de costes; cambian tracción (registros), conversión de trial a pago,
+      mezcla de planes, churn e inversión en publicidad.</p>
+    <div class="tablewrap"><table id="summaryTable"><thead></thead><tbody></tbody></table></div>
+    <div class="callout" id="verdict"></div>
+  </section>
+
+  <section class="block">
+    <h2>Supuestos del modelo</h2>
+    <p class="sec-lead">Cifras conservadoras y coherentes con los KPIs objetivo de la guía de monetización
+      (registros, conversión trial→pago 8–12 %, churn &lt; 6 %, MRR). Edítalas en <code>&lt;script&gt;</code> → <code>SCEN</code> y <code>CONST</code>.</p>
+    <div class="assum">
+      <div class="card">
+        <h3>Ingresos <span class="pill">por cliente</span></h3>
+        <ul>
+          <li><b>Pro</b> 14,99 €/mes · <b>Elite</b> 29,99 €/mes (anual 149/299 € = −17 %, mejora caja; aquí se modela mensual).</li>
+          <li>Mezcla de los de pago según escenario (más Elite cuanto mejor el escenario).</li>
+          <li><b>Trial:</b> 14 días de Pro sin tarjeta; al caer a Starter es la palanca de conversión.</li>
+          <li><b>Comisión Stripe:</b> 1,5 % + 0,25 € por cobro.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Costes <span class="pill">4 bloques</span></h3>
+        <ul>
+          <li><b>IA (Claude):</b> ~0,15 €/gratuito, ~0,35 €/trial, ~0,60 €/Pro, ~3,20 €/Elite al mes. El <i>gating</i> por plan (Haiku vs Opus) mantiene a raya el coste que escala con el uso.</li>
+          <li><b>Hosting y mantenimiento:</b> 35 € base + 25 € por cada 250 usuarios activos (escalones, no lineal).</li>
+          <li><b>Herramientas</b> (dominio, email transaccional, analítica): 15 → 40 €/mes por fases.</li>
+          <li><b>Publicidad:</b> 0 € en el peor escenario; en los demás sube por meses, y <b>solo cuando activación y conversión son sanas</b>.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="callout">
+      <b>Lectura ejecutiva.</b> El resultado es <b>muy sensible a la conversión trial→pago y al churn</b>,
+      y <b>poco sensible al coste de IA</b> mientras siga el <i>gating</i> por plan. Traducción a la acción:
+      prioriza activación y conversión sobre tráfico y sobre ahorrar céntimos de IA. El coste que de verdad
+      escala es el de IA de Elite (Opus) — y precisamente Elite es quien más paga.
+    </div>
+  </section>
+
+  <footer>
+    <p>Modelo determinista y editable — no es una promesa de resultados, sino un marco de planificación con supuestos explícitos.
+      Cambia cualquier parámetro en el <code>&lt;script&gt;</code> y la página se recalcula al recargar.
+      Coherente con <code>GUIA_MONETIZACION_Y_MARKETING.md</code> (§3 planes, §9 ruta de ventas, §10).</p>
+  </footer>
+</div>
+
+<script>
+/* ============================================================
+   MODELO  —  edita aquí los supuestos
+   ============================================================ */
+const HORIZON = 24;
+const CONST = {
+  price:   { pro:14.99, elite:29.99 },
+  ai:      { free:0.15, trial:0.35, pro:0.60, elite:3.20 }, // €/usuario activo/mes
+  stripe:  { pct:0.015, fixed:0.25 },
+  freeChurn: 0.20,          // rotación mensual del pool gratuito
+  hostBase: 35, hostStep: 25, hostPer: 250,
+  tools: m => m<=6 ? 15 : (m<=12 ? 25 : 40),
+};
+
+const SCEN = {
+  peor:       { label:'Peor',            color:'var(--s-red)',    s0:25,  g:0.035, conv:0.04, eliteMix:0.15, churn:0.10, ads:m=>0 },
+  interPeor:  { label:'Intermedia-peor', color:'var(--s-orange)', s0:45,  g:0.050, conv:0.06, eliteMix:0.22, churn:0.08, ads:m=> m<4?0:Math.min(250, 80+(m-4)*10) },
+  interMejor: { label:'Intermedia-mejor',color:'var(--s-blue)',   s0:70,  g:0.070, conv:0.09, eliteMix:0.30, churn:0.06, ads:m=> m<3?0:Math.min(900, 250+(m-3)*30) },
+  mejor:      { label:'Mejor',           color:'var(--s-aqua)',   s0:100, g:0.085, conv:0.11, eliteMix:0.35, churn:0.05, ads:m=> m<2?0:Math.min(2500,400+(m-2)*90) },
+};
+const ORDER = ['peor','interPeor','interMejor','mejor'];
+
+function simulate(key){
+  const c = SCEN[key];
+  let pro=0, elite=0, freePool=0, cum=0, prevSignups=0;
+  let breakeven=null, payback=null;
+  const rows=[];
+  for(let m=1;m<=HORIZON;m++){
+    const signups = Math.round(c.s0 * Math.pow(1+c.g, m-1));
+    const newPaid  = prevSignups * c.conv;       // desfase de trial: convierten los registros del mes anterior
+    const newElite = newPaid * c.eliteMix;
+    const newPro   = newPaid - newElite;
+    pro   = pro*(1-c.churn)   + newPro;
+    elite = elite*(1-c.churn) + newElite;
+    freePool = freePool*(1-CONST.freeChurn) + prevSignups*(1-c.conv); // acaban el trial y no pagan
+    const trial = signups;                       // registros del mes = en trial de Pro (aún sin pagar)
+    const activeTotal = freePool + pro + elite + trial;
+    const mrr    = pro*CONST.price.pro + elite*CONST.price.elite;
+    const ads    = c.ads(m);
+    const stripe = (pro+elite)*CONST.stripe.fixed + mrr*CONST.stripe.pct;
+    const ai     = freePool*CONST.ai.free + trial*CONST.ai.trial + pro*CONST.ai.pro + elite*CONST.ai.elite;
+    const host   = CONST.hostBase + Math.floor(activeTotal/CONST.hostPer)*CONST.hostStep;
+    const tools  = CONST.tools(m);
+    const cost   = ads+stripe+ai+host+tools;
+    const net    = mrr - cost;
+    cum += net;
+    if(net>0 && breakeven===null) breakeven=m;
+    if(cum>0 && payback===null)   payback=m;
+    rows.push({m,signups,pro,elite,free:freePool,paid:pro+elite,mrr,ads,stripe,ai,host,tools,cost,net,cum});
+    prevSignups = signups;
+  }
+  return {key,label:c.label,color:SCEN[key].color,rows,breakeven,payback};
+}
+const SIM = Object.fromEntries(ORDER.map(k=>[k,simulate(k)]));
+
+/* ============================================================
+   FORMATO Y UTILIDADES DE GRÁFICA
+   ============================================================ */
+const eur0 = new Intl.NumberFormat('es-ES',{style:'currency',currency:'EUR',maximumFractionDigits:0});
+const eurK = v => Math.abs(v)>=1000 ? (v/1000).toLocaleString('es-ES',{maximumFractionDigits:v<10000?1:0})+' k€'
+                                    : Math.round(v)+' €';
+const num0 = new Intl.NumberFormat('es-ES',{maximumFractionDigits:0});
+
+function niceNum(range, round){
+  const exp = Math.floor(Math.log10(range||1)); const f = range/Math.pow(10,exp); let nf;
+  if(round){ nf = f<1.5?1 : f<3?2 : f<7?5 : 10; } else { nf = f<=1?1 : f<=2?2 : f<=5?5 : 10; }
+  return nf*Math.pow(10,exp);
+}
+function scale(dmin,dmax){
+  if(dmin===dmax){dmax=dmin+1;}
+  const range = niceNum(dmax-dmin,false);
+  const step  = niceNum(range/5,true);
+  const nmin  = Math.floor(dmin/step)*step;
+  const nmax  = Math.ceil(dmax/step)*step;
+  const ticks=[]; for(let t=nmin;t<=nmax+1e-9;t+=step) ticks.push(t);
+  return {min:nmin,max:nmax,ticks};
+}
+const cssv = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+const VB={w:880,h:380}, M={t:26,r:122,b:40,l:74};
+const PX=M.l, PW=VB.w-M.l-M.r, PY=M.t, PH=VB.h-M.t-M.b, BASE=PY+PH;
+const xAt=(i,n)=> PX + (n>1? i/(n-1):0)*PW;
+function yScaler(sc){ return v => PY + (sc.max - v)/(sc.max - sc.min || 1)*PH; }
+function pathD(pts){ return pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' '); }
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+function axes(sc, fmt){
+  const y = yScaler(sc); let g='';
+  sc.ticks.forEach(t=>{
+    const yy=y(t).toFixed(1);
+    g+=`<line x1="${PX}" y1="${yy}" x2="${PX+PW}" y2="${yy}" stroke="${t===0?cssv('--axis'):cssv('--grid')}" stroke-width="${t===0?1.4:1}"/>`;
+    g+=`<text x="${PX-10}" y="${(+yy+3.5).toFixed(1)}" text-anchor="end" font-size="11" fill="${cssv('--muted')}">${fmt(t)}</text>`;
+  });
+  return g;
+}
+function xLabels(n){
+  let g=''; const marks=[0,3,6,9,12,15,18,21,23];
+  marks.forEach(i=>{ const x=xAt(i,n).toFixed(1);
+    g+=`<text x="${x}" y="${BASE+22}" text-anchor="middle" font-size="11" fill="${cssv('--muted')}">${i+1}</text>`; });
+  g+=`<text x="${(PX+PW/2).toFixed(1)}" y="${BASE+37}" text-anchor="middle" font-size="10.5" fill="${cssv('--muted')}">mes</text>`;
+  return g;
+}
+
+/* -------- gráfica de líneas (multi-serie) -------- */
+function lineChart(wrapId, series, fmt, opts={}){
+  const n = HORIZON;
+  let dmin=0, dmax=0;
+  series.forEach(s=> s.data.forEach(v=>{ if(v<dmin)dmin=v; if(v>dmax)dmax=v; }));
+  if(opts.fromZero!==false && dmin>0) dmin=0;
+  const sc = scale(dmin,dmax); const y=yScaler(sc);
+  let svg=`<svg viewBox="0 0 ${VB.w} ${VB.h}" role="img">`;
+  svg+=axes(sc,fmt)+xLabels(n);
+  series.forEach(s=>{
+    const pts=s.data.map((v,i)=>[xAt(i,n),y(v)]);
+    svg+=`<path d="${pathD(pts)}" fill="none" stroke="${cssv(s.colorVar)}" stroke-width="${s.emph?3:2}" stroke-linejoin="round" stroke-linecap="round" ${s.dash?`stroke-dasharray="2 4"`:''}/>`;
+    const last=pts[pts.length-1];
+    svg+=`<circle cx="${last[0].toFixed(1)}" cy="${last[1].toFixed(1)}" r="3.6" fill="${cssv(s.colorVar)}" stroke="${cssv('--surface')}" stroke-width="1.5"/>`;
+    svg+=`<text x="${(last[0]+7).toFixed(1)}" y="${(last[1]+3.6).toFixed(1)}" font-size="11" font-weight="700" fill="${cssv(s.colorVar)}">${esc(s.label)}</text>`;
+  });
+  svg+=`<rect class="hit" x="${PX}" y="${PY}" width="${PW}" height="${PH}" fill="transparent"/>`;
+  svg+=`<line class="cross" x1="0" y1="${PY}" x2="0" y2="${BASE}" stroke="${cssv('--axis')}" stroke-width="1" opacity="0"/></svg>`;
+  document.getElementById(wrapId).innerHTML=svg;
+  return {sc,n};
+}
+
+/* -------- gráfica de área apilada -------- */
+function stackChart(wrapId, cats, rows, fmt){
+  const n=rows.length;
+  const totals=rows.map(r=> cats.reduce((a,c)=>a+c.get(r),0));
+  const sc=scale(0, Math.max(...totals)); const y=yScaler(sc);
+  let svg=`<svg viewBox="0 0 ${VB.w} ${VB.h}" role="img">`;
+  svg+=axes(sc,fmt)+xLabels(n);
+  const cum=rows.map(()=>0);
+  cats.forEach(c=>{
+    const top=[], bot=[];
+    rows.forEach((r,i)=>{ const b=cum[i]; const t=b+c.get(r); cum[i]=t;
+      top.push([xAt(i,n),y(t)]); bot.push([xAt(i,n),y(b)]); });
+    const d=pathD(top)+' '+bot.reverse().map(p=>'L'+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ')+' Z';
+    svg+=`<path d="${d}" fill="${cssv(c.colorVar)}" fill-opacity="0.9" stroke="${cssv('--surface')}" stroke-width="1"/>`;
+  });
+  const lastTotal=totals[n-1], lastY=y(lastTotal);
+  svg+=`<text x="${(xAt(n-1,n)+7).toFixed(1)}" y="${(lastY+3.6).toFixed(1)}" font-size="11" font-weight="700" fill="${cssv('--ink2')}">${eurK(lastTotal)}</text>`;
+  svg+=`<rect class="hit" x="${PX}" y="${PY}" width="${PW}" height="${PH}" fill="transparent"/>`;
+  svg+=`<line class="cross" x1="0" y1="${PY}" x2="0" y2="${BASE}" stroke="${cssv('--axis')}" stroke-width="1" opacity="0"/></svg>`;
+  document.getElementById(wrapId).innerHTML=svg;
+  return {sc,n};
+}
+
+function legend(elId, items){
+  document.getElementById(elId).innerHTML = items.map(it=>
+    `<span><i style="background:${cssv(it.colorVar)}"></i>${esc(it.label)}</span>`).join('');
+}
+
+/* -------- interacción hover -------- */
+function wireHover(cardWrapId, tipId, n, rowsFor, render){
+  const wrap=document.getElementById(cardWrapId);
+  const svg=wrap.querySelector('svg'); const hit=svg.querySelector('.hit'); const cross=svg.querySelector('.cross');
+  const tip=document.getElementById(tipId);
+  function move(ev){
+    const r=svg.getBoundingClientRect(); const px=(ev.touches?ev.touches[0].clientX:ev.clientX);
+    const sx=(px-r.left)/r.width*VB.w;
+    let i=Math.round((sx-PX)/PW*(n-1)); i=Math.max(0,Math.min(n-1,i));
+    const xv=xAt(i,n);
+    cross.setAttribute('x1',xv); cross.setAttribute('x2',xv); cross.setAttribute('opacity','1');
+    const cardRect=wrap.getBoundingClientRect();
+    const left=(xv/VB.w)*r.width + (r.left-cardRect.left);
+    const top =(PY/VB.h)*r.height + (r.top-cardRect.top);
+    tip.style.left=left+'px'; tip.style.top=top+'px'; tip.hidden=false;
+    tip.innerHTML=render(i);
+  }
+  function leave(){ cross.setAttribute('opacity','0'); tip.hidden=true; }
+  hit.addEventListener('mousemove',move); hit.addEventListener('mouseleave',leave);
+  hit.addEventListener('touchstart',move,{passive:true}); hit.addEventListener('touchmove',move,{passive:true}); hit.addEventListener('touchend',leave);
+}
+
+/* ============================================================
+   RENDER
+   ============================================================ */
+let current='interMejor';
+
+function renderCum(){
+  const shortLbl={peor:'Peor',interPeor:'Int-peor',interMejor:'Int-mejor',mejor:'Mejor'};
+  const series=ORDER.map(k=>({label:shortLbl[k], colorVar:colorVarOf(k), data:SIM[k].rows.map(r=>r.cum), emph:k===current}));
+  lineChart('sv-cum', series, eurK, {fromZero:true});
+  legend('lg-cum', ORDER.map(k=>({label:SIM[k].label, colorVar:colorVarOf(k)})));
+  wireHover('sv-cum','tip-cum',HORIZON, null, i=>{
+    let h=`<div class="tm">Mes ${i+1} · caja acumulada</div>`;
+    ORDER.forEach(k=>{ h+=`<div class="tr"><span class="tk"><i style="background:${cssv(colorVarOf(k))}"></i>${SIM[k].label}</span><span>${eur0.format(SIM[k].rows[i].cum)}</span></div>`; });
+    return h;
+  });
+}
+function colorVarOf(k){ return {peor:'--s-red',interPeor:'--s-orange',interMejor:'--s-blue',mejor:'--s-aqua'}[k]; }
+
+function renderRev(){
+  const s=SIM[current]; const rows=s.rows;
+  const series=[
+    {label:'Ingresos', colorVar:'--s-aqua',  data:rows.map(r=>r.mrr)},
+    {label:'Costes',   colorVar:'--s-orange',data:rows.map(r=>r.cost)},
+    {label:'Neto',     colorVar:'--s-blue',  data:rows.map(r=>r.net), emph:true},
+  ];
+  lineChart('sv-rev', series, eurK, {fromZero:true});
+  legend('lg-rev', series.map(x=>({label:x.label,colorVar:x.colorVar})));
+  document.getElementById('rev-scn').textContent=s.label;
+  wireHover('sv-rev','tip-rev',HORIZON,null,i=>{
+    const r=rows[i];
+    return `<div class="tm">Mes ${i+1}</div>`+
+      `<div class="tr"><span class="tk"><i style="background:${cssv('--s-aqua')}"></i>Ingresos</span><span>${eur0.format(r.mrr)}</span></div>`+
+      `<div class="tr"><span class="tk"><i style="background:${cssv('--s-orange')}"></i>Costes</span><span>${eur0.format(r.cost)}</span></div>`+
+      `<div class="tr"><span class="tk"><i style="background:${cssv('--s-blue')}"></i>Neto</span><span>${eur0.format(r.net)}</span></div>`;
+  });
+}
+
+function renderCost(){
+  const s=SIM[current]; const rows=s.rows;
+  const cats=[
+    {label:'Publicidad',   colorVar:'--s-orange', get:r=>r.ads},
+    {label:'IA (Claude)',  colorVar:'--s-violet', get:r=>r.ai},
+    {label:'Hosting/mant.',colorVar:'--s-blue',   get:r=>r.host},
+    {label:'Herramientas', colorVar:'--s-aqua',   get:r=>r.tools},
+    {label:'Stripe',       colorVar:'--s-yellow', get:r=>r.stripe},
+  ];
+  stackChart('sv-cost', cats, rows, eurK);
+  legend('lg-cost', cats.map(c=>({label:c.label,colorVar:c.colorVar})));
+  document.getElementById('cost-scn').textContent=s.label;
+  wireHover('sv-cost','tip-cost',HORIZON,null,i=>{
+    const r=rows[i];
+    let h=`<div class="tm">Mes ${i+1} · costes ${eur0.format(r.cost)}</div>`;
+    cats.forEach(c=> h+=`<div class="tr"><span class="tk"><i style="background:${cssv(c.colorVar)}"></i>${c.label}</span><span>${eur0.format(c.get(r))}</span></div>`);
+    return h;
+  });
+}
+
+function renderCust(){
+  const s=SIM[current]; const rows=s.rows;
+  const cats=[
+    {label:'Gratuitos', colorVar:'--s-blue',  get:r=>r.free},
+    {label:'Pro',       colorVar:'--s-aqua',  get:r=>r.pro},
+    {label:'Elite',     colorVar:'--s-violet',get:r=>r.elite},
+  ];
+  stackChart('sv-cust', cats, rows, v=>num0.format(v));
+  legend('lg-cust', cats.map(c=>({label:c.label,colorVar:c.colorVar})));
+  document.getElementById('cust-scn').textContent=s.label;
+  wireHover('sv-cust','tip-cust',HORIZON,null,i=>{
+    const r=rows[i];
+    return `<div class="tm">Mes ${i+1}</div>`+
+      `<div class="tr"><span class="tk"><i style="background:${cssv('--s-blue')}"></i>Gratuitos</span><span>${num0.format(r.free)}</span></div>`+
+      `<div class="tr"><span class="tk"><i style="background:${cssv('--s-aqua')}"></i>Pro</span><span>${num0.format(r.pro)}</span></div>`+
+      `<div class="tr"><span class="tk"><i style="background:${cssv('--s-violet')}"></i>Elite</span><span>${num0.format(r.elite)}</span></div>`+
+      `<div class="tr"><span class="tk">De pago</span><span>${num0.format(r.paid)}</span></div>`;
+  });
+}
+
+function renderKpis(){
+  const s=SIM[current]; const last=s.rows[HORIZON-1];
+  const tiles=[
+    {lab:'MRR mes 24', val:eur0.format(last.mrr), sub:num0.format(last.paid)+' clientes de pago'},
+    {lab:'Neto mensual mes 24', val:eur0.format(last.net), sub: last.net>=0?'flujo mensual positivo':'aún en pérdidas'},
+    {lab:'Break-even mensual', val: s.breakeven?('Mes '+s.breakeven):'>24 m', sub:'primer mes con neto &gt; 0'},
+    {lab:'Caja acumulada 24 m', val:eur0.format(last.cum), sub: s.payback?('payback en mes '+s.payback):'sin payback en 24 m'},
+  ];
+  document.getElementById('kpis').innerHTML = tiles.map(t=>
+    `<div class="kpi"><div class="lab">${t.lab}</div><div class="val">${t.val}</div><div class="sub">${t.sub}</div></div>`).join('');
+}
+
+function renderDetail(){
+  const s=SIM[current]; document.getElementById('detail-scn').textContent=s.label;
+  const cols=['Mes','Registros','Gratuitos','Pro','Elite','Ingresos','Publicidad','IA','Hosting','Stripe','Coste total','Neto','Caja acum.'];
+  document.querySelector('#detailTable thead').innerHTML='<tr>'+cols.map(c=>`<th>${c}</th>`).join('')+'</tr>';
+  const pick=[1,3,6,9,12,15,18,21,24];
+  document.querySelector('#detailTable tbody').innerHTML=pick.map(m=>{
+    const r=s.rows[m-1];
+    return `<tr class="${m===24?'hl':''}"><td>${m}</td><td>${num0.format(r.signups)}</td><td>${num0.format(r.free)}</td>`+
+      `<td>${num0.format(r.pro)}</td><td>${num0.format(r.elite)}</td><td>${eur0.format(r.mrr)}</td>`+
+      `<td>${eur0.format(r.ads)}</td><td>${eur0.format(r.ai)}</td><td>${eur0.format(r.host)}</td><td>${eur0.format(r.stripe)}</td>`+
+      `<td>${eur0.format(r.cost)}</td><td class="${r.net>=0?'pos':'neg'}">${eur0.format(r.net)}</td>`+
+      `<td class="${r.cum>=0?'pos':'neg'}">${eur0.format(r.cum)}</td></tr>`;
+  }).join('');
+}
+
+function renderSummary(){
+  const cols=['Escenario','Registros/mes (24)','Clientes de pago','MRR','ARR','Neto mensual','Caja acum. 24 m','Break-even','Payback'];
+  document.querySelector('#summaryTable thead').innerHTML='<tr>'+cols.map(c=>`<th>${c}</th>`).join('')+'</tr>';
+  document.querySelector('#summaryTable tbody').innerHTML=ORDER.map(k=>{
+    const s=SIM[k], r=s.rows[HORIZON-1];
+    return `<tr class="${k===current?'hl':''}"><td><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${cssv(colorVarOf(k))};margin-right:7px"></span>${s.label}</td>`+
+      `<td>${num0.format(r.signups)}</td><td>${num0.format(r.paid)}</td><td>${eur0.format(r.mrr)}</td><td>${eur0.format(r.mrr*12)}</td>`+
+      `<td class="${r.net>=0?'pos':'neg'}">${eur0.format(r.net)}</td><td class="${r.cum>=0?'pos':'neg'}">${eur0.format(r.cum)}</td>`+
+      `<td>${s.breakeven?('Mes '+s.breakeven):'>24 m'}</td><td>${s.payback?('Mes '+s.payback):'—'}</td></tr>`;
+  }).join('');
+  const best=SIM.mejor.rows[23], mid=SIM.interMejor.rows[23], low=SIM.peor.rows[23];
+  document.getElementById('verdict').innerHTML=
+    `<b>Cómo leerlo.</b> En el <b>peor</b> escenario el negocio sobrevive pero apenas recupera la inversión a 24 meses `+
+    `(${eur0.format(low.cum)} de caja, MRR ${eur0.format(low.mrr)}). En el <b>intermedia-mejor</b> — el caso base `+
+    `saludable — se alcanzan ~${num0.format(mid.paid)} clientes de pago y ${eur0.format(mid.mrr)} de MRR/mes. En el `+
+    `<b>mejor</b>, el producto escala a ${eur0.format(best.mrr)} de MRR (${eur0.format(best.mrr*12)} ARR). La diferencia entre `+
+    `escenarios es sobre todo <b>conversión y churn</b>, no coste: por eso la ruta de ventas (§9) manda sobre el gasto.`;
+}
+
+function renderAll(){ renderKpis(); renderCum(); renderRev(); renderCost(); renderCust(); renderDetail(); renderSummary(); }
+
+/* -------- tabs -------- */
+function buildTabs(){
+  const notes={
+    peor:'Tracción floja, sin publicidad, conversión 4 % y churn 10 %. La prueba de resistencia del modelo.',
+    interPeor:'Algo de orgánico y publicidad mínima; conversión 6 %, churn 8 %. Crecimiento lento pero real.',
+    interMejor:'Loops de producto + publicidad moderada; conversión 9 %, churn 6 %. El caso base saludable: crecimiento sostenido y caja positiva.',
+    mejor:'Loops virales + publicidad eficiente; conversión 11 %, churn 5 %. El techo realista a 24 meses.'
+  };
+  document.getElementById('tabs').innerHTML=ORDER.map(k=>
+    `<button class="tab" role="tab" data-k="${k}" aria-selected="${k===current}">`+
+    `<span class="dot" style="background:${cssv(colorVarOf(k))}"></span>${SIM[k].label}</button>`).join('');
+  document.querySelectorAll('.tab').forEach(b=> b.addEventListener('click',()=>{
+    current=b.dataset.k;
+    document.querySelectorAll('.tab').forEach(x=>x.setAttribute('aria-selected', x.dataset.k===current));
+    document.getElementById('tabNote').textContent=notes[current];
+    renderAll();
+  }));
+  document.getElementById('tabNote').textContent=notes[current];
+}
+
+/* -------- tema -------- */
+document.getElementById('themeBtn').addEventListener('click',()=>{
+  const root=document.documentElement;
+  const dark = root.getAttribute('data-theme')==='dark' ||
+    (root.getAttribute('data-theme')===null && matchMedia('(prefers-color-scheme: dark)').matches);
+  root.setAttribute('data-theme', dark?'light':'dark');
+  buildTabs(); renderAll();
+});
+
+buildTabs();
+renderAll();
+</script>
+</body>
+</html>
