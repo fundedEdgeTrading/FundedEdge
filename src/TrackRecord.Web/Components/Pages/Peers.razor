@@ -1,0 +1,135 @@
+@page "/peers"
+@rendermode InteractiveServer
+@using Markdig
+@inject IPeerDiscoveryService PeerDiscovery
+@inject ITradingAnalystService AnalystService
+@inject IPlanService PlanService
+@inject IStringLocalizer<SharedResources> L
+
+<PageTitle>@L["Perfiles Elite"] — @Brand.Name</PageTitle>
+
+<h1>@L["Perfiles Elite"]</h1>
+<p class="text-muted">@L["Los traders con mejor ROI de negocio de la comunidad. Analiza su operativa y deja que la IA te inspire con lo que hacen bien."]</p>
+
+@if (_loading)
+{
+    <div class="card" aria-label="@L["Cargando…"]">
+        <div class="card-body">
+            <div class="skeleton skeleton-label mb-2" style="width:35%"></div>
+            <div class="skeleton skeleton-label" style="width:75%"></div>
+        </div>
+    </div>
+}
+else if (!_isElite)
+{
+    <div class="alert alert-secondary">
+        @L["El acceso a los perfiles Elite y a los informes de inspiración es exclusivo del plan Elite."]
+        <a href="plan">@L["Mejora tu plan"]</a>.
+    </div>
+}
+else if (_peers is { Count: 0 })
+{
+    <div class="alert alert-secondary">@L["Todavía no hay perfiles Elite con datos de negocio suficientes para rankear. Vuelve pronto."]</div>
+}
+else if (_peers is not null)
+{
+    @if (_errorMessage is not null)
+    {
+        <div class="alert alert-danger">@_errorMessage</div>
+    }
+
+    <div class="row g-3">
+        @{ var rank = 0; }
+        @foreach (var peer in _peers)
+        {
+            rank++;
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-body d-flex flex-column">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h5 class="card-title mb-0">#@rank · @peer.DisplayName</h5>
+                            @if (peer.IsVerified)
+                            {
+                                <span class="badge text-bg-success" title="@L["Track record importado del broker"]">@L["Verificado"]</span>
+                            }
+                        </div>
+                        <p class="small text-muted mb-2">
+                            @L["ROI de negocio:"] <strong>@peer.BusinessRoi.ToString("P0")</strong> ·
+                            @L["Cuentas fondeadas:"] @peer.AccountsFunded ·
+                            @L["Trades:"] @peer.TotalTrades
+                        </p>
+                        <p class="small text-muted mb-3">
+                            @if (peer.WinRate is { } wr) { <span>@L["Win rate:"] @wr.ToString("P0") · </span> }
+                            @if (peer.ProfitFactor is { } pf) { <span>@L["Profit factor:"] @pf.ToString("0.00") · </span> }
+                            @if (peer.PassRate is { } pr) { <span>@L["Pass rate:"] @pr.ToString("P0")</span> }
+                        </p>
+                        <div class="mt-auto d-flex gap-2">
+                            <a class="btn btn-outline-secondary btn-sm" href="@($"t/{peer.Slug}")" target="_blank">@L["Ver track record"]</a>
+                            <button class="btn btn-primary btn-sm" @onclick="() => GenerateReportAsync(peer.Slug)" disabled="@_busy">
+                                @if (_busySlug == peer.Slug) { <span>@L["Analizando…"]</span> } else { <span>@L["Informe de inspiración"]</span> }
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    @if (_report is not null)
+    {
+        <div class="card mt-4">
+            <div class="card-body">
+                <h5 class="card-title">@L["Informe de inspiración"]</h5>
+                <div class="ai-report">@((MarkupString)RenderMarkdown(_report.Content))</div>
+            </div>
+        </div>
+    }
+}
+
+@code {
+    private static readonly MarkdownPipeline MarkdownPipeline = new MarkdownPipelineBuilder()
+        .UseAdvancedExtensions()
+        .DisableHtml()
+        .Build();
+
+    private bool _loading = true;
+    private bool _isElite;
+    private IReadOnlyList<PeerCardView>? _peers;
+    private AiReportDto? _report;
+    private bool _busy;
+    private string? _busySlug;
+    private string? _errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _isElite = (await PlanService.GetLimitsAsync()).CanBrowsePeers;
+        if (_isElite)
+        {
+            _peers = await PeerDiscovery.GetLeaderboardAsync();
+        }
+
+        _loading = false;
+    }
+
+    private async Task GenerateReportAsync(string slug)
+    {
+        _busy = true;
+        _busySlug = slug;
+        _errorMessage = null;
+        try
+        {
+            _report = await AnalystService.GeneratePeerInspirationReportAsync(slug);
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = ex.Message;
+        }
+        finally
+        {
+            _busy = false;
+            _busySlug = null;
+        }
+    }
+
+    private static string RenderMarkdown(string markdown) => Markdown.ToHtml(markdown, MarkdownPipeline);
+}

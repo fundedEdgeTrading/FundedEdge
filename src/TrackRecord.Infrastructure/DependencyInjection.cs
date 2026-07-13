@@ -99,6 +99,7 @@ public static class DependencyInjection
         services.AddScoped<ICurrencyPreferenceService, CurrencyPreferenceService>();
         services.AddScoped<IPlanService, PlanService>();
         services.AddScoped<IPublicProfileService, PublicProfileService>();
+        services.AddScoped<IPeerDiscoveryService, PeerDiscoveryService>();
         services.AddScoped<IPsychologyService, PsychologyService>();
         services.AddScoped<IRuleComplianceService, RuleComplianceService>();
 

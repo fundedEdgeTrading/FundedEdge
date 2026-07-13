@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using TrackRecord.Infrastructure.Persistence;
 
@@ -11,9 +12,11 @@ using TrackRecord.Infrastructure.Persistence;
 namespace TrackRecord.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(TrackRecordDbContext))]
-    partial class TrackRecordDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260713120000_AddPeerSharingFlags")]
+    partial class AddPeerSharingFlags
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

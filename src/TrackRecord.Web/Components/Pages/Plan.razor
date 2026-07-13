@@ -125,6 +125,18 @@ else
                         @L["Tu página está activa en"] <a href="@($"t/{_profile.Slug}")" target="_blank">@($"{Nav.BaseUri}t/{_profile.Slug}")</a>
                     </p>
                     <button class="btn btn-outline-secondary btn-sm" @onclick="DisableAsync">@L["Desactivar"]</button>
+
+                    <hr />
+                    <h6 class="mb-1">@L["Perfiles Elite"]</h6>
+                    <p class="text-muted small mb-2">@L["Permite que otros usuarios Elite analicen tu operativa e IA genere informes de inspiración. Solo agregados — nunca tus trades ni importes."]</p>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="shareOperativa" checked="@_profile.ShareOperativa" @onchange="OnShareOperativaChanged" />
+                        <label class="form-check-label small" for="shareOperativa">@L["Compartir mi operativa (setups, franjas, R-múltiplos)"]</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="shareEmotions" checked="@_profile.ShareEmotions" disabled="@(!_profile.ShareOperativa)" @onchange="OnShareEmotionsChanged" />
+                        <label class="form-check-label small" for="shareEmotions">@L["Incluir también mi patrón emocional agregado"]</label>
+                    </div>
                 }
                 else
                 {
@@ -147,7 +159,7 @@ else
     [
         (PlanTier.Starter, null, null, ["2 cuentas activas", "Firm Fit: tu mejor programa", "Semáforo EV básico", "1 informe IA al mes", "3 preguntas IA al mes"]),
         (PlanTier.Pro, 14.99m, 149m, ["10 cuentas activas", "Sincronización automática", "Firm Fit completo: ranking, reglas y plan de compra", "Módulo de riesgo completo", "1 informe IA a la semana", "30 preguntas IA al mes"]),
-        (PlanTier.Elite, 29.99m, 299m, ["Cuentas ilimitadas", "Firm Fit completo: ranking, reglas y plan de compra", "1 informe IA al día (modelo avanzado)", "Preguntas IA ilimitadas", "Track record público"]),
+        (PlanTier.Elite, 29.99m, 299m, ["Cuentas ilimitadas", "Firm Fit completo: ranking, reglas y plan de compra", "1 informe IA al día (modelo avanzado)", "Preguntas IA ilimitadas", "Track record público", "Perfiles Elite: analiza a los mejores e inspírate con IA"]),
     ];
 
     private bool _yearly;
@@ -181,5 +193,17 @@ else
     {
         await PublicProfileService.DisableAsync();
         _profile = await PublicProfileService.GetOwnSettingsAsync();
+    }
+
+    private async Task OnShareOperativaChanged(ChangeEventArgs e)
+    {
+        var share = (bool)(e.Value ?? false);
+        _profile = await PublicProfileService.UpdateSharingAsync(share, share && (_profile?.ShareEmotions ?? false));
+    }
+
+    private async Task OnShareEmotionsChanged(ChangeEventArgs e)
+    {
+        var share = (bool)(e.Value ?? false);
+        _profile = await PublicProfileService.UpdateSharingAsync(_profile?.ShareOperativa ?? false, share);
     }
 }

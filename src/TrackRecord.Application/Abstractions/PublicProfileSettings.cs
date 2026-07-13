@@ -3,7 +3,12 @@ using TrackRecord.Application.Kpis;
 namespace TrackRecord.Application.Abstractions;
 
 /// <summary>Estado de la página pública del usuario autenticado, para el toggle en /plan.</summary>
-public sealed record PublicProfileSettings(string? Slug, bool IsEnabled, bool CanPublish);
+public sealed record PublicProfileSettings(
+    string? Slug,
+    bool IsEnabled,
+    bool CanPublish,
+    bool ShareOperativa,
+    bool ShareEmotions);
 
 /// <summary>
 /// Vista pública de un track record en /t/{slug}. Solo KPIs agregados no monetarios — nunca

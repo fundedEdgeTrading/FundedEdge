@@ -130,6 +130,7 @@ cuenta serio. **Estos nombres, límites y precios son la fuente de verdad para e
 | Export PDF del track record (F5) | ✖ | ✔ | ✔ |
 | Página pública de track record (F5) | ✖ | ✖ | ✔ |
 | Alertas de drawdown/payout (F5) | ✖ | ✖ | ✔ |
+| Perfiles Elite: ranking por ROI + informe de inspiración IA (F5.6) | ✖ | ✖ | ✔ |
 
 \* "Ilimitadas" con un tope técnico anti-abuso de 50/día (constante en `PlanLimits`, no
 se comunica en la web salvo en la letra pequeña de términos).
@@ -437,6 +438,14 @@ actualiza `PlanTier`, y portal de cliente para cancelar/cambiar.
 5. **F5.5 Internacionalización EN**: extraer strings de UI a recursos `.resx` +
    `IStringLocalizer`. Hacerlo DESPUÉS del rebranding definitivo (§4.2) para no traducir
    dos veces. Fase grande: planificarla como serie de PRs por área.
+6. **F5.6 Perfiles Elite** (Elite): ranking de traders por ROI de negocio sobre las páginas
+   públicas activas (`IPeerDiscoveryService.GetLeaderboardAsync`) e informe de inspiración IA
+   sobre la operativa de un par (`ITradingAnalystService.GeneratePeerInspirationReportAsync`,
+   `AiReportKind.PeerInspiration`). Doble candado de privacidad: solo lo ve quien tiene plan
+   Elite (`PlanLimits.CanBrowsePeers`) y solo se analiza a quien dio opt-in explícito
+   (`PublicProfile.ShareOperativa` / `ShareEmotions`, ambos off por defecto). Siempre agregados
+   —setups, franjas, R-múltiplos, frecuencias emocionales— nunca trades ni importes. Página
+   `/peers`; toggles de compartir en `/plan`.
 
 **DoD F5.x:** cada sub-feature con sus tests (los simuladores ya tienen patrón de test en
 `tests/TrackRecord.Domain.Tests`), gates de plan verificados, y para F5.2/F5.3 verificación
