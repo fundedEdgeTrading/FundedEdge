@@ -28,7 +28,7 @@ public class PeerDiscoveryService(
         await using var db = await dbFactory.CreateDbContextAsync(ct);
         var profiles = await db.PublicProfiles.AsNoTracking()
             .Where(p => p.IsEnabled && p.UserId != viewerId)
-            .Select(p => new { p.UserId, p.Slug })
+            .Select(p => new { p.UserId, p.Slug, p.ShareOperativa })
             .ToListAsync(ct);
 
         var cards = new List<PeerCardView>();
@@ -42,7 +42,7 @@ public class PeerDiscoveryService(
 
             cards.Add(new PeerCardView(
                 p.Slug, m.DisplayName, m.BusinessRoi.Value, m.AccountsFunded, m.PassRate,
-                m.ProfitFactor, m.WinRate, m.TotalTrades, m.IsVerified));
+                m.ProfitFactor, m.WinRate, m.TotalTrades, m.IsVerified, p.ShareOperativa));
         }
 
         return cards.OrderByDescending(c => c.BusinessRoi).Take(take).ToList();

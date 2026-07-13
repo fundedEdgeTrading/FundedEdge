@@ -65,10 +65,21 @@ else if (_peers is not null)
                         </p>
                         <div class="mt-auto d-flex gap-2">
                             <a class="btn btn-outline-secondary btn-sm" href="@($"t/{peer.Slug}")" target="_blank">@L["Ver track record"]</a>
-                            <button class="btn btn-primary btn-sm" @onclick="() => GenerateReportAsync(peer.Slug)" disabled="@_busy">
-                                @if (_busySlug == peer.Slug) { <span>@L["Analizando…"]</span> } else { <span>@L["Informe de inspiración"]</span> }
-                            </button>
+                            @if (peer.SharesOperativa)
+                            {
+                                <button class="btn btn-primary btn-sm" @onclick="() => GenerateReportAsync(peer.Slug)" disabled="@_busy">
+                                    @if (_busySlug == peer.Slug) { <span>@L["Analizando…"]</span> } else { <span>@L["Informe de inspiración"]</span> }
+                                </button>
+                            }
+                            else
+                            {
+                                <button class="btn btn-primary btn-sm" disabled title="@L["Este trader no ha activado el compartir su operativa para análisis."]">@L["Informe de inspiración"]</button>
+                            }
                         </div>
+                        @if (!peer.SharesOperativa)
+                        {
+                            <p class="text-muted small mb-0 mt-2">@L["Este trader aún no comparte su operativa para análisis."]</p>
+                        }
                     </div>
                 </div>
             </div>

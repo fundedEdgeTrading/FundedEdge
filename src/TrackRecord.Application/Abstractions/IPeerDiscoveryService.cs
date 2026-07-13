@@ -26,6 +26,7 @@ public interface IPeerDiscoveryService
 }
 
 /// <summary>Tarjeta de un perfil en el ranking Elite. Solo métricas agregadas no monetarias.</summary>
+/// <param name="SharesOperativa">Si el dueño dio opt-in para que se analice su operativa (habilita el informe de inspiración).</param>
 public sealed record PeerCardView(
     string Slug,
     string DisplayName,
@@ -35,7 +36,8 @@ public sealed record PeerCardView(
     double? ProfitFactor,
     double? WinRate,
     int TotalTrades,
-    bool IsVerified);
+    bool IsVerified,
+    bool SharesOperativa);
 
 /// <summary>
 /// Datos agregados de la operativa de un par para que el sistema genere el informe de inspiración.
