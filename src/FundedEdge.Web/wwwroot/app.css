@@ -2610,6 +2610,8 @@ img.nav-user-avatar {
     border-radius: var(--radius);
     overflow: hidden;
     cursor: pointer;
+    display: flex;
+    flex-direction: column;
     transition: border-color 0.15s var(--ease), transform 0.15s var(--ease), box-shadow 0.15s var(--ease);
 }
 
@@ -2789,6 +2791,7 @@ img.nav-user-avatar {
 }
 
 .ac-foot {
+    margin-top: auto;
     display: flex;
     justify-content: space-between;
     align-items: center;
