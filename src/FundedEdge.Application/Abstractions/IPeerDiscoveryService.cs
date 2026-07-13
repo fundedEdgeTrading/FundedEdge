@@ -1,6 +1,6 @@
-using TrackRecord.Application.Kpis;
+using FundedEdge.Application.Kpis;
 
-namespace TrackRecord.Application.Abstractions;
+namespace FundedEdge.Application.Abstractions;
 
 /// <summary>
 /// Descubrimiento de perfiles Elite (F5.6): ranking de los traders con mejor ROI de negocio cuya

@@ -1,10 +1,10 @@
 using Microsoft.EntityFrameworkCore;
-using TrackRecord.Application.Abstractions;
-using TrackRecord.Application.Kpis;
-using TrackRecord.Domain.Enums;
-using TrackRecord.Infrastructure.Persistence;
+using FundedEdge.Application.Abstractions;
+using FundedEdge.Application.Kpis;
+using FundedEdge.Domain.Enums;
+using FundedEdge.Infrastructure.Persistence;
 
-namespace TrackRecord.Infrastructure.Services;
+namespace FundedEdge.Infrastructure.Services;
 
 /// <summary>
 /// Ranking de perfiles Elite por ROI de negocio y datos agregados de su operativa para el módulo
@@ -13,7 +13,7 @@ namespace TrackRecord.Infrastructure.Services;
 /// de operativa exige opt-in del dueño y plan Elite del que consulta.
 /// </summary>
 public class PeerDiscoveryService(
-    IDbContextFactory<TrackRecordDbContext> dbFactory,
+    IDbContextFactory<FundedEdgeDbContext> dbFactory,
     ICurrentUserAccessor currentUser,
     IPlanService planService) : IPeerDiscoveryService
 {
@@ -76,7 +76,7 @@ public class PeerDiscoveryService(
         double? ProfitFactor, double? AvgRMultiple, bool IsVerified, double? BusinessRoi,
         IReadOnlyList<EquityCurvePoint> EquityCurve);
 
-    private static async Task<PeerMetrics> BuildMetricsAsync(TrackRecordDbContext db, string userId, CancellationToken ct)
+    private static async Task<PeerMetrics> BuildMetricsAsync(FundedEdgeDbContext db, string userId, CancellationToken ct)
     {
         var user = await db.Users.AsNoTracking()
             .Where(u => u.Id == userId)
@@ -147,7 +147,7 @@ public class PeerDiscoveryService(
         return new PeerMetrics(displayName, funded, passRate, totalTrades, winRate, profitFactor, avgRMultiple, isVerified, roi, equityCurve);
     }
 
-    private static async Task<IReadOnlyList<TagPerformanceDto>> BuildTopSetupsAsync(TrackRecordDbContext db, string userId, CancellationToken ct)
+    private static async Task<IReadOnlyList<TagPerformanceDto>> BuildTopSetupsAsync(FundedEdgeDbContext db, string userId, CancellationToken ct)
     {
         var trades = await db.Trades.AsNoTracking()
             .Where(t => t.Account!.UserId == userId && t.Tags != null && t.Tags != "")
@@ -173,7 +173,7 @@ public class PeerDiscoveryService(
             .ToList();
     }
 
-    private static async Task<PeerEmotionSummary?> BuildEmotionSummaryAsync(TrackRecordDbContext db, string userId, CancellationToken ct)
+    private static async Task<PeerEmotionSummary?> BuildEmotionSummaryAsync(FundedEdgeDbContext db, string userId, CancellationToken ct)
     {
         var logs = await db.TradeEmotionLogs.AsNoTracking()
             .Where(l => l.Trade!.Account!.UserId == userId)
