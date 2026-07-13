@@ -48,6 +48,30 @@
                     <button type="submit" class="btn btn-primary">@(_editingId is null ? L["Añadir"] : L["Guardar"])</button>
                 </div>
             </div>
+            <div class="row g-2 align-items-end mt-1">
+                <div class="col-md-3">
+                    <label class="form-label">@L["Estado de salud"]</label>
+                    <InputSelect class="form-select" @bind-Value="_form.HealthStatus">
+                        <option value="@FirmHealthStatus.Active">@L["Activa"]</option>
+                        <option value="@FirmHealthStatus.Watch">@L["En observación"]</option>
+                        <option value="@FirmHealthStatus.Closed">@L["Cerrada"]</option>
+                    </InputSelect>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">@L["País"]</label>
+                    <InputText class="form-control" @bind-Value="_form.Country" />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">@L["Notas de salud (cambios de reglas, retrasos de payout…)"]</label>
+                    <InputText class="form-control" @bind-Value="_form.HealthNotes" />
+                </div>
+            </div>
+            @if (_editingId is not null && _form.HealthStatus != _editingHealthStatus)
+            {
+                <div class="alert alert-warning mt-2 mb-0 py-2 small">
+                    @L["Al guardar un cambio de estado se avisa por email a los usuarios con cuentas activas en esta firma."]
+                </div>
+            }
             @if (_editingId is not null)
             {
                 <button type="button" class="btn btn-link btn-sm mt-1" @onclick="CancelEdit">@L["Cancelar edición"]</button>
@@ -335,6 +359,7 @@ else
     // ── Firms ────────────────────────────────────────────────────────────────────────────────
     private List<PropFirmDto>? _firms;
     private Guid? _editingId;
+    private FirmHealthStatus? _editingHealthStatus;
     private Guid? _confirmDeleteFirmId;
     private FirmFormModel _form = new();
     private string? _error;
@@ -386,19 +411,28 @@ else
     private void Edit(PropFirmDto firm)
     {
         _editingId = firm.Id;
-        _form = new FirmFormModel { Name = firm.Name, Website = firm.Website, Notes = firm.Notes, MinDaysBetweenPayouts = firm.MinDaysBetweenPayouts };
+        _editingHealthStatus = firm.HealthStatus;
+        _form = new FirmFormModel
+        {
+            Name = firm.Name, Website = firm.Website, Notes = firm.Notes,
+            MinDaysBetweenPayouts = firm.MinDaysBetweenPayouts,
+            HealthStatus = firm.HealthStatus, Country = firm.Country, HealthNotes = firm.HealthNotes,
+        };
     }
 
     private void CancelEdit()
     {
         _editingId = null;
+        _editingHealthStatus = null;
         _form = new FirmFormModel();
     }
 
     private async Task SaveAsync()
     {
         _error = null;
-        var request = new UpsertPropFirmRequest(_form.Name, _form.Website, _form.Notes, _form.MinDaysBetweenPayouts);
+        var request = new UpsertPropFirmRequest(
+            _form.Name, _form.Website, _form.Notes, _form.MinDaysBetweenPayouts,
+            _form.HealthStatus, _form.Country, _form.HealthNotes);
         try
         {
             if (_editingId is null)
@@ -574,6 +608,9 @@ else
         public string? Website { get; set; }
         public string? Notes { get; set; }
         public int? MinDaysBetweenPayouts { get; set; }
+        public FirmHealthStatus HealthStatus { get; set; } = FirmHealthStatus.Active;
+        public string? Country { get; set; }
+        public string? HealthNotes { get; set; }
     }
 
     private class ProgramFormModel

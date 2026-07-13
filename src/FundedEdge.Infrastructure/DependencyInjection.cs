@@ -102,6 +102,7 @@ public static class DependencyInjection
         services.AddScoped<IPeerDiscoveryService, PeerDiscoveryService>();
         services.AddScoped<IPsychologyService, PsychologyService>();
         services.AddScoped<IRuleComplianceService, RuleComplianceService>();
+        services.AddScoped<ITaxReportService, TaxReportService>();
 
         AddAi(services, configuration);
         AddEmail(services, configuration);
@@ -159,6 +160,8 @@ public static class DependencyInjection
             services.AddScoped<IAppEmailSender, NoOpAppEmailSender>();
             services.AddScoped<IEmailSender<ApplicationUser>, NoOpEmailSender>();
         }
+
+        services.AddHostedService<TradeImportReminderService>();
     }
 
     private static void AddAi(IServiceCollection services, IConfiguration configuration)

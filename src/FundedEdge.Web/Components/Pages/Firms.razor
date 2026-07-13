@@ -32,8 +32,11 @@ else
             <thead>
                 <tr>
                     <th>@L["Nombre"]</th>
+                    <th>@L["Estado"]</th>
+                    <th>@L["País"]</th>
                     <th>Web</th>
                     <th>@L["Días mín. entre payouts"]</th>
+                    <th title="@L["Días entre solicitar y cobrar un payout, agregado anónimo de la comunidad (mediana / P90)"]">@L["Tiempo de pago"]</th>
                     <th>@L["Cuentas"]</th>
                 </tr>
             </thead>
@@ -42,8 +45,28 @@ else
                 {
                     <tr>
                         <td>@firm.Name</td>
+                        <td>
+                            <span class="badge @HealthBadge(firm.HealthStatus)">@HealthLabel(firm.HealthStatus)</span>
+                            @if (!string.IsNullOrWhiteSpace(firm.HealthNotes))
+                            {
+                                <span class="ms-1 text-muted small" title="@firm.HealthNotes">ⓘ</span>
+                            }
+                        </td>
+                        <td>@(firm.Country ?? "—")</td>
                         <td>@firm.Website</td>
                         <td>@(firm.MinDaysBetweenPayouts?.ToString() ?? "—")</td>
+                        <td>
+                            @if (_payoutSpeed is not null && _payoutSpeed.TryGetValue(firm.Id, out var speed))
+                            {
+                                <span title="@string.Format(L["{0} payouts de {1} traders"], speed.PayoutCount, speed.TraderCount)">
+                                    @string.Format(L["{0} / {1} días"], speed.MedianDays, speed.P90Days)
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="text-muted" title="@L["Sin muestra suficiente en la comunidad todavía"]">—</span>
+                            }
+                        </td>
                         <td>@firm.AccountCount</td>
                     </tr>
                 }
@@ -162,6 +185,7 @@ else
 @code {
     private List<PropFirmDto>? _firms;
     private List<FirmBusinessBreakdownDto>? _firmBreakdown;
+    private IReadOnlyDictionary<Guid, FirmPayoutSpeedDto>? _payoutSpeed;
 
     private Guid? _selectedFirmId;
     private List<EvaluationProgramDto>? _programs;
@@ -176,7 +200,22 @@ else
     {
         _firms = (await PropFirmService.GetAllAsync()).ToList();
         _firmBreakdown = (await KpiService.GetFirmBusinessBreakdownAsync()).ToList();
+        _payoutSpeed = await PropFirmService.GetPayoutSpeedAsync();
     }
+
+    private static string HealthBadge(FirmHealthStatus status) => status switch
+    {
+        FirmHealthStatus.Watch => "text-bg-warning",
+        FirmHealthStatus.Closed => "text-bg-danger",
+        _ => "text-bg-success",
+    };
+
+    private string HealthLabel(FirmHealthStatus status) => status switch
+    {
+        FirmHealthStatus.Watch => L["En observación"],
+        FirmHealthStatus.Closed => L["Cerrada"],
+        _ => L["Activa"],
+    };
 
     private void OnCurrencyChanged() => InvokeAsync(StateHasChanged);
 

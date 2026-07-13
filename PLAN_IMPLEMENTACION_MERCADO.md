@@ -5,6 +5,14 @@
 > propia **M1–M7** para no colisionar con la Fase 4 de
 > [`GUIA_IMPLEMENTACION.md`](./GUIA_IMPLEMENTACION.md) ni con las F6.x de
 > [`GUIA_FEATURE_DIFERENCIADORA.md`](./GUIA_FEATURE_DIFERENCIADORA.md), a las que referencia.
+>
+> **Estado (julio 2026)**: al auditar el código se comprobó que M1.1 (semáforo,
+> `RuleComplianceService`), M2 (`EvaluationProgram`), M5 (`FirmFitService`), M7.4 (`/export`) y
+> M7.5 (`/calculadora`) **ya estaban implementados** — el repo va por delante del README.
+> Implementado en esta iteración: **M1.2** (informe fiscal `/reports` + CSV), **M1.3**
+> (recordatorio de importación por email), **M6** (salud de firmas: capa editorial + tiempos de
+> payout de la comunidad + alertas por email) y **M7.1** (PWA instalable). Pendiente: M3, M4,
+> M7.2 y M7.3.
 
 ---
 

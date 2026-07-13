@@ -12,6 +12,8 @@ public class PropFirmConfiguration : IEntityTypeConfiguration<PropFirm>
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Name).IsRequired().HasMaxLength(200);
         builder.Property(x => x.Website).HasMaxLength(300);
+        builder.Property(x => x.Country).HasMaxLength(100);
+        builder.Property(x => x.HealthNotes).HasMaxLength(1000);
         builder.HasIndex(x => x.Name).IsUnique();
 
         builder.HasMany(x => x.Accounts)

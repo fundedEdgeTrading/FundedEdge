@@ -1,0 +1,218 @@
+@page "/reports"
+@rendermode InteractiveServer
+@inject ITaxReportService TaxReportService
+@inject CurrencyState Currency
+@inject IJSRuntime JS
+@inject IStringLocalizer<SharedResources> L
+
+<PageTitle>@L["Informe fiscal"] — @Brand.Name</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <div>
+        <h1 class="mb-0">@L["Informe fiscal"]</h1>
+        <p class="text-muted mb-0">@L["Payouts cobrados y costes pagados por año natural, en criterio de caja — listo para tu gestoría."]</p>
+    </div>
+    @if (_report is not null && _years.Count > 0)
+    {
+        <div class="d-flex align-items-center gap-2">
+            <select class="form-select" style="width:auto" value="@_selectedYear" @onchange="OnYearChangedAsync" aria-label="@L["Año"]">
+                @foreach (var year in _years)
+                {
+                    <option value="@year">@year</option>
+                }
+            </select>
+            <button class="btn btn-primary" @onclick="DownloadCsvAsync">@L["Exportar CSV"]</button>
+        </div>
+    }
+</div>
+
+@if (_loading)
+{
+    <p class="text-muted">@L["Cargando…"]</p>
+}
+else if (_years.Count == 0)
+{
+    <div class="alert alert-secondary">
+        @L["Todavía no hay payouts cobrados ni costes registrados. Registra la actividad de tus cuentas y aquí tendrás el resumen anual para tu declaración."]
+        <a href="accounts">@L["Cuentas"]</a>.
+    </div>
+}
+else if (_report is not null)
+{
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="text-muted small">@L["Payouts cobrados"]</div>
+                    <div class="fs-3 fw-bold text-success">@Currency.Format(_report.TotalPayoutsReceived)</div>
+                    <div class="text-muted small">@_report.Payouts.Count @L["movimientos"]</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="text-muted small">@L["Costes pagados"]</div>
+                    <div class="fs-3 fw-bold text-danger">@Currency.Format(_report.TotalCosts)</div>
+                    <div class="text-muted small">@_report.Costs.Count @L["movimientos"]</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="text-muted small">@L["Resultado neto del año"]</div>
+                    <div class="fs-3 fw-bold @(_report.Net < 0 ? "text-danger" : "text-success")">@Currency.Format(_report.Net)</div>
+                    <div class="text-muted small">@L["Payouts menos costes"]</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">@L["Resumen por trimestre"]</h5>
+            <div class="table-responsive">
+                <table class="table table-sm align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>@L["Trimestre"]</th>
+                            <th class="text-end">@L["Payouts cobrados"]</th>
+                            <th class="text-end">@L["Costes pagados"]</th>
+                            <th class="text-end">@L["Neto"]</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var q in _report.Quarters)
+                        {
+                            <tr>
+                                <td>T@(q.Quarter) @_report.Year</td>
+                                <td class="text-end">@Currency.Format(q.PayoutsReceived)</td>
+                                <td class="text-end">@Currency.Format(q.Costs)</td>
+                                <td class="text-end @(q.Net < 0 ? "text-danger" : "text-success")">@Currency.Format(q.Net)</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-lg-6">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">@L["Payouts cobrados"]</h5>
+                    @if (_report.Payouts.Count == 0)
+                    {
+                        <p class="text-muted mb-0">@L["Sin payouts cobrados este año."]</p>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-sm align-middle mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>@L["Fecha"]</th>
+                                        <th>@L["Firma"]</th>
+                                        <th>@L["Cuenta"]</th>
+                                        <th class="text-end">@L["Importe"]</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var p in _report.Payouts)
+                                    {
+                                        <tr>
+                                            <td>@p.PaidOn.ToString("yyyy-MM-dd")</td>
+                                            <td>@p.FirmName</td>
+                                            <td>@p.AccountName</td>
+                                            <td class="text-end">@Currency.Format(p.AmountReceived)</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">@L["Costes pagados"]</h5>
+                    @if (_report.Costs.Count == 0)
+                    {
+                        <p class="text-muted mb-0">@L["Sin costes registrados este año."]</p>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-sm align-middle mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>@L["Fecha"]</th>
+                                        <th>@L["Firma"]</th>
+                                        <th>@L["Cuenta"]</th>
+                                        <th>@L["Tipo"]</th>
+                                        <th class="text-end">@L["Importe"]</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var c in _report.Costs)
+                                    {
+                                        <tr>
+                                            <td>@c.PaidOn.ToString("yyyy-MM-dd")</td>
+                                            <td>@c.FirmName</td>
+                                            <td>@c.AccountName</td>
+                                            <td>@c.Kind</td>
+                                            <td class="text-end">@Currency.Format(c.Amount)</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <p class="text-muted small mt-3 mb-0">
+        @L["Los importes se muestran tal cual se registraron, sin conversión de divisa. Este informe es un resumen operativo, no asesoramiento fiscal."]
+    </p>
+}
+
+<script src="js/tax-report.js"></script>
+
+@code {
+    private bool _loading = true;
+    private IReadOnlyList<int> _years = [];
+    private int _selectedYear;
+    private TaxYearReportDto? _report;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Currency.EnsureLoadedAsync();
+        _years = await TaxReportService.GetAvailableYearsAsync();
+        if (_years.Count > 0)
+        {
+            _selectedYear = _years[0];
+            _report = await TaxReportService.GetYearReportAsync(_selectedYear);
+        }
+        _loading = false;
+    }
+
+    private async Task OnYearChangedAsync(ChangeEventArgs e)
+    {
+        if (!int.TryParse(e.Value?.ToString(), out var year)) return;
+        _selectedYear = year;
+        _report = await TaxReportService.GetYearReportAsync(year);
+    }
+
+    private async Task DownloadCsvAsync()
+    {
+        if (_report is null) return;
+        var csv = TaxReportCsv.Build(_report);
+        await JS.InvokeVoidAsync("taxReportDownload", $"fundededge-tax-{_report.Year}.csv", csv);
+    }
+}
