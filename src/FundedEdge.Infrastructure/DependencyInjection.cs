@@ -95,6 +95,7 @@ public static class DependencyInjection
         services.AddScoped<IGenericCsvImportService, Integrations.GenericCsv.GenericCsvImportService>();
         services.AddScoped<IIntegrationSettingsStore, DataProtectedIntegrationSettingsStore>();
         services.AddScoped<IRiskAnalysisService, RiskAnalysisService>();
+        services.AddScoped<IRoadmapService, RoadmapService>();
         services.AddScoped<IFirmFitService, FirmFitService>();
         services.AddScoped<ICurrencyPreferenceService, CurrencyPreferenceService>();
         services.AddScoped<IPlanService, PlanService>();
