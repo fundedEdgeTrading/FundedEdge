@@ -1,0 +1,85 @@
+@page "/roadmap"
+@rendermode InteractiveServer
+@inject IRoadmapService RoadmapService
+@inject CurrencyState Currency
+@inject IStringLocalizer<SharedResources> L
+
+<PageTitle>@L["Roadmap"] — @Brand.Name</PageTitle>
+
+<h1>@L["Roadmap hacia el retiro"]</h1>
+<p class="text-muted">@L["Prioriza tus cuentas fondeadas y evaluaciones, y planifica el reparto de tus payouts."]</p>
+
+@if (_roadmap is null)
+{
+    <div class="card"><div class="card-body">
+        <div class="skeleton skeleton-label mb-2" style="width:35%"></div>
+        <div class="skeleton skeleton-label" style="width:75%"></div>
+    </div></div>
+}
+else
+{
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">@L["1. Cuentas fondeadas — saldo disponible para retirar"]</h5>
+            @if (_roadmap.FundedPriority.Count == 0)
+            {
+                <p class="text-muted small mb-0">@L["Aún no tienes cuentas fondeadas."]</p>
+            }
+            else
+            {
+                <ol class="mb-0">
+                    @foreach (var a in _roadmap.FundedPriority)
+                    {
+                        <li>
+                            <strong>@a.DisplayName</strong> (@a.PropFirmName) —
+                            @Currency.Format(a.AvailableToWithdraw) @L["disponibles"]
+                        </li>
+                    }
+                </ol>
+            }
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">@L["2. Evaluaciones — más cerca de fondearse"]</h5>
+            @if (_roadmap.EvaluationPriority.Count == 0)
+            {
+                <p class="text-muted small mb-0">@L["No tienes evaluaciones en curso."]</p>
+            }
+            else
+            {
+                <ol class="mb-0">
+                    @foreach (var a in _roadmap.EvaluationPriority)
+                    {
+                        <li>
+                            <strong>@a.DisplayName</strong> (@a.PropFirmName) —
+                            @a.ProgressPercent.ToString("0.#")% @L["del objetivo"]
+                        </li>
+                    }
+                </ol>
+            }
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">@L["3. Reparto sugerido de payouts históricos"]</h5>
+            <p class="text-muted small">@L["Total payouts recibidos:"] @Currency.Format(_roadmap.Reinvestment.TotalPayoutsReceived)</p>
+            <ul class="mb-0">
+                <li>@L["Reinversión en nuevas evaluaciones ({0}%):", _roadmap.Reinvestment.ReinvestPercent * 100] @Currency.Format(_roadmap.Reinvestment.SuggestedReinvestment)</li>
+                <li>@L["Uso personal ({0}%):", _roadmap.Reinvestment.PersonalPercent * 100] @Currency.Format(_roadmap.Reinvestment.SuggestedPersonal)</li>
+                <li>@L["Provisión fiscal ({0}%):", _roadmap.Reinvestment.TaxPercent * 100] @Currency.Format(_roadmap.Reinvestment.SuggestedTaxReserve)</li>
+            </ul>
+        </div>
+    </div>
+}
+
+@code {
+    private RoadmapDto? _roadmap;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _roadmap = await RoadmapService.GetRoadmapAsync();
+    }
+}
