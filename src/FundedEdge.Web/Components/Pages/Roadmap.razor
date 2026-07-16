@@ -2,14 +2,13 @@
 @rendermode InteractiveServer
 @inject IRoadmapService RoadmapService
 @inject CurrencyState Currency
+@inject NavigationManager Nav
 @inject IStringLocalizer<SharedResources> L
+@implements IDisposable
 
 <PageTitle>@L["Roadmap"] — @Brand.Name</PageTitle>
 
-<h1>@L["Roadmap hacia el retiro"]</h1>
-<p class="text-muted">@L["Prioriza tus cuentas fondeadas y evaluaciones, y planifica el reparto de tus payouts."]</p>
-
-@if (_roadmap is null)
+@if (_model is null)
 {
     <div class="card"><div class="card-body">
         <div class="skeleton skeleton-label mb-2" style="width:35%"></div>
@@ -18,68 +17,203 @@
 }
 else
 {
-    <div class="card mb-4">
-        <div class="card-body">
-            <h5 class="card-title">@L["1. Cuentas fondeadas — saldo disponible para retirar"]</h5>
-            @if (_roadmap.FundedPriority.Count == 0)
-            {
-                <p class="text-muted small mb-0">@L["Aún no tienes cuentas fondeadas."]</p>
-            }
-            else
-            {
-                <ol class="mb-0">
-                    @foreach (var a in _roadmap.FundedPriority)
-                    {
-                        <li>
-                            <strong>@a.DisplayName</strong> (@a.PropFirmName) —
-                            @Currency.Format(a.AvailableToWithdraw) @L["disponibles"]
-                        </li>
-                    }
-                </ol>
-            }
+    <div class="rm-header">
+        <div>
+            <span class="rm-eyebrow"><span class="dot"></span>@L["Plan estratégico priorizado"]</span>
+            <h1 class="rm-h1">@L["Roadmap hacia el retiro"]</h1>
+            <p class="rm-lead">@L["Prioriza el capital que ya puedes sacar, acelera las evaluaciones más cerca del objetivo y reparte cada payout con cabeza."]</p>
+        </div>
+        <button class="rm-refresh" @onclick="ReloadAsync">@L["Actualizar plan"]</button>
+    </div>
+
+    <div class="rm-kpis">
+        <div class="rm-kpi">
+            <div class="rm-kpi-label">@L["Disponible para retirar"]</div>
+            <div class="rm-kpi-val">@Currency.Format(_totalWithdrawable)</div>
+            <div class="rm-kpi-hint">@L["{0} cuentas fondeadas con saldo", _model.FundedPriority.Count]</div>
+        </div>
+        <div class="rm-kpi">
+            <div class="rm-kpi-label">@L["Evaluaciones activas"]</div>
+            <div class="rm-kpi-val">@_model.EvaluationPriority.Count</div>
+            <div class="rm-kpi-hint">@L["En camino de fondearse"]</div>
+        </div>
+        <div class="rm-kpi">
+            <div class="rm-kpi-label">@L["Payouts históricos"]</div>
+            <div class="rm-kpi-val">@Currency.Format(_model.Reinvestment.TotalPayoutsReceived)</div>
+            <div class="rm-kpi-hint">@L["Base del reparto sugerido"]</div>
         </div>
     </div>
 
-    <div class="card mb-4">
-        <div class="card-body">
-            <h5 class="card-title">@L["2. Evaluaciones — más cerca de fondearse"]</h5>
-            @if (_roadmap.EvaluationPriority.Count == 0)
-            {
-                <p class="text-muted small mb-0">@L["No tienes evaluaciones en curso."]</p>
-            }
-            else
-            {
-                <ol class="mb-0">
-                    @foreach (var a in _roadmap.EvaluationPriority)
-                    {
-                        <li>
-                            <strong>@a.DisplayName</strong> (@a.PropFirmName) —
-                            @a.ProgressPercent.ToString("0.#")% @L["del objetivo"]
-                        </li>
-                    }
-                </ol>
-            }
+    <div class="rm-section"><h2>@L["Tu camino, paso a paso"]</h2><div class="rule"></div></div>
+
+    <div class="rm-timeline">
+        <div class="rm-spine"></div>
+
+        @* ---- FASE 1 ---- *@
+        <div class="rm-phase">
+            <div class="rm-node n1">1</div>
+            <div class="rm-card">
+                <div class="rm-card-head">
+                    <div>
+                        <span class="rm-badge b-good">@L["Prioridad máxima · Disponible ahora"]</span>
+                        <h3 class="rm-phase-title">@L["Retira lo que ya es tuyo"]</h3>
+                        <p class="rm-phase-desc">@L["Estas cuentas están fondeadas y con saldo retirable. Solicita el payout antes de arriesgar más capital."]</p>
+                    </div>
+                    <div style="text-align:right">
+                        <div class="rm-amount-label">@L["Total retirable"]</div>
+                        <div class="rm-amount good">@Currency.Format(_totalWithdrawable)</div>
+                    </div>
+                </div>
+                @if (_model.FundedPriority.Count == 0)
+                {
+                    <div class="rm-empty">@L["Aún no tienes cuentas fondeadas con saldo retirable."]</div>
+                }
+                else
+                {
+                    <div class="rm-funded-list">
+                        @foreach (var a in _model.FundedPriority)
+                        {
+                            <div class="rm-funded-row">
+                                <div class="rm-tag">@Initials(a.DisplayName)</div>
+                                <div>
+                                    <div class="rm-funded-name">@a.DisplayName</div>
+                                    <div class="rm-funded-firm">@a.PropFirmName</div>
+                                </div>
+                                <div class="rm-funded-amt">@Currency.Format(a.AvailableToWithdraw)<small>@L["disponible"]</small></div>
+                                <button class="rm-withdraw" @onclick="() => GoToWithdraw(a.Id)">@L["Retirar"]</button>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+
+        @* ---- FASE 2 ---- *@
+        <div class="rm-phase">
+            <div class="rm-node n2">2</div>
+            <div class="rm-card rm-card-pad">
+                <span class="rm-badge b-warn">@L["Prioridad media · En progreso"]</span>
+                <h3 class="rm-phase-title">@L["Acerca tus evaluaciones al objetivo"]</h3>
+                <p class="rm-phase-desc">@L["Concentra tu volumen operativo en las cuentas más próximas a fondearse. Cada una que pase se convierte en nueva fuente de payouts."]</p>
+                @if (_model.EvaluationPriority.Count == 0)
+                {
+                    <div class="rm-empty" style="padding:1rem 0 0">@L["No tienes evaluaciones activas ahora mismo."]</div>
+                }
+                else
+                {
+                    <div class="rm-eval-grid" style="margin-top:1.1rem">
+                        @foreach (var e in _model.EvaluationPriority)
+                        {
+                            var bad = e.ProgressPercent < 0;
+                            var w = Math.Clamp(e.ProgressPercent, 0, 100);
+                            <div class="rm-eval-card">
+                                <div class="rm-eval-top">
+                                    <div>
+                                        <div class="rm-eval-name">@e.DisplayName</div>
+                                        <div class="rm-eval-firm">@e.PropFirmName</div>
+                                    </div>
+                                    <div class="rm-eval-pct @(bad ? "bad" : "warn")">@e.ProgressPercent.ToString("0.0")%</div>
+                                </div>
+                                <div class="rm-track"><div class="rm-fill @(bad ? "bad" : "warn")" style="width:@w.ToString(System.Globalization.CultureInfo.InvariantCulture)%"></div></div>
+                                <div class="rm-eval-foot"><span>@(bad ? L["En drawdown — recuperar"] : L["Más cerca del objetivo"])</span><span>@L["Objetivo del reto"]</span></div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+
+        @* ---- FASE 3 ---- *@
+        <div class="rm-phase">
+            <div class="rm-node n3">3</div>
+            <div class="rm-card rm-card-pad">
+                <div class="rm-card-head" style="padding:0">
+                    <div>
+                        <span class="rm-badge b-neutral">@L["Disciplina · Cada payout"]</span>
+                        <h3 class="rm-phase-title">@L["Reparte cada payout con cabeza"]</h3>
+                        <p class="rm-phase-desc">@L["Reinvierte para escalar, disfruta de tu esfuerzo y no olvides a Hacienda. Este es el reparto sugerido."]</p>
+                    </div>
+                    <div style="text-align:right">
+                        <div class="rm-amount-label">@L["Payouts históricos"]</div>
+                        <div class="rm-amount plain">@Currency.Format(_model.Reinvestment.TotalPayoutsReceived)</div>
+                    </div>
+                </div>
+                @{ var r = _model.Reinvestment; }
+                @if (r.TotalPayoutsReceived <= 0)
+                {
+                    <div class="rm-empty" style="padding:1rem 0 0">@L["Cuando recibas tu primer payout verás aquí el reparto sugerido."]</div>
+                }
+                else
+                {
+                    <div class="rm-split-bar">
+                        <div class="rm-split-seg s-reinvest" style="width:@Pct(r.ReinvestPercent)%"></div>
+                        <div class="rm-split-seg s-personal" style="width:@Pct(r.PersonalPercent)%"></div>
+                        <div class="rm-split-seg s-tax" style="width:@Pct(r.TaxPercent)%"></div>
+                    </div>
+                    <div class="rm-split-grid">
+                        <div class="rm-split-card">
+                            <div class="accent-bar bg-reinvest"></div>
+                            <div class="rm-split-top"><span class="rm-split-label"><span class="c-reinvest">●</span>@L["Reinversión"]</span><span class="rm-split-pct c-reinvest">@Whole(r.ReinvestPercent)%</span></div>
+                            <div class="rm-split-amt">@Currency.Format(r.SuggestedReinvestment)</div>
+                            <div class="rm-split-note">@L["Nuevas evaluaciones para escalar tu capital fondeado."]</div>
+                        </div>
+                        <div class="rm-split-card">
+                            <div class="accent-bar bg-personal"></div>
+                            <div class="rm-split-top"><span class="rm-split-label"><span class="c-personal">●</span>@L["Uso personal"]</span><span class="rm-split-pct c-personal">@Whole(r.PersonalPercent)%</span></div>
+                            <div class="rm-split-amt">@Currency.Format(r.SuggestedPersonal)</div>
+                            <div class="rm-split-note">@L["Disfruta tu esfuerzo. El dinero que sale es real."]</div>
+                        </div>
+                        <div class="rm-split-card">
+                            <div class="accent-bar bg-tax"></div>
+                            <div class="rm-split-top"><span class="rm-split-label"><span class="c-tax">●</span>@L["Provisión fiscal"]</span><span class="rm-split-pct c-tax">@Whole(r.TaxPercent)%</span></div>
+                            <div class="rm-split-amt">@Currency.Format(r.SuggestedTaxReserve)</div>
+                            <div class="rm-split-note">@L["Reserva para impuestos. No es tuyo hasta pagar a Hacienda."]</div>
+                        </div>
+                    </div>
+                }
+            </div>
         </div>
     </div>
 
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">@L["3. Reparto sugerido de payouts históricos"]</h5>
-            <p class="text-muted small">@L["Total payouts recibidos:"] @Currency.Format(_roadmap.Reinvestment.TotalPayoutsReceived)</p>
-            <ul class="mb-0">
-                <li>@L["Reinversión en nuevas evaluaciones ({0}%):", _roadmap.Reinvestment.ReinvestPercent * 100] @Currency.Format(_roadmap.Reinvestment.SuggestedReinvestment)</li>
-                <li>@L["Uso personal ({0}%):", _roadmap.Reinvestment.PersonalPercent * 100] @Currency.Format(_roadmap.Reinvestment.SuggestedPersonal)</li>
-                <li>@L["Provisión fiscal ({0}%):", _roadmap.Reinvestment.TaxPercent * 100] @Currency.Format(_roadmap.Reinvestment.SuggestedTaxReserve)</li>
-            </ul>
-        </div>
-    </div>
+    <p class="rm-disclaimer">@L["Los porcentajes de reparto son configurables en Ajustes. Consulta con un asesor fiscal para tu jurisdicción antes de provisionar impuestos."]</p>
 }
 
 @code {
-    private RoadmapDto? _roadmap;
+    private RoadmapDto? _model;
+    private decimal _totalWithdrawable;
 
     protected override async Task OnInitializedAsync()
     {
-        _roadmap = await RoadmapService.GetRoadmapAsync();
+        await Currency.EnsureLoadedAsync();
+        Currency.Changed += OnCurrencyChanged;
+        await LoadAsync();
     }
+
+    private async Task LoadAsync()
+    {
+        _model = await RoadmapService.GetRoadmapAsync();
+        _totalWithdrawable = _model.FundedPriority.Sum(a => a.AvailableToWithdraw);
+    }
+
+    private async Task ReloadAsync()
+    {
+        await LoadAsync();
+        StateHasChanged();
+    }
+
+    private static string Initials(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name)) return "—";
+        var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        var s = string.Concat(parts.Take(2).Select(p => char.ToUpperInvariant(p[0])));
+        return s.Length > 0 ? s : name[..Math.Min(2, name.Length)].ToUpperInvariant();
+    }
+
+    private static string Pct(decimal p) => (p * 100m).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
+    private static string Whole(decimal p) => (p * 100m).ToString("0", System.Globalization.CultureInfo.InvariantCulture);
+
+    private void GoToWithdraw(Guid accountId) => Nav.NavigateTo($"/accounts/{accountId}");
+
+    public void Dispose() => Currency.Changed -= OnCurrencyChanged;
+    private void OnCurrencyChanged() => InvokeAsync(StateHasChanged);
 }
