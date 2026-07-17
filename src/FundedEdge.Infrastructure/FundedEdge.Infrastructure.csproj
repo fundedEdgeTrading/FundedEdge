@@ -7,6 +7,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Reglamentos completos de cada prop firm en Markdown, cargados por defecto (PropFirmRulesSeeder). -->
+    <EmbeddedResource Include="Resources\PropFirmRules\*.md" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\FundedEdge.Domain\FundedEdge.Domain.csproj" />
     <ProjectReference Include="..\FundedEdge.Application\FundedEdge.Application.csproj" />
   </ItemGroup>

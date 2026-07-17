@@ -30,6 +30,28 @@ public class PropFirm : Entity
     /// </summary>
     public int? MinDaysBetweenPayouts { get; set; }
 
+    // ── Reglas editoriales y automatización de ingesta (Nimble + IA) ─────────────────────────────
+
+    /// <summary>
+    /// Reglamento completo de la firma en Markdown (fidelidad total: vías EOD/Intraday, caps de
+    /// payout por nº, safety net, inactividad…). Se carga por defecto desde los .md incluidos y lo
+    /// refresca el pipeline automatizado. Es la fuente humana/UI; la política computable vive en
+    /// <see cref="EvaluationProgram"/>.
+    /// </summary>
+    public string? RulesMarkdown { get; set; }
+
+    /// <summary>
+    /// URLs (una por línea) que el pipeline de ingesta descarga vía Nimble para reextraer las
+    /// reglas. Null/vacío = la firma no participa en la sincronización automática.
+    /// </summary>
+    public string? RulesSourceUrls { get; set; }
+
+    /// <summary>Origen de <see cref="RulesMarkdown"/> vigente: "Seed", "Nimble+Claude", "Manual".</summary>
+    public string? RulesSource { get; set; }
+
+    /// <summary>Fecha de la última actualización de <see cref="RulesMarkdown"/>.</summary>
+    public DateOnly? RulesUpdatedOn { get; set; }
+
     public List<TradingAccount> Accounts { get; set; } = [];
 
     /// <summary>
