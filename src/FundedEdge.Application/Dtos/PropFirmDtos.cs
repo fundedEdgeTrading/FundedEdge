@@ -12,7 +12,11 @@ public record PropFirmDto(
     FirmHealthStatus HealthStatus,
     string? Country,
     string? HealthNotes,
-    DateOnly? HealthUpdatedOn);
+    DateOnly? HealthUpdatedOn,
+    string? RulesMarkdown = null,
+    string? RulesSourceUrls = null,
+    string? RulesSource = null,
+    DateOnly? RulesUpdatedOn = null);
 
 public record UpsertPropFirmRequest(
     string Name,

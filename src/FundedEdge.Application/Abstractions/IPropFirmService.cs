@@ -15,4 +15,11 @@ public interface IPropFirmService
     /// todos los usuarios de la instancia. Las firmas sin muestra suficiente no aparecen.
     /// </summary>
     Task<IReadOnlyDictionary<Guid, FirmPayoutSpeedDto>> GetPayoutSpeedAsync(CancellationToken ct = default);
+
+    /// <summary>
+    /// Actualiza las URLs fuente (una por línea) que <c>IFirmRulesSyncService</c> descarga para
+    /// reextraer el reglamento de la firma. No toca <see cref="PropFirmDto.RulesMarkdown"/> ni
+    /// dispara ninguna sincronización — solo guarda dónde debe mirar la próxima vez.
+    /// </summary>
+    Task UpdateRulesSourceUrlsAsync(Guid firmId, string? rulesSourceUrls, CancellationToken ct = default);
 }

@@ -6,6 +6,7 @@
 @inject IPropFirmService PropFirmService
 @inject IEvaluationProgramService ProgramService
 @inject IExternalFirmDataProvider ExternalProvider
+@inject IFirmRulesSyncService RulesSyncService
 @inject CurrencyState Currency
 @inject IStringLocalizer<SharedResources> L
 
@@ -157,6 +158,51 @@ else
     {
         <div class="alert alert-danger">@_programError</div>
     }
+
+    @* ── Reglamento (Markdown) y sincronización automática (Nimble + IA) ──────────────────── *@
+    <div class="card mb-3">
+        <div class="card-body">
+            <h6 class="card-title">@L["Reglamento (Markdown)"]</h6>
+            <p class="text-muted small mb-2">
+                @L["Origen actual:"] <strong>@(SelectedFirm?.RulesSource ?? L["— sin cargar —"].ToString())</strong>
+                @if (SelectedFirm?.RulesUpdatedOn is not null)
+                {
+                    <span> · @L["Actualizado:"] @SelectedFirm!.RulesUpdatedOn!.Value.ToString("d")</span>
+                }
+            </p>
+
+            <label class="form-label">@L["URLs fuente (una por línea)"]</label>
+            <textarea class="form-control mb-2" rows="3" placeholder="https://…"
+                      @bind="_rulesSourceUrlsInput"></textarea>
+            <div class="d-flex gap-2 align-items-center flex-wrap">
+                <button class="btn btn-outline-secondary btn-sm" @onclick="SaveRulesSourceUrlsAsync">@L["Guardar URLs"]</button>
+                <button class="btn btn-primary btn-sm" @onclick="SyncRulesAsync" disabled="@(!RulesSyncService.IsConfigured || _rulesSyncing)">
+                    @(_rulesSyncing ? L["Sincronizando…"] : L["🔄 Sincronizar con IA"])
+                </button>
+                @if (!RulesSyncService.IsConfigured)
+                {
+                    <span class="text-muted small">@L["Configura Nimble:ApiKey y ANTHROPIC_API_KEY para habilitar la sincronización automática."]</span>
+                }
+            </div>
+
+            @if (_rulesSyncError is not null)
+            {
+                <div class="alert alert-danger mt-2 mb-0 py-2 small">@_rulesSyncError</div>
+            }
+            @if (_rulesSyncInfo is not null)
+            {
+                <div class="alert alert-success mt-2 mb-0 py-2 small">@_rulesSyncInfo</div>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(SelectedFirm?.RulesMarkdown))
+            {
+                <details class="mt-2">
+                    <summary class="text-muted small">@L["Ver reglamento completo"]</summary>
+                    <pre class="small border rounded p-2 mt-1" style="max-height:300px;overflow:auto;white-space:pre-wrap;">@SelectedFirm!.RulesMarkdown</pre>
+                </details>
+            }
+        </div>
+    </div>
 
     <div class="card mb-3">
         <div class="card-body">
@@ -376,6 +422,14 @@ else
     private List<EvaluationProgramDto>? _importPreview;
     private string? _importError;
 
+    // ── Reglamento y sincronización (Nimble + IA) ───────────────────────────────────────────
+    private string _rulesSourceUrlsInput = "";
+    private string? _rulesSyncError;
+    private string? _rulesSyncInfo;
+    private bool _rulesSyncing;
+
+    private PropFirmDto? SelectedFirm => _firms?.FirstOrDefault(f => f.Id == _selectedFirmId);
+
     protected override async Task OnInitializedAsync()
     {
         Currency.Changed += OnCurrencyChanged;
@@ -396,6 +450,9 @@ else
         _programs = null;
         _importPreview = null;
         _importError = null;
+        _rulesSyncError = null;
+        _rulesSyncInfo = null;
+        _rulesSourceUrlsInput = SelectedFirm?.RulesSourceUrls ?? "";
         if (_selectedFirmId is null) return;
         _programs = (await ProgramService.GetByFirmAsync(_selectedFirmId.Value)).ToList();
     }
@@ -404,6 +461,58 @@ else
     {
         _selectedFirmId = firmId;
         _ = LoadProgramsAsync();
+    }
+
+    // ── Reglamento y sincronización (Nimble + IA) ───────────────────────────────────────────
+
+    private async Task SaveRulesSourceUrlsAsync()
+    {
+        if (_selectedFirmId is null) return;
+        _rulesSyncError = null;
+        _rulesSyncInfo = null;
+        try
+        {
+            await PropFirmService.UpdateRulesSourceUrlsAsync(_selectedFirmId.Value, _rulesSourceUrlsInput);
+            await LoadAsync();
+            _rulesSyncInfo = L["URLs guardadas."];
+        }
+        catch (Exception ex)
+        {
+            _rulesSyncError = ex.Message;
+        }
+    }
+
+    private async Task SyncRulesAsync()
+    {
+        if (_selectedFirmId is null || _rulesSyncing) return;
+        _rulesSyncError = null;
+        _rulesSyncInfo = null;
+        _rulesSyncing = true;
+        try
+        {
+            var result = await RulesSyncService.SyncAsync(_selectedFirmId.Value);
+            await LoadAsync();
+
+            if (result.Warning is not null)
+            {
+                _rulesSyncError = result.Warning;
+            }
+            else
+            {
+                _rulesSyncInfo = L["Reglamento actualizado."];
+            }
+
+            _importPreview = result.Programs.ToList();
+            _showImportPanel = _importPreview.Count > 0;
+        }
+        catch (Exception ex)
+        {
+            _rulesSyncError = ex.Message;
+        }
+        finally
+        {
+            _rulesSyncing = false;
+        }
     }
 
     // ── Firm CRUD ────────────────────────────────────────────────────────────────────────────

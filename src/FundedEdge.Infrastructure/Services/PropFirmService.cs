@@ -26,7 +26,8 @@ public class PropFirmService(
             .OrderBy(f => f.Name)
             .Select(f => new PropFirmDto(
                 f.Id, f.Name, f.Website, f.Notes, f.MinDaysBetweenPayouts, f.Accounts.Count,
-                f.HealthStatus, f.Country, f.HealthNotes, f.HealthUpdatedOn))
+                f.HealthStatus, f.Country, f.HealthNotes, f.HealthUpdatedOn,
+                f.RulesMarkdown, f.RulesSourceUrls, f.RulesSource, f.RulesUpdatedOn))
             .ToListAsync(ct);
     }
 
@@ -37,7 +38,8 @@ public class PropFirmService(
             .Where(f => f.Id == id)
             .Select(f => new PropFirmDto(
                 f.Id, f.Name, f.Website, f.Notes, f.MinDaysBetweenPayouts, f.Accounts.Count,
-                f.HealthStatus, f.Country, f.HealthNotes, f.HealthUpdatedOn))
+                f.HealthStatus, f.Country, f.HealthNotes, f.HealthUpdatedOn,
+                f.RulesMarkdown, f.RulesSourceUrls, f.RulesSource, f.RulesUpdatedOn))
             .SingleOrDefaultAsync(ct);
     }
 
@@ -91,6 +93,15 @@ public class PropFirmService(
         var firm = await db.PropFirms.FindAsync([id], ct);
         if (firm is null) return;
         db.PropFirms.Remove(firm);
+        await db.SaveChangesAsync(ct);
+    }
+
+    public async Task UpdateRulesSourceUrlsAsync(Guid firmId, string? rulesSourceUrls, CancellationToken ct = default)
+    {
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
+        var firm = await db.PropFirms.FindAsync([firmId], ct)
+            ?? throw new KeyNotFoundException($"PropFirm {firmId} no encontrada.");
+        firm.RulesSourceUrls = rulesSourceUrls;
         await db.SaveChangesAsync(ct);
     }
 

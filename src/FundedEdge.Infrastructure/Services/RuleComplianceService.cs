@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using FundedEdge.Application.Abstractions;
 using FundedEdge.Application.Dtos;
 using FundedEdge.Domain.Enums;
+using FundedEdge.Domain.Risk;
 using FundedEdge.Infrastructure.Persistence;
 
 namespace FundedEdge.Infrastructure.Services;
@@ -57,57 +58,25 @@ public class RuleComplianceService(
             var trades = await db.Trades.AsNoTracking()
                 .Where(t => t.AccountId == account.Id)
                 .OrderBy(t => t.ClosedAt)
-                .Select(t => new { t.ClosedAt, NetPnL = t.GrossPnL - t.Commissions })
+                .Select(t => new ComplianceTrade(t.ClosedAt, t.GrossPnL - t.Commissions))
                 .ToListAsync(ct);
 
-            // ── Drawdown: mismo algoritmo que IRiskAnalysisService.GetDrawdownAlertsAsync ──
-            decimal equity = 0m, peak = 0m;
-            foreach (var t in trades)
-            {
-                equity += t.NetPnL;
-                if (drawdownType != DrawdownType.Static)
-                {
-                    peak = Math.Max(peak, equity);
-                }
-            }
-            var floor = peak - maxDrawdown;
-            var drawdownRemaining = Math.Max(equity - floor, 0m);
-            var drawdownConsumed = maxDrawdown > 0 ? Math.Clamp(1 - (double)(drawdownRemaining / maxDrawdown), 0, 1) : 0;
-            var drawdownLevel = LevelFor(drawdownConsumed);
+            var drawdown = ComplianceRuleEngine.EvaluateDrawdown(trades, maxDrawdown, drawdownType);
+            var drawdownLevel = LevelFor(drawdown.ConsumedFraction);
 
-            // ── Pérdida diaria: PnL de hoy frente al límite del programa ──
-            var dailyLossToday = Math.Max(-trades.Where(t => DateOnly.FromDateTime(t.ClosedAt.Date) == today).Sum(t => t.NetPnL), 0m);
-            decimal? dailyLossRemaining = dailyLossLimit is > 0 ? dailyLossLimit - dailyLossToday : null;
-            var dailyLossLevel = dailyLossLimit is > 0
-                ? LevelFor(Math.Clamp((double)(dailyLossToday / dailyLossLimit.Value), 0, 1))
-                : ComplianceLevel.Green;
+            var dailyLoss = ComplianceRuleEngine.EvaluateDailyLoss(trades, dailyLossLimit, today);
+            var dailyLossLevel = dailyLoss.ConsumedFraction is double dlFraction ? LevelFor(dlFraction) : ComplianceLevel.Green;
 
-            // ── Consistencia: fracción del profit total aportada por el mejor día ──
-            ComplianceLevel? consistencyLevel = null;
-            double? topDayFraction = null;
-            if (account.ConsistencyMaxDayFraction is > 0)
-            {
-                var dailyProfits = trades
-                    .GroupBy(t => DateOnly.FromDateTime(t.ClosedAt.Date))
-                    .Select(g => g.Sum(t => t.NetPnL))
-                    .Where(p => p > 0)
-                    .ToList();
-                var totalProfit = dailyProfits.Sum();
-                if (totalProfit > 0)
-                {
-                    topDayFraction = (double)(dailyProfits.Max() / totalProfit);
-                    var ratio = topDayFraction.Value / (double)account.ConsistencyMaxDayFraction.Value;
-                    consistencyLevel = LevelFor(Math.Clamp(ratio, 0, 1));
-                }
-            }
+            var consistency = ComplianceRuleEngine.EvaluateConsistency(trades, account.ConsistencyMaxDayFraction);
+            var consistencyLevel = consistency is null ? (ComplianceLevel?)null : LevelFor(consistency.ConsumedFraction);
 
             var overall = new[] { dailyLossLevel, drawdownLevel, consistencyLevel ?? ComplianceLevel.Green }.Max();
 
             result.Add(new AccountComplianceStatusDto(
                 account.Id, account.DisplayName,
-                dailyLossLimit, dailyLossToday, dailyLossRemaining, dailyLossLevel,
-                maxDrawdown, drawdownRemaining, drawdownLevel,
-                account.ConsistencyMaxDayFraction, topDayFraction, consistencyLevel,
+                dailyLossLimit, dailyLoss.UsedToday, dailyLoss.Remaining, dailyLossLevel,
+                maxDrawdown, drawdown.RemainingBuffer, drawdownLevel,
+                account.ConsistencyMaxDayFraction, consistency?.TopDayFraction, consistencyLevel,
                 overall));
         }
 
