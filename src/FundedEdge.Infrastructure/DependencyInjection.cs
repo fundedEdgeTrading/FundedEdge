@@ -11,6 +11,7 @@ using FundedEdge.Infrastructure.Ai;
 using FundedEdge.Infrastructure.Email;
 using FundedEdge.Infrastructure.Identity;
 using FundedEdge.Infrastructure.Integrations.Csv;
+using FundedEdge.Infrastructure.Integrations.Nimble;
 using FundedEdge.Infrastructure.Persistence;
 using FundedEdge.Infrastructure.Services;
 using FundedEdge.Infrastructure.Settings;
@@ -83,11 +84,13 @@ public static class DependencyInjection
         services.AddScoped<IdentityDataSeeder>();
         services.AddScoped<IAdminUserService, AdminUserService>();
         services.AddScoped<DemoDataSeeder>();
+        services.AddScoped<PropFirmRulesSeeder>();
 
         services.AddScoped<IPropFirmService, PropFirmService>();
         services.AddScoped<IEvaluationProgramService, EvaluationProgramService>();
         services.AddScoped<IAccountProgressService, AccountProgressService>();
         services.AddScoped<IExternalFirmDataProvider, ManualExternalFirmDataProvider>();
+        AddRuleAutomation(services, configuration);
         services.AddScoped<ITradingAccountService, TradingAccountService>();
         services.AddScoped<ITradeSetupService, TradeSetupService>();
         services.AddScoped<IKpiService, KpiService>();
@@ -163,6 +166,26 @@ public static class DependencyInjection
         }
 
         services.AddHostedService<TradeImportReminderService>();
+    }
+
+    // Automatización de reglas de prop firms: Nimble para recuperar el contenido web (no hay SDK
+    // .NET oficial → se consume su Web API REST con un HttpClient tipado) y Claude para extraer los
+    // programas estructurados. Credenciales nunca versionadas: Nimble:ApiKey / NIMBLE_API_KEY.
+    private static void AddRuleAutomation(IServiceCollection services, IConfiguration configuration)
+    {
+        var apiKey = configuration["Nimble:ApiKey"] ?? Environment.GetEnvironmentVariable("NIMBLE_API_KEY");
+        var baseUrl = configuration["Nimble:BaseUrl"] ?? NimbleOptions.DefaultBaseUrl;
+        services.AddSingleton(new NimbleOptions(!string.IsNullOrWhiteSpace(apiKey), apiKey, baseUrl));
+
+        services.AddHttpClient<INimbleClient, NimbleClient>((sp, http) =>
+        {
+            var options = sp.GetRequiredService<NimbleOptions>();
+            http.BaseAddress = new Uri(options.BaseUrl);
+            http.Timeout = TimeSpan.FromSeconds(120);
+        });
+
+        services.AddScoped<IRuleExtractionService, ClaudeRuleExtractionService>();
+        services.AddScoped<IFirmRulesSyncService, FirmRulesSyncService>();
     }
 
     private static void AddAi(IServiceCollection services, IConfiguration configuration)

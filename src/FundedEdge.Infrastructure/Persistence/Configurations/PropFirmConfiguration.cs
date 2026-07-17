@@ -14,6 +14,8 @@ public class PropFirmConfiguration : IEntityTypeConfiguration<PropFirm>
         builder.Property(x => x.Website).HasMaxLength(300);
         builder.Property(x => x.Country).HasMaxLength(100);
         builder.Property(x => x.HealthNotes).HasMaxLength(1000);
+        builder.Property(x => x.RulesSource).HasMaxLength(50);
+        // RulesMarkdown / RulesSourceUrls sin longitud máxima → columna "text".
         builder.HasIndex(x => x.Name).IsUnique();
 
         builder.HasMany(x => x.Accounts)

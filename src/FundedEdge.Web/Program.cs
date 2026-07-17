@@ -179,6 +179,20 @@ else
     await scope.ServiceProvider.GetRequiredService<IdentityDataSeeder>().SeedAsync();
 }
 
+// Reglamentos de prop firms: carga por defecto de los .md incluidos (idempotente, no destructivo).
+// No es crítico para arrancar, así que un fallo aquí se registra pero no tumba la aplicación.
+{
+    using var scope = app.Services.CreateScope();
+    try
+    {
+        await scope.ServiceProvider.GetRequiredService<PropFirmRulesSeeder>().SeedAsync();
+    }
+    catch (Exception ex)
+    {
+        app.Logger.LogWarning(ex, "No se pudieron cargar los reglamentos de prop firms; se omite (no crítico).");
+    }
+}
+
 // Datos de demostración (opt-in, ver DemoDataSeeder): usuario demo con 6 cuentas, trades,
 // transiciones, resets, payouts y psicología. Solo con Database:SeedDemo=true (Development).
 if (string.Equals(app.Configuration["Database:SeedDemo"], "true", StringComparison.OrdinalIgnoreCase))
